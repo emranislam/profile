@@ -3,268 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>শিক্ষকের প্রোফাইল ও শিক্ষণ সামগ্রী</title>
+    <title>10 Taka School | Emran Islam</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        /* CSS স্টাইল - ওয়েবসাইটের ডিজাইন */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-
-        header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5em;
-        }
-
-        header p {
-            margin: 5px 0 0;
-            font-size: 1.2em;
-            opacity: 0.8;
-        }
-
-        nav {
-            background-color: #34495e;
-            text-align: center;
-            padding: 10px 0;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            margin: 0 5px;
-            display: inline-block;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        nav a:hover {
-            background-color: #1abc9c;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-
-        .profile-section {
-            display: flex;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .profile-pic {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background-color: #ddd; /* ছবি না থাকলে গ্রে কালার দেখাবে */
-            margin-right: 30px;
-            background-image: url('profile.jpg'); /* আপনার ছবির লিঙ্ক এখানে দিন (যেমন: profile.jpg) */
-            background-size: cover;
-            background-position: center;
-            border: 5px solid #1abc9c;
-        }
-
-        .profile-info h2 {
-            margin: 0 0 10px;
-            color: #2c3e50;
-        }
-
-        .profile-info p {
-            margin: 5px 0;
-        }
-
-        .section-title {
-            color: #1abc9c;
-            border-left: 5px solid #1abc9c;
-            padding-left: 10px;
-            margin-top: 30px;
-        }
-
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .card {
-            background-color: #fff;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 20px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            color: #2c3e50;
-        }
-
-        .card p {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 8px 15px;
-            background-color: #1abc9c;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.9em;
-            transition: background 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #16a085;
-        }
-
-        .btn-class {
-            background-color: #e74c3c; /* ক্লাস লিঙ্কের জন্য লাল রঙ */
-        }
-        
-        .btn-class:hover {
-            background-color: #c0392b;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #2c3e50;
-            color: white;
-            margin-top: 40px;
-        }
-
-        /* মোবাইল ডিভাইসের জন্য রেসপনসিভ ডিজাইন */
-        @media (max-width: 600px) {
-            .profile-section {
-                flex-direction: column;
-                text-align: center;
-            }
-            .profile-pic {
-                margin-right: 0;
-                margin-bottom: 20px;
-            }
-            nav a {
-                padding: 10px;
-                margin: 5px;
-                font-size: 0.9em;
-            }
-        }
+        :root { --primary: #1abc9c; --secondary: #2c3e50; --accent: #f39c12; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; line-height: 1.6; color: #333; background-color: #f4f7f6; }
+        header { background: var(--secondary); color: white; padding: 60px 20px; text-align: center; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        .nav { background: #fff; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; }
+        .nav a { margin: 0 15px; text-decoration: none; color: var(--secondary); font-weight: bold; }
+        .course-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; border-top: 5px solid var(--accent); }
+        .btn { background: var(--primary); color: white; padding: 10px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+        .math-box { background: #eef; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 5px solid var(--primary); }
+        .payment-info { background: #fff9e6; border: 2px dashed var(--accent); padding: 20px; border-radius: 10px; text-align: center; }
+        footer { text-align: center; padding: 40px; background: var(--secondary); color: white; margin-top: 50px; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>শিক্ষকের নাম এখানে দিন</h1> <p>পদবী ও প্রতিষ্ঠানের নাম</p> </header>
+<div class="nav">
+    <a href="#home">হোম</a>
+    <a href="#courses">১০ টাকার কোর্স</a>
+    <a href="#notes">হ্যান্ড নোট</a>
+    <a href="#contact">যোগাযোগ</a>
+</div>
 
-<nav>
-    <a href="#profile">প্রোফাইল</a>
-    <a href="#documents">বিষয়ের নথিপত্র</a>
-    <a href="#handnotes">হ্যান্ড নোট</a>
-    <a href="#classes">ক্লাস লিঙ্ক</a>
-</nav>
+<header id="home">
+    <h1>10 Taka School</h1>
+    <p>সহজ গণিত, সাশ্রয়ী শিক্ষা</p>
+    <p>Lecturer in Mathematics, UAP</p>
+</header>
 
 <div class="container">
-
-    <div id="profile" class="profile-section">
-        <div class="profile-pic"></div> <div class="profile-info">
-            <h2>আমার সম্পর্কে</h2>
-            <p>আপনার সম্পর্কে সংক্ষিপ্ত বিবরণ এখানে লিখুন। আপনার শিক্ষাগত যোগ্যতা, অভিজ্ঞতার ক্ষেত্র এবং শিক্ষাদানের দর্শন সম্পর্কে কিছু বলতে পারেন।</p>
-            <p><strong>ইমেইল:</strong> your.email@email.com</p> <p><strong>গবেষণার ক্ষেত্র:</strong> বিষয় ১, বিষয় ২</p>
+    <section id="about">
+        <h2>স্বাগতম</h2>
+        <p>আমি এমরান ইসলাম। এখানে আপনি গণিতের জটিল বিষয়গুলো সহজভাবে শিখতে পারবেন। যেমন ক্যালকুলাসের একটি মৌলিক সূত্র:</p>
+        <div class="math-box">
+            $$\int x^n dx = \frac{x^{n+1}}{n+1} + C$$
         </div>
-    </div>
+    </section>
 
-    <div id="documents">
-        <h2 class="section-title">বিষয়ের নথিপত্র (Subjective Documents)</h2>
-        <p>বিভিন্ন বিষয়ের সিলেবাস, প্রশ্নপত্র এবং অন্যান্য গুরুত্বপূর্ণ নথিপত্র এখানে পাবেন।</p>
-        <div class="card-container">
-            <div class="card">
-                <h3>বিষয় ১ - সিলেবাস</h3>
-                <p>২০২৪ সালের বিষয় ১-এর সম্পূর্ণ সিলেবাস ও পাঠ্যসূচি।</p>
-                <a href="#" class="btn" target="_blank">ডাউনলোড করুন</a> </div>
-            <div class="card">
-                <h3>বিষয় ২ - বইয়ের তালিকা</h3>
-                <p>এই কোর্সের জন্য প্রয়োজনীয় বই ও সহায়ক গ্রন্থের তালিকা।</p>
-                <a href="#" class="btn" target="_blank">ডাউনলোড করুন</a>
-            </div>
-            <div class="card">
-                <h3>বিগত বছরের প্রশ্নপত্র</h3>
-                <p>বিষয় ১ এবং বিষয় ২-এর বিগত ৫ বছরের বোর্ড প্রশ্নপত্র।</p>
-                <a href="#" class="btn" target="_blank">ডাউনলোড করুন</a>
-            </div>
+    <section id="courses">
+        <h2 style="color: var(--accent);">চলমান কোর্সসমূহ</h2>
+        <div class="course-card">
+            <h3>উচ্চতর গণিত ১ম পত্র (এইচএসসি ২০২৬)</h3>
+            <p>প্রতিটি অধ্যায়ের ওপর বিস্তারিত লেকচার এবং সমাধান।</p>
+            <p><strong>কোর্স ফি: মাত্র ১০ টাকা (প্রতিটি অধ্যায়)</strong></p>
+            <a href="#payment" class="btn">এনরোল করুন</a>
         </div>
-    </div>
+    </section>
 
-    <div id="handnotes">
-        <h2 class="section-title">অধ্যায়ভিত্তিক হ্যান্ড নোট (Hand Notes)</h2>
-        <p>ক্লাস লেকচারের ওপর ভিত্তি করে তৈরি করা অধ্যায়ভিত্তিক বিস্তারিত নোট।</p>
-        <div class="card-container">
-            <div class="card">
-                <h3>অধ্যায় ১: বিষয়ের নাম</h3>
-                <p>মৌলিক ধারণা এবং গুরুত্বপূর্ণ সংজ্ঞা।</p>
-                <a href="#" class="btn" target="_blank">নোট দেখুন</a> </div>
-            <div class="card">
-                <h3>অধ্যায় ২: বিষয়ের নাম</h3>
-                <p>বিস্তারিত আলোচনা, উদাহরণ এবং গাণিতিক সমস্যা।</p>
-                <a href="#" class="btn" target="_blank">নোট দেখুন</a>
-            </div>
-            <div class="card">
-                <h3>অধ্যায় ৩: বিষয়ের নাম</h3>
-                <p>জটিল বিষয়গুলোর সহজ ব্যাখ্যা এবং চিত্র।</p>
-                <a href="#" class="btn" target="_blank">নোট দেখুন</a>
-            </div>
-        </div>
-    </div>
+    <section id="notes">
+        <h2>ফ্রি হ্যান্ড নোট (PDF)</h2>
+        <ul>
+            <li>ম্যাট্রিক্স ও নির্ণায়ক - <a href="matrix-notes.pdf">ডাউনলোড</a></li>
+            <li>ত্রিকোণমিতি বেসিক - <a href="#">ডাউনলোড</a></li>
+        </ul>
+    </section>
 
-    <div id="classes">
-        <h2 class="section-title">অনলাইন ক্লাস লিঙ্ক (Class Links)</h2>
-        <p>লাইভ ক্লাস এবং রেকর্ড করা ক্লাসের লিঙ্কসমূহ এখানে দেওয়া হলো।</p>
-        <div class="card-container">
-            <div class="card">
-                <h3>লাইভ ক্লাস - বিষয় ১</h3>
-                <p>প্রতি রবিবার ও মঙ্গলবার, সকাল ১০:০০ টা। (Zoom/Google Meet)</p>
-                <a href="#" class="btn btn-class" target="_blank">ক্লাসে যোগ দিন</a> </div>
-            <div class="card">
-                <h3>রেকর্ড করা ক্লাস - বিষয় ১</h3>
-                <p>বিগত সকল ক্লাসের রেকর্ডিং এখানে পাবেন। (Google Drive/YouTube)</p>
-                <a href="#" class="btn btn-class" target="_blank">রেকর্ডিং দেখুন</a>
-            </div>
-            <div class="card">
-                <h3>লাইভ ক্লাস - বিষয় ২</h3>
-                <p>প্রতি সোমবার ও বুধবার, বিকাল ৪:০০ টা। (Google Meet)</p>
-                <a href="#" class="btn btn-class" target="_blank">ক্লাসে যোগ দিন</a>
-            </div>
-        </div>
-    </div>
-
+    <section id="payment" class="payment-info">
+        <h3>পেমেন্ট পদ্ধতি</h3>
+        <p>যেকোনো কোর্সে যুক্ত হতে নিচের বিকাশ নম্বরে ফি পাঠিয়ে দিন।</p>
+        <div style="font-size: 1.5em; font-weight: bold; color: #d12053;">বিকাশ (পার্সোনাল): 017XXXXXXXX</div>
+        <p>টাকা পাঠানোর পর ট্রানজেকশন আইডি সহ হোয়াটসঅ্যাপে মেসেজ দিন।</p>
+        <a href="https://wa.me/88017XXXXXXXX" class="btn" style="background: #25d366;">হোয়াটসঅ্যাপ করুন</a>
+    </section>
 </div>
 
 <footer>
-    <p>&copy; ২০২৪ | আপনার নাম | সকল স্বত্ব সংরক্ষিত</p>
+    <p>&copy; 2026 10 Taka School | All Rights Reserved</p>
 </footer>
 
 </body>
