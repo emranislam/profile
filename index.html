@@ -1,169 +1,114 @@
-import React, { useState, useEffect } from "react";
-import {
-  Github,
-  Linkedin,
-  Mail,
-  ExternalLink,
-  Moon,
-  Sun,
-} from "lucide-react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emran Islam | Portfolio</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
 
-// --- Data (Professional way) ---
-const courses = [
-  {
-    title: "Calculus & Analytical Geometry",
-    desc: "Limits, derivatives, integration",
-    link: "#",
-  },
-];
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Custom Lucide Icon Component for this browser version
+        const Icon = ({ name, size = 18, className = "" }) => {
+            useEffect(() => { lucide.createIcons(); }, []);
+            return <i data-lucide={name} style={{width: size, height: size}} className={className}></i>;
+        };
 
-const projects = [
-  {
-    title: "Operations Research Optimization Model",
-    desc: "Mathematical modeling for decision optimization problems.",
-    link: "#",
-  },
-];
+        const courses = [
+            { title: "Calculus & Analytical Geometry", desc: "Limits, derivatives, integration", link: "#" },
+        ];
 
-export default function App() {
-  const [darkMode, setDarkMode] = useState(true);
+        const projects = [
+            { title: "Operations Research Optimization Model", desc: "Mathematical modeling for decision optimization problems.", link: "#" },
+        ];
 
-  // Load saved theme
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "light") setDarkMode(false);
-  }, []);
+        function App() {
+            const [darkMode, setDarkMode] = useState(true);
 
-  // Apply theme
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
+            useEffect(() => {
+                if (darkMode) document.documentElement.classList.add("dark");
+                else document.documentElement.classList.remove("dark");
+            }, [darkMode]);
 
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+                    <nav className="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b z-50">
+                        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+                            <h1 className="font-bold text-xl text-blue-600 uppercase tracking-tighter">Emran Islam</h1>
+                            <div className="flex items-center gap-6 font-medium">
+                                <a href="#about" className="hover:text-blue-600 transition">About</a>
+                                <a href="#courses" className="hover:text-blue-600 transition">Courses</a>
+                                <a href="#projects" className="hover:text-blue-600 transition">Projects</a>
+                                <button onClick={() => setDarkMode(!darkMode)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+                                    {darkMode ? <Icon name="sun" /> : <Icon name="moon" />}
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+                    <section className="pt-32 pb-20 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+                        <div>
+                            <h1 className="text-5xl font-black leading-tight mb-4 uppercase tracking-tighter">Emran Islam</h1>
+                            <h2 className="text-2xl text-blue-600 font-semibold mb-4">Lecturer of Mathematics</h2>
+                            <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">Research Interest: Operations Research. Focused on optimization, decision science, and mathematical modeling.</p>
+                            <div className="flex gap-4">
+                                <a href="#projects" className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:shadow-lg transition">View Work</a>
+                                <a href="#contact" className="border-2 border-gray-300 dark:border-gray-700 px-8 py-3 rounded-full font-bold hover:border-blue-600 transition">Contact</a>
+                            </div>
+                        </div>
+                        <img src="https://via.placeholder.com/500" className="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition duration-500" alt="profile" />
+                    </section>
 
-      {/* NAVBAR */}
-      <nav className="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-          <h1 className="font-bold text-xl text-blue-600">Emran Islam</h1>
+                    <section id="about" className="py-20 text-center max-w-3xl mx-auto px-6">
+                        <h2 className="text-3xl font-bold mb-6 uppercase tracking-tighter">About Me</h2>
+                        <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">I am Emran Islam, a Lecturer of Mathematics with a passion for Operations Research. My work focuses on optimization techniques, mathematical modeling, and real-world problem solving.</p>
+                    </section>
 
-          <div className="flex items-center gap-6">
-            <a href="#about">About</a>
-            <a href="#courses">Courses</a>
-            <a href="#projects">Projects</a>
-            <a href="#contact">Contact</a>
+                    <section id="courses" className="py-20 bg-gray-100 dark:bg-gray-800/50 px-6">
+                        <div className="max-w-6xl mx-auto">
+                            <h2 className="text-3xl font-bold text-center mb-12 uppercase tracking-tighter">Courses</h2>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                {courses.map((c, i) => (
+                                    <div key={i} className="p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border-l-4 border-blue-600">
+                                        <h3 className="font-bold text-xl mb-2">{c.title}</h3>
+                                        <p className="text-gray-500 mb-4">{c.desc}</p>
+                                        <a href={c.link} className="text-blue-600 font-bold inline-flex items-center">Enroll <Icon name="chevron-right" className="ml-1" size={14}/></a>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
 
-            <button onClick={() => setDarkMode(!darkMode)}>
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          </div>
-        </div>
-      </nav>
+                    <section id="contact" className="py-20 bg-blue-600 text-white text-center rounded-t-[3rem] mt-10">
+                        <h2 className="text-4xl font-black mb-4 uppercase">Contact Me</h2>
+                        <p className="text-xl mb-8 opacity-80 font-medium">emranju70@gmail.com</p>
+                        <div className="flex justify-center gap-8">
+                            <a href="mailto:emranju70@gmail.com" className="hover:scale-110 transition"><Icon name="mail" size={24} /></a>
+                            <a href="#" className="hover:scale-110 transition"><Icon name="github" size={24} /></a>
+                            <a href="#" className="hover:scale-110 transition"><Icon name="linkedin" size={24} /></a>
+                        </div>
+                    </section>
 
-      {/* HERO */}
-      <section className="pt-28 pb-20 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <h1 className="text-5xl font-bold leading-tight mb-4">
-            Emran Islam
-          </h1>
-          <h2 className="text-xl text-blue-600 mb-4">
-            Lecturer of Mathematics
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Research Interest: Operations Research. Focused on optimization,
-            decision science, and mathematical modeling.
-          </p>
+                    <footer className="text-center py-10 text-xs uppercase tracking-widest text-gray-400">
+                        © 2026 Emran Islam | Academic Portfolio
+                    </footer>
+                </div>
+            );
+        }
 
-          <div className="flex gap-4">
-            <a href="#projects" className="bg-blue-600 text-white px-6 py-3 rounded-full">
-              View Work
-            </a>
-            <a href="#contact" className="border px-6 py-3 rounded-full">
-              Contact
-            </a>
-          </div>
-        </div>
-
-        <img
-          src="https://via.placeholder.com/500"
-          className="rounded-xl shadow-lg"
-          alt="profile"
-        />
-      </section>
-
-      {/* ABOUT */}
-      <section id="about" className="py-16 text-center max-w-3xl mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-4">About Me</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          I am Emran Islam, a Lecturer of Mathematics with a strong passion for
-          Operations Research. My work focuses on optimization techniques,
-          mathematical modeling, and real-world problem solving.
-        </p>
-      </section>
-
-      {/* COURSES */}
-      <section id="courses" className="py-16 bg-gray-100 dark:bg-gray-800 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-10">Courses</h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {courses.map((c, i) => (
-              <div key={i} className="p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
-                <h3 className="font-bold text-lg mb-2">{c.title}</h3>
-                <p className="text-sm text-gray-500 mb-3">{c.desc}</p>
-                <a href={c.link} className="text-blue-600 text-sm">
-                  Enroll →
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PROJECTS */}
-      <section id="projects" className="py-16 px-6 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-10">Projects</h2>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {projects.map((p, i) => (
-            <div key={i} className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
-              <h3 className="text-xl font-bold mb-2">{p.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-3">{p.desc}</p>
-              <a href={p.link} className="text-blue-600 flex items-center">
-                View <ExternalLink size={14} className="ml-1" />
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section id="contact" className="py-16 bg-blue-600 text-white text-center">
-        <h2 className="text-3xl font-bold mb-4">Contact Me</h2>
-        <p className="mb-6">emranju70@gmail.com</p>
-
-        <div className="flex justify-center gap-6">
-          <a href="mailto:emranju70@gmail.com">
-            <Mail />
-          </a>
-
-          <a href="https://github.com/" target="_blank">
-            <Github />
-          </a>
-
-          <a href="https://linkedin.com/" target="_blank">
-            <Linkedin />
-          </a>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="text-center py-6 text-sm text-gray-500">
-        © 2026 Emran Islam | Academic Portfolio
-      </footer>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
