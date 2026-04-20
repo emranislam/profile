@@ -1,196 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { Github, Linkedin, Mail, ExternalLink, Moon, Sun, Book, Award, FileText, ChevronRight, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  ExternalLink,
+  Moon,
+  Sun,
+} from "lucide-react";
 
-// --- Components ---
+// --- Data (Professional way) ---
+const courses = [
+  {
+    title: "Calculus & Analytical Geometry",
+    desc: "Limits, derivatives, integration",
+    link: "#",
+  },
+];
 
-const SectionHeading = ({ children, subtitle }) => (
-  <div className="mb-12 text-center">
-    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">{children}</h2>
-    <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full"></div>
-    {subtitle && <p className="mt-4 text-gray-600 dark:text-gray-400">{subtitle}</p>}
-  </div>
-);
+const projects = [
+  {
+    title: "Operations Research Optimization Model",
+    desc: "Mathematical modeling for decision optimization problems.",
+    link: "#",
+  },
+];
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 ${className}`}>
-    {children}
-  </div>
-);
-
-const App = () => {
+export default function App() {
   const [darkMode, setDarkMode] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Load saved theme
   useEffect(() => {
-    if (darkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    const saved = localStorage.getItem("theme");
+    if (saved === "light") setDarkMode(false);
+  }, []);
+
+  // Apply theme
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Achievements', href: '#achievements' },
-    { name: 'Courses', href: '#courses' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Contact', href: '#contact' },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-sans text-gray-900 dark:text-gray-100">
-      
-      {/* Navigation */}
-      <nav className="fixed w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <span className="text-2xl font-black tracking-tighter text-blue-600 uppercase">Prof. Portfolio</span>
-          
-          <div className="hidden md:flex space-x-8 items-center">
-            {navLinks.map(link => (
-              <a key={link.name} href={link.href} className="hover:text-blue-600 transition-colors font-medium">{link.name}</a>
-            ))}
-            <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+
+      {/* NAVBAR */}
+      <nav className="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+          <h1 className="font-bold text-xl text-blue-600">Emran Islam</h1>
+
+          <div className="flex items-center gap-6">
+            <a href="#about">About</a>
+            <a href="#courses">Courses</a>
+            <a href="#projects">Projects</a>
+            <a href="#contact">Contact</a>
+
+            <button onClick={() => setDarkMode(!darkMode)}>
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </div>
-
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
-              Advancing <span className="text-blue-600">Mathematics</span> through Innovation.
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-lg">
-              Lecturer and Researcher specializing in Computational Seismology, Optimization, and high-precision electronic instrumentation.
-            </p>
-            <div className="flex space-x-4 pt-4">
-              <a href="#projects" className="px-8 py-4 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all">View Work</a>
-              <a href="#contact" className="px-8 py-4 border-2 border-gray-300 dark:border-gray-700 rounded-full font-bold hover:border-blue-600 transition-all">Contact</a>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 transform rotate-3 absolute inset-0 -z-10"></div>
-            <img src="https://via.placeholder.com/600x600" alt="Profile" className="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 object-cover w-full h-full" />
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-20 bg-white dark:bg-gray-800/50">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <SectionHeading subtitle="My Professional Philosophy">About Me</SectionHeading>
-          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Based in Bangladesh, I serve as a Mathematics Lecturer with a passion for integrating complex numerical analysis into real-world applications. From mentoring National Math Olympiad candidates to developing automated seismic data collection tools, my career is defined by the pursuit of academic excellence and technical precision.
+      {/* HERO */}
+      <section className="pt-28 pb-20 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <h1 className="text-5xl font-bold leading-tight mb-4">
+            Emran Islam
+          </h1>
+          <h2 className="text-xl text-blue-600 mb-4">
+            Lecturer of Mathematics
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Research Interest: Operations Research. Focused on optimization,
+            decision science, and mathematical modeling.
           </p>
+
+          <div className="flex gap-4">
+            <a href="#projects" className="bg-blue-600 text-white px-6 py-3 rounded-full">
+              View Work
+            </a>
+            <a href="#contact" className="border px-6 py-3 rounded-full">
+              Contact
+            </a>
+          </div>
         </div>
+
+        <img
+          src="https://via.placeholder.com/500"
+          className="rounded-xl shadow-lg"
+          alt="profile"
+        />
       </section>
 
-      {/* Achievements Section */}
-      <section id="achievements" className="py-20 px-6 max-w-7xl mx-auto">
-        <SectionHeading>Academic Achievements</SectionHeading>
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Books */}
-          <Card className="p-6">
-            <Book className="text-blue-600 mb-4" size={40} />
-            <h3 className="text-xl font-bold mb-2">Authored Publications</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Authored comprehensive guides for HSC Mathematics and academic textbooks.</p>
-            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
-              View Books <ChevronRight size={16} />
-            </div>
-          </Card>
-          {/* Research */}
-          <Card className="p-6">
-            <FileText className="text-blue-600 mb-4" size={40} />
-            <h3 className="text-xl font-bold mb-2">Research Papers</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Focusing on Multi-Objective Genetic Algorithms (MOGA) and Seismic patterns.</p>
-            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
-              Explore Journals <ChevronRight size={16} />
-            </div>
-          </Card>
-          {/* Awards */}
-          <Card className="p-6">
-            <Award className="text-blue-600 mb-4" size={40} />
-            <h3 className="text-xl font-bold mb-2">Awards & Certs</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Recognitions in International Mathematical Modeling and PSAC service.</p>
-            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
-              View Awards <ChevronRight size={16} />
-            </div>
-          </Card>
-        </div>
+      {/* ABOUT */}
+      <section id="about" className="py-16 text-center max-w-3xl mx-auto px-6">
+        <h2 className="text-3xl font-bold mb-4">About Me</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          I am Emran Islam, a Lecturer of Mathematics with a strong passion for
+          Operations Research. My work focuses on optimization techniques,
+          mathematical modeling, and real-world problem solving.
+        </p>
       </section>
 
-      {/* Courses Section */}
-      <section id="courses" className="py-20 bg-gray-100 dark:bg-gray-800/20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <SectionHeading>Active Courses</SectionHeading>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map(item => (
-              <div key={item} className="flex p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-600">
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Calculus & Analytical Geometry</h4>
-                  <p className="text-gray-500 text-sm mb-3">Undergraduate level course covering limits, derivatives, and integration.</p>
-                  <a href="#" className="text-sm text-blue-600 font-medium">Syllabus & Notes →</a>
-                </div>
+      {/* COURSES */}
+      <section id="courses" className="py-16 bg-gray-100 dark:bg-gray-800 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-10">Courses</h2>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {courses.map((c, i) => (
+              <div key={i} className="p-6 bg-white dark:bg-gray-900 rounded-xl shadow">
+                <h3 className="font-bold text-lg mb-2">{c.title}</h3>
+                <p className="text-sm text-gray-500 mb-3">{c.desc}</p>
+                <a href={c.link} className="text-blue-600 text-sm">
+                  Enroll →
+                </a>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Projects Section */}
-      <section id="projects" className="py-20 px-6 max-w-7xl mx-auto">
-        <SectionHeading>Project Showcase</SectionHeading>
-        <div className="grid md:grid-cols-2 gap-10">
-          <Card>
-            <img src="https://via.placeholder.com/800x450" className="w-full h-48 object-cover" alt="Project" />
-            <div className="p-6">
-              <h3 className="text-2xl font-bold mb-2">STM32 LCR Meter (ABB)</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">A high-precision auto-balancing bridge for component measurement using ARM microcontrollers.</p>
-              <div className="flex space-x-4">
-                <a href="#" className="flex items-center text-sm font-bold bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">Repo <ExternalLink size={14} className="ml-1" /></a>
-              </div>
+      {/* PROJECTS */}
+      <section id="projects" className="py-16 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-10">Projects</h2>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {projects.map((p, i) => (
+            <div key={i} className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
+              <h3 className="text-xl font-bold mb-2">{p.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-3">{p.desc}</p>
+              <a href={p.link} className="text-blue-600 flex items-center">
+                View <ExternalLink size={14} className="ml-1" />
+              </a>
             </div>
-          </Card>
-          <Card>
-            <img src="https://via.placeholder.com/800x450" className="w-full h-48 object-cover" alt="Project" />
-            <div className="p-6">
-              <h3 className="text-2xl font-bold mb-2">MOGA Seismic Framework</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Genetic algorithms applied to tectonic boundary analysis and earthquake detection.</p>
-              <div className="flex space-x-4">
-                <a href="#" className="flex items-center text-sm font-bold bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">Case Study <ExternalLink size={14} className="ml-1" /></a>
-              </div>
-            </div>
-          </Card>
+          ))}
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 bg-blue-600 text-white rounded-t-[3rem] mx-4">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-8">Let's Discuss Collaboration</h2>
-          <p className="text-blue-100 mb-12 text-lg">Open for research partnerships, pedagogical consultation, and technical projects.</p>
-          <div className="flex flex-wrap justify-center gap-6">
-            <a href="mailto:email@uap.com" className="flex items-center bg-white text-blue-600 px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform">
-              <Mail className="mr-2" /> Send Email
-            </a>
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              <div className="p-4 bg-blue-700 rounded-full hover:bg-blue-800 cursor-pointer"><Github /></div>
-              <div className="p-4 bg-blue-700 rounded-full hover:bg-blue-800 cursor-pointer"><Linkedin /></div>
-            </div>
-          </div>
+      {/* CONTACT */}
+      <section id="contact" className="py-16 bg-blue-600 text-white text-center">
+        <h2 className="text-3xl font-bold mb-4">Contact Me</h2>
+        <p className="mb-6">emranju70@gmail.com</p>
+
+        <div className="flex justify-center gap-6">
+          <a href="mailto:emranju70@gmail.com">
+            <Mail />
+          </a>
+
+          <a href="https://github.com/" target="_blank">
+            <Github />
+          </a>
+
+          <a href="https://linkedin.com/" target="_blank">
+            <Linkedin />
+          </a>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-10 text-center text-gray-500 text-sm">
-        <p>© 2026 Academic Portfolio. Built with React & Tailwind CSS.</p>
+      {/* FOOTER */}
+      <footer className="text-center py-6 text-sm text-gray-500">
+        © 2026 Emran Islam | Academic Portfolio
       </footer>
     </div>
   );
-};
-
-export default App;
+}
