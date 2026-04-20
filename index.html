@@ -1,79 +1,196 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>10 Taka School | Emran Islam</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        :root { --primary: #1abc9c; --secondary: #2c3e50; --accent: #f39c12; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; line-height: 1.6; color: #333; background-color: #f4f7f6; }
-        header { background: var(--secondary); color: white; padding: 60px 20px; text-align: center; }
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
-        .nav { background: #fff; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; }
-        .nav a { margin: 0 15px; text-decoration: none; color: var(--secondary); font-weight: bold; }
-        .course-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; border-top: 5px solid var(--accent); }
-        .btn { background: var(--primary); color: white; padding: 10px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
-        .math-box { background: #eef; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 5px solid var(--primary); }
-        .payment-info { background: #fff9e6; border: 2px dashed var(--accent); padding: 20px; border-radius: 10px; text-align: center; }
-        footer { text-align: center; padding: 40px; background: var(--secondary); color: white; margin-top: 50px; }
-    </style>
-</head>
-<body>
+import React, { useState, useEffect } from 'react';
+import { Github, Linkedin, Mail, ExternalLink, Moon, Sun, Book, Award, FileText, ChevronRight, Menu, X } from 'lucide-react';
 
-<div class="nav">
-    <a href="#home">হোম</a>
-    <a href="#courses">১০ টাকার কোর্স</a>
-    <a href="#notes">হ্যান্ড নোট</a>
-    <a href="#contact">যোগাযোগ</a>
-</div>
+// --- Components ---
 
-<header id="home">
-    <h1>10 Taka School</h1>
-    <p>সহজ গণিত, সাশ্রয়ী শিক্ষা</p>
-    <p>Lecturer in Mathematics, UAP</p>
-</header>
+const SectionHeading = ({ children, subtitle }) => (
+  <div className="mb-12 text-center">
+    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">{children}</h2>
+    <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full"></div>
+    {subtitle && <p className="mt-4 text-gray-600 dark:text-gray-400">{subtitle}</p>}
+  </div>
+);
 
-<div class="container">
-    <section id="about">
-        <h2>স্বাগতম</h2>
-        <p>আমি ইমরান ইসলাম। এখানে আপনি গণিতের জটিল বিষয়গুলো সহজভাবে শিখতে পারবেন। যেমন ক্যালকুলাসের একটি মৌলিক সূত্র:</p>
-        <div class="math-box">
-            $$\int x^n dx = \frac{x^{n+1}}{n+1} + C$$
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 ${className}`}>
+    {children}
+  </div>
+);
+
+const App = () => {
+  const [darkMode, setDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [darkMode]);
+
+  const navLinks = [
+    { name: 'About', href: '#about' },
+    { name: 'Achievements', href: '#achievements' },
+    { name: 'Courses', href: '#courses' },
+    { name: 'Projects', href: '#projects' },
+    { name: 'Contact', href: '#contact' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-sans text-gray-900 dark:text-gray-100">
+      
+      {/* Navigation */}
+      <nav className="fixed w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <span className="text-2xl font-black tracking-tighter text-blue-600 uppercase">Prof. Portfolio</span>
+          
+          <div className="hidden md:flex space-x-8 items-center">
+            {navLinks.map(link => (
+              <a key={link.name} href={link.href} className="hover:text-blue-600 transition-colors font-medium">{link.name}</a>
+            ))}
+            <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
+
+          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
-    </section>
+      </nav>
 
-    <section id="courses">
-        <h2 style="color: var(--accent);">চলমান কোর্সসমূহ</h2>
-        <div class="course-card">
-            <h3>উচ্চতর গণিত ১ম পত্র (এইচএসসি ২০২৬)</h3>
-            <p>প্রতিটি অধ্যায়ের ওপর বিস্তারিত লেকচার এবং সমাধান।</p>
-            <p><strong>কোর্স ফি: মাত্র ১০ টাকা (প্রতিটি অধ্যায়)</strong></p>
-            <a href="#payment" class="btn">এনরোল করুন</a>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
+              Advancing <span className="text-blue-600">Mathematics</span> through Innovation.
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-lg">
+              Lecturer and Researcher specializing in Computational Seismology, Optimization, and high-precision electronic instrumentation.
+            </p>
+            <div className="flex space-x-4 pt-4">
+              <a href="#projects" className="px-8 py-4 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all">View Work</a>
+              <a href="#contact" className="px-8 py-4 border-2 border-gray-300 dark:border-gray-700 rounded-full font-bold hover:border-blue-600 transition-all">Contact</a>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="aspect-square rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 transform rotate-3 absolute inset-0 -z-10"></div>
+            <img src="https://via.placeholder.com/600x600" alt="Profile" className="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 object-cover w-full h-full" />
+          </div>
         </div>
-    </section>
+      </section>
 
-    <section id="notes">
-        <h2>ফ্রি হ্যান্ড নোট (PDF)</h2>
-        <ul>
-            <li>ম্যাট্রিক্স ও নির্ণায়ক - <a href="matrix-notes.pdf">ডাউনলোড</a></li>
-            <li>ত্রিকোণমিতি বেসিক - <a href="#">ডাউনলোড</a></li>
-        </ul>
-    </section>
+      {/* About Section */}
+      <section id="about" className="py-20 bg-white dark:bg-gray-800/50">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <SectionHeading subtitle="My Professional Philosophy">About Me</SectionHeading>
+          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+            Based in Bangladesh, I serve as a Mathematics Lecturer with a passion for integrating complex numerical analysis into real-world applications. From mentoring National Math Olympiad candidates to developing automated seismic data collection tools, my career is defined by the pursuit of academic excellence and technical precision.
+          </p>
+        </div>
+      </section>
 
-    <section id="payment" class="payment-info">
-        <h3>পেমেন্ট পদ্ধতি</h3>
-        <p>যেকোনো কোর্সে যুক্ত হতে নিচের বিকাশ নম্বরে ফি পাঠিয়ে দিন।</p>
-        <div style="font-size: 1.5em; font-weight: bold; color: #d12053;">বিকাশ (পার্সোনাল): 017XXXXXXXX</div>
-        <p>টাকা পাঠানোর পর ট্রানজেকশন আইডি সহ হোয়াটসঅ্যাপে মেসেজ দিন।</p>
-        <a href="https://wa.me/88017XXXXXXXX" class="btn" style="background: #25d366;">হোয়াটসঅ্যাপ করুন</a>
-    </section>
-</div>
+      {/* Achievements Section */}
+      <section id="achievements" className="py-20 px-6 max-w-7xl mx-auto">
+        <SectionHeading>Academic Achievements</SectionHeading>
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Books */}
+          <Card className="p-6">
+            <Book className="text-blue-600 mb-4" size={40} />
+            <h3 className="text-xl font-bold mb-2">Authored Publications</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Authored comprehensive guides for HSC Mathematics and academic textbooks.</p>
+            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
+              View Books <ChevronRight size={16} />
+            </div>
+          </Card>
+          {/* Research */}
+          <Card className="p-6">
+            <FileText className="text-blue-600 mb-4" size={40} />
+            <h3 className="text-xl font-bold mb-2">Research Papers</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Focusing on Multi-Objective Genetic Algorithms (MOGA) and Seismic patterns.</p>
+            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
+              Explore Journals <ChevronRight size={16} />
+            </div>
+          </Card>
+          {/* Awards */}
+          <Card className="p-6">
+            <Award className="text-blue-600 mb-4" size={40} />
+            <h3 className="text-xl font-bold mb-2">Awards & Certs</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Recognitions in International Mathematical Modeling and PSAC service.</p>
+            <div className="flex items-center text-blue-500 font-semibold cursor-pointer">
+              View Awards <ChevronRight size={16} />
+            </div>
+          </Card>
+        </div>
+      </section>
 
-<footer>
-    <p>&copy; 2026 10 Taka School | All Rights Reserved</p>
-</footer>
+      {/* Courses Section */}
+      <section id="courses" className="py-20 bg-gray-100 dark:bg-gray-800/20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <SectionHeading>Active Courses</SectionHeading>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(item => (
+              <div key={item} className="flex p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-600">
+                <div>
+                  <h4 className="font-bold text-lg mb-1">Calculus & Analytical Geometry</h4>
+                  <p className="text-gray-500 text-sm mb-3">Undergraduate level course covering limits, derivatives, and integration.</p>
+                  <a href="#" className="text-sm text-blue-600 font-medium">Syllabus & Notes →</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-</body>
-</html>
+      {/* Projects Section */}
+      <section id="projects" className="py-20 px-6 max-w-7xl mx-auto">
+        <SectionHeading>Project Showcase</SectionHeading>
+        <div className="grid md:grid-cols-2 gap-10">
+          <Card>
+            <img src="https://via.placeholder.com/800x450" className="w-full h-48 object-cover" alt="Project" />
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-2">STM32 LCR Meter (ABB)</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">A high-precision auto-balancing bridge for component measurement using ARM microcontrollers.</p>
+              <div className="flex space-x-4">
+                <a href="#" className="flex items-center text-sm font-bold bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">Repo <ExternalLink size={14} className="ml-1" /></a>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <img src="https://via.placeholder.com/800x450" className="w-full h-48 object-cover" alt="Project" />
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-2">MOGA Seismic Framework</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Genetic algorithms applied to tectonic boundary analysis and earthquake detection.</p>
+              <div className="flex space-x-4">
+                <a href="#" className="flex items-center text-sm font-bold bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">Case Study <ExternalLink size={14} className="ml-1" /></a>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-20 bg-blue-600 text-white rounded-t-[3rem] mx-4">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold mb-8">Let's Discuss Collaboration</h2>
+          <p className="text-blue-100 mb-12 text-lg">Open for research partnerships, pedagogical consultation, and technical projects.</p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <a href="mailto:email@uap.com" className="flex items-center bg-white text-blue-600 px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform">
+              <Mail className="mr-2" /> Send Email
+            </a>
+            <div className="flex space-x-4 mt-4 md:mt-0">
+              <div className="p-4 bg-blue-700 rounded-full hover:bg-blue-800 cursor-pointer"><Github /></div>
+              <div className="p-4 bg-blue-700 rounded-full hover:bg-blue-800 cursor-pointer"><Linkedin /></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10 text-center text-gray-500 text-sm">
+        <p>© 2026 Academic Portfolio. Built with React & Tailwind CSS.</p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
