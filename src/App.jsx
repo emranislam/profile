@@ -968,7 +968,6 @@ const PART3_ACADEMIC_TRACKS = {
 export default function App() {
   const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState(OFFLINE_AVATAR_SVG);
-  const [dossierTab, setDossierTab] = useState('overview');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
 
@@ -1365,6 +1364,16 @@ export default function App() {
             >
               📚 বইসমূহ
             </button>
+            <button
+              onClick={() => openSubPage('About Me')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
+                activeSubPage === 'About Me'
+                  ? 'bg-sky-400 text-slate-950 shadow-sm'
+                  : 'bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-800'
+              }`}
+            >
+              👤 About Me
+            </button>
           </div>
         </div>
       </header>
@@ -1387,7 +1396,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
               <span>অন্য সাব-পেজে যান:</span>
               {[
                 { id: 'HSC Bangla Version', label: 'HSC বাংলা' },
@@ -1395,7 +1404,8 @@ export default function App() {
                 { id: 'O-Level & A-Level', label: 'O/A-Level' },
                 { id: 'Admission Test (BUET/DU)', label: 'Admission' },
                 { id: 'B.Sc. Honours Math', label: 'Honours' },
-                { id: 'Research & Papers', label: 'Research' }
+                { id: 'Research & Papers', label: 'Research' },
+                { id: 'About Me', label: 'About Me' }
               ]
                 .filter((t) => t.id !== activeSubPage)
                 .map((t) => (
@@ -1418,8 +1428,8 @@ export default function App() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(20,184,166,0.16),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(245,158,11,0.12),_transparent_55%)]" />
 
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
-          {/* LEFT / CENTER MAIN FIELD (lg:col-span-8) */}
-          <div className="lg:col-span-8 flex flex-col justify-between space-y-6 py-1">
+          {/* MAIN FIELD (full width; the profile lives on the dedicated About Me sub-page) */}
+          <div className="lg:col-span-12 flex flex-col justify-between space-y-6 py-1">
             <div className="space-y-3.5">
               <h2 className="text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight">
                 <span className="text-white">Emran Islam —</span>{' '}
@@ -1593,313 +1603,6 @@ export default function App() {
                     </div>
                   );
                 })}
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: EXECUTIVE PROFILE DOSSIER MATCHING 1000214065.jpg (Overview | PhD & Research | Awards) */}
-          <div className="lg:col-span-4 bg-gradient-to-b from-[#071527] via-[#061222] to-[#040c18] border border-cyan-500/30 p-5 rounded-[28px] shadow-[0_0_40px_rgba(6,182,212,0.12)] flex flex-col justify-between space-y-4">
-            <div className="grid grid-cols-12 gap-3.5 items-start">
-              {/* Left 7 Cols */}
-              <div className="col-span-7 space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-950/90 border border-teal-500/40 text-teal-300 text-[10px] font-semibold shadow-sm">
-                  <Users className="w-3 h-3 text-teal-400 shrink-0" />
-                  <span className="truncate">Mathematics Educator & Researcher</span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
-                    Emran Islam
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 font-medium mt-0.5">
-                    Lecturer in Mathematics
-                  </p>
-                </div>
-
-                <div className="space-y-1 text-[11px] text-slate-300 pt-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                    <span className="truncate">Hamdard Public College, Dhaka</span>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-teal-400 shrink-0 mt-0.5" />
-                    <span className="leading-snug">
-                      M.Sc. (3.79) & B.Sc. Hons (3.52) • Jahangirnagar University
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-l-2 border-cyan-400 pl-2.5 py-0.5 my-1">
-                  <p className="text-[11px] italic text-slate-300/95 leading-relaxed">
-                    Teaching mathematics with clarity, discipline and a passion for research.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <span className="px-2.5 py-0.5 rounded-full bg-teal-950/90 border border-teal-500/40 text-teal-300 text-[10px] font-semibold">
-                    Optimization
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-950/90 border border-blue-500/40 text-blue-300 text-[10px] font-semibold">
-                    Computational Math
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-purple-950/90 border border-purple-500/40 text-purple-300 text-[10px] font-semibold">
-                    ML
-                  </span>
-                  <button
-                    onClick={() => setBookModalOpen(true)}
-                    title="View 3 Authored Books"
-                    className="px-2 py-0.5 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-slate-300 text-[10px] font-bold transition"
-                  >
-                    •••
-                  </button>
-                </div>
-              </div>
-
-              {/* Right 5 Cols: Portrait + Signature + Full CV */}
-              <div className="col-span-5 flex flex-col items-center space-y-2">
-                <label
-                  title="আপনার নিজের ছবি আপলোড করতে ক্লিক করুন"
-                  className="relative group cursor-pointer w-full"
-                >
-                  <div className="w-full aspect-[4/4.3] rounded-2xl overflow-hidden border-2 border-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,0.2)] bg-slate-900">
-                    <img
-                      src={profilePhoto}
-                      alt="Emran Islam"
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/85 text-cyan-300 border border-cyan-500/40 text-[9px] font-semibold flex items-center gap-1">
-                    <Camera className="w-2.5 h-2.5" /> ছবি
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCustomPhotoUpload}
-                    className="hidden"
-                  />
-                </label>
-
-                <div className="text-slate-300/90 text-sm italic font-serif tracking-wide select-none">
-                  Emran Islam
-                </div>
-
-                <button
-                  onClick={() => setCvModalOpen(true)}
-                  className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-teal-950/90 via-cyan-950/80 to-slate-900 hover:from-teal-900 hover:to-cyan-900 border border-cyan-400/50 text-white text-xs font-bold flex items-center justify-between shadow-md transition group"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-cyan-300" />
-                    <span>Full CV</span>
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-cyan-300 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
-            </div>
-
-            {/* 3 TABS (Overview | PhD & Research | Awards — Education removed as requested) */}
-            <div className="grid grid-cols-3 gap-1.5 bg-[#040d1a] p-1.5 rounded-2xl border border-slate-800/90 text-xs font-bold">
-              <button
-                onClick={() => setDossierTab('overview')}
-                className={`py-2 rounded-xl transition-all ${
-                  dossierTab === 'overview'
-                    ? 'bg-gradient-to-b from-teal-500/30 to-cyan-500/20 text-white border border-cyan-400/60 shadow-[0_0_15px_rgba(34,211,238,0.25)]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => setDossierTab('phd')}
-                className={`py-2 rounded-xl transition-all ${
-                  dossierTab === 'phd'
-                    ? 'bg-gradient-to-b from-teal-500/30 to-cyan-500/20 text-white border border-cyan-400/60 shadow-[0_0_15px_rgba(34,211,238,0.25)]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                PhD & Research
-              </button>
-              <button
-                onClick={() => setDossierTab('awards')}
-                className={`py-2 rounded-xl transition-all ${
-                  dossierTab === 'awards'
-                    ? 'bg-gradient-to-b from-teal-500/30 to-cyan-500/20 text-white border border-cyan-400/60 shadow-[0_0_15px_rgba(34,211,238,0.25)]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Awards
-              </button>
-            </div>
-
-            {/* TAB CONTENT */}
-            <div className="space-y-3">
-              {dossierTab === 'overview' && (
-                <div className="space-y-3">
-                  <div
-                    onClick={() => setCvModalOpen(true)}
-                    className="p-3.5 rounded-2xl bg-[#09192f]/90 hover:bg-[#0c203b] border border-slate-800/90 cursor-pointer transition group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5">
-                          <Users className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-white">About Me</h4>
-                          <p className="text-[11px] text-slate-300 leading-relaxed mt-1">
-                            I am a mathematics educator and researcher with a strong foundation in
-                            mathematical sciences, passionate about teaching, optimization, and
-                            machine learning for real-world problems.
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-300 shrink-0 mt-1 transition" />
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setDossierTab('phd')}
-                    className="p-3.5 rounded-2xl bg-[#09192f]/90 hover:bg-[#0c203b] border border-slate-800/90 cursor-pointer transition group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5">
-                          <Microscope className="w-4 h-4" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <h4 className="text-xs sm:text-sm font-bold text-white">
-                            Research Interests
-                          </h4>
-                          <ul className="space-y-1 text-[11px] text-slate-300">
-                            {[
-                              'Optimization (convex, non-convex, metaheuristics)',
-                              'Computational Mathematics',
-                              'Scientific Machine Learning',
-                              'Earthquake Precursors & Seismology'
-                            ].map((item, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-300 shrink-0 mt-1 transition" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {dossierTab === 'phd' && (
-                <div className="space-y-2.5 max-h-[225px] overflow-y-auto pr-1">
-                  <div className="p-3.5 rounded-2xl bg-[#09192f]/95 border border-cyan-500/30 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                        Springer Nature (Under Review)
-                      </span>
-                      <span className="text-[10px] font-mono text-amber-300 font-semibold">
-                        2025–2026
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-white leading-snug">
-                      Leakage-Controlled ML Framework for Short-Term Earthquake Precursor Detection
-                    </div>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      13 seismicity features + Hybrid Fuzzy-MOGA-Random Forest pipeline (ROC-AUC ≈
-                      0.87) benchmarked against Omori-law baseline on Eastern Indian Plate margin.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-[#09192f]/95 border border-slate-800 space-y-1.5">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      Published Books (Germany) & TSP Research
-                    </div>
-                    <div className="text-[11px] text-slate-200">
-                      • <strong>LAP LAMBERT (Germany):</strong> Development of an Algorithm for
-                      Solving TSP (ISBN 978-613-9-83715-1) & Programming in C.
-                    </div>
-                    <div className="text-[11px] text-slate-300">
-                      • <strong>Journal Articles:</strong> Improved Nearest Neighbour Algorithm for
-                      TSP (IJSRCSEIT & IJMTT, 2018).
-                    </div>
-                    <div className="text-[11px] text-teal-300 font-semibold">
-                      • <strong>Textbook:</strong> “The Fuel of Higher Math” (HSC, Admission &
-                      Undergraduate).
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {dossierTab === 'awards' && (
-                <div className="space-y-2 max-h-[225px] overflow-y-auto pr-1">
-                  {CV_CREDENTIALS.awards.map((aw, i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-2xl bg-[#09192f]/95 border border-slate-800 flex items-start gap-2.5"
-                    >
-                      <Trophy className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                      <div className="text-[11px] leading-snug">
-                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 mr-1.5">
-                          {aw.level}
-                        </span>
-                        <span className="font-semibold text-white">{aw.title}</span>
-                        <span className="text-slate-400 ml-1">({aw.year})</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Quick Links */}
-              <div className="p-3.5 rounded-2xl bg-[#09192f]/90 border border-slate-800/90 space-y-2.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-white">
-                  <Compass className="w-4 h-4 text-teal-400" />
-                  <span>Quick Links</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    onClick={() => openSubPage('HSC Bangla Version')}
-                    className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-950/90 to-cyan-950/80 hover:from-teal-900 hover:to-cyan-900 border border-teal-400/50 text-white text-[11px] font-bold flex items-center justify-between transition group"
-                  >
-                    <span className="flex items-center gap-1.5 truncate">
-                      <BookOpen className="w-3.5 h-3.5 text-teal-300 shrink-0" />
-                      <span className="truncate">Explore My Teaching</span>
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-teal-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  <button
-                    onClick={() => openSubPage('Research & Papers')}
-                    className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-950/70 to-slate-900 hover:from-amber-900/70 hover:to-slate-800 border border-amber-400/50 text-white text-[11px] font-bold flex items-center justify-between transition group"
-                  >
-                    <span className="flex items-center gap-1.5 truncate">
-                      <Microscope className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                      <span className="truncate">Explore My Research</span>
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-amber-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Open for Collaboration */}
-              <div
-                onClick={() => openSubPage('Research & Papers', { researchCardId: 'research-collab' })}
-                className="p-3.5 rounded-2xl bg-gradient-to-r from-[#09192f] via-[#0c223d] to-[#09192f] hover:border-cyan-400/60 border border-slate-800 cursor-pointer flex items-center justify-between gap-3 transition group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-teal-500/15 border border-teal-400/40 flex items-center justify-center text-teal-300 shrink-0">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Open for Collaboration</div>
-                    <div className="text-[10px] text-slate-300 leading-snug mt-0.5">
-                      PhD opportunities • Research collaboration • Academic discussions
-                    </div>
-                  </div>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-teal-500/20 border border-teal-400/50 flex items-center justify-center text-teal-300 group-hover:bg-teal-400 group-hover:text-slate-950 transition shrink-0">
-                  <ChevronRight className="w-4 h-4" />
-                </div>
               </div>
             </div>
           </div>
@@ -2421,6 +2124,300 @@ export default function App() {
       )}
 
       {/* VIEW 2: DEDICATED SUB-PAGE FOR HSC BANGLA VERSION */}
+      {/* VIEW: DEDICATED ABOUT ME / FULL PROFILE SUB-PAGE */}
+      {activeSubPage === 'About Me' && (
+        <section className="relative bg-slate-950 text-white overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(34,211,238,0.14),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(245,158,11,0.10),_transparent_55%)]" />
+
+          <div className="relative max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8">
+            {/* PROFILE HERO */}
+            <div className="bg-gradient-to-br from-[#071527] via-[#061222] to-[#040c18] border border-cyan-500/30 rounded-[28px] shadow-[0_0_40px_rgba(6,182,212,0.12)] p-5 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
+              <div className="md:col-span-4 flex flex-col items-center gap-3">
+                <label
+                  title="আপনার নিজের ছবি আপলোড করতে ক্লিক করুন"
+                  className="relative group cursor-pointer w-full max-w-[280px]"
+                >
+                  <div className="w-full aspect-[4/4.3] rounded-3xl overflow-hidden border-2 border-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.25)] bg-slate-900">
+                    <img
+                      src={profilePhoto}
+                      alt="Emran Islam"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-slate-950/85 text-cyan-300 border border-cyan-500/40 text-[10px] font-semibold flex items-center gap-1">
+                    <Camera className="w-3 h-3" /> ছবি পরিবর্তন
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCustomPhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+                <div className="text-slate-300/90 text-base italic font-serif tracking-wide select-none">
+                  Emran Islam
+                </div>
+              </div>
+
+              <div className="md:col-span-8 space-y-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-950/90 border border-teal-500/40 text-teal-300 text-xs font-semibold">
+                  <Users className="w-3.5 h-3.5 text-teal-400" />
+                  Mathematics Educator & Researcher
+                </div>
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Emran Islam</h2>
+                  <p className="text-base sm:text-lg text-slate-300 font-medium mt-1">
+                    Lecturer in Mathematics •{' '}
+                    <span className="text-teal-300">PhD Applicant — Optimization & Computational Mathematics</span>
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300">
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
+                    Hamdard Public College, Dhaka
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-teal-400 shrink-0" />
+                    M.Sc. (3.79) & B.Sc. Hons (3.52) • Jahangirnagar University
+                  </span>
+                </div>
+                <div className="border-l-2 border-cyan-400 pl-3 py-0.5">
+                  <p className="text-sm italic text-slate-300 leading-relaxed">
+                    Teaching mathematics with clarity, discipline and a passion for research.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {['Optimization', 'Computational Mathematics', 'Scientific ML', 'Metaheuristics', 'Seismology'].map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    onClick={() => setCvModalOpen(true)}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-300 hover:to-cyan-300 text-slate-950 text-sm font-extrabold flex items-center gap-2 shadow-md transition"
+                  >
+                    <FileText className="w-4 h-4" /> Full Academic CV
+                  </button>
+                  <a
+                    href={`mailto:${CV_CREDENTIALS.email}`}
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white text-sm font-bold flex items-center gap-2 transition"
+                  >
+                    <ExternalLink className="w-4 h-4 text-cyan-300" /> {CV_CREDENTIALS.email}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* AT A GLANCE STATS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { value: '8+', label: 'Years Teaching', color: 'text-teal-300' },
+                { value: '3', label: 'Authored Books', color: 'text-amber-300' },
+                { value: `${CV_CREDENTIALS.awards.length}`, label: 'Awards & Honours', color: 'text-rose-300' },
+                { value: '3.79', label: 'M.Sc. CGPA (JU)', color: 'text-cyan-300' }
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-2xl bg-slate-900/80 border border-slate-800 p-4 text-center"
+                >
+                  <div className={`text-3xl font-extrabold ${s.color}`}>{s.value}</div>
+                  <div className="text-xs text-slate-400 font-semibold mt-1">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* ABOUT + RESEARCH INTERESTS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-3">
+                <h3 className="text-lg font-extrabold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-cyan-300" /> About Me
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  I am a mathematics educator and researcher with a strong foundation in
+                  mathematical sciences, passionate about teaching, optimization, and machine
+                  learning for real-world problems.
+                </p>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  I have <strong className="text-white">8+ years of college-level teaching</strong>,
+                  including nearly 7 years at Ghatail Cantonment Public School & College, and now
+                  teach at Hamdard Public College, Dhaka. Alongside teaching, I am pursuing PhD
+                  research in{' '}
+                  <strong className="text-teal-300">
+                    Combinatorial Optimization & Scientific Machine Learning
+                  </strong>
+                  .
+                </p>
+              </div>
+
+              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-3">
+                <h3 className="text-lg font-extrabold flex items-center gap-2">
+                  <Microscope className="w-5 h-5 text-cyan-300" /> Research Interests
+                </h3>
+                <ul className="space-y-2.5 text-sm text-slate-300">
+                  {[
+                    'Optimization (convex, non-convex, metaheuristics)',
+                    'Computational Mathematics',
+                    'Scientific Machine Learning',
+                    'Earthquake Precursors & Seismology'
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* EXPERIENCE + EDUCATION TIMELINES */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
+                <h3 className="text-lg font-extrabold flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-amber-300" /> Teaching Experience
+                </h3>
+                <ol className="relative border-l border-slate-700 ml-2 space-y-5">
+                  {CV_CREDENTIALS.experience.map((exp) => (
+                    <li key={exp.org} className="pl-5 relative">
+                      <span className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-amber-400 ring-4 ring-slate-950" />
+                      <div className="text-xs font-mono text-amber-300 font-bold">{exp.period}</div>
+                      <div className="text-sm font-bold text-white mt-0.5">{exp.role}</div>
+                      <div className="text-xs font-semibold text-teal-300">{exp.org}</div>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{exp.highlight}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
+                <h3 className="text-lg font-extrabold flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-teal-300" /> Education
+                </h3>
+                <ol className="relative border-l border-slate-700 ml-2 space-y-5">
+                  {CV_CREDENTIALS.education.map((ed) => (
+                    <li key={ed.degree} className="pl-5 relative">
+                      <span className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-teal-400 ring-4 ring-slate-950" />
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <span className="text-sm font-bold text-white">{ed.degree}</span>
+                        <span className="text-xs font-mono text-amber-300 font-bold">{ed.year}</span>
+                      </div>
+                      <div className="text-xs font-semibold text-teal-300">{ed.institution}</div>
+                      <div className="text-xs text-slate-300 mt-0.5">{ed.result}</div>
+                      <div className="text-xs text-slate-500">{ed.thesis}</div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            {/* CURRENT RESEARCH + PUBLICATIONS */}
+            <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
+              <h3 className="text-lg font-extrabold flex items-center gap-2">
+                <BookMarked className="w-5 h-5 text-cyan-300" /> Research & Publications
+              </h3>
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-cyan-500/30 space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+                    Springer Nature (Under Review)
+                  </span>
+                  <span className="text-xs font-mono text-amber-300 font-semibold">2025–2026</span>
+                </div>
+                <div className="text-sm font-bold text-white leading-snug">
+                  Leakage-Controlled ML Framework for Short-Term Earthquake Precursor Detection
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  13 seismicity features + Hybrid Fuzzy-MOGA-Random Forest pipeline (ROC-AUC ≈ 0.87)
+                  benchmarked against Omori-law baseline on Eastern Indian Plate margin.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300">
+                <strong className="text-white">Journal Articles:</strong> Improved Nearest Neighbour
+                Algorithm for TSP (IJSRCSEIT & IJMTT, 2018).
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {CV_CREDENTIALS.books.map((bk) => (
+                  <div
+                    key={bk.title}
+                    className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5"
+                  >
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                      {bk.type}
+                    </div>
+                    <div className="text-sm font-bold text-white leading-snug">{bk.title}</div>
+                    <div className="text-xs text-slate-400">{bk.publisher}</div>
+                    <div className="text-[11px] font-mono text-teal-300">{bk.isbn}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AWARDS */}
+            <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
+              <h3 className="text-lg font-extrabold flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-400" /> Awards & Honours
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {CV_CREDENTIALS.awards.map((aw) => (
+                  <div
+                    key={aw.title}
+                    className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-start gap-3"
+                  >
+                    <Trophy className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-snug">
+                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 mr-1.5">
+                        {aw.level}
+                      </span>
+                      <span className="font-semibold text-white">{aw.title}</span>
+                      <span className="text-slate-400 ml-1">({aw.year})</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* COLLABORATION + QUICK LINKS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div
+                onClick={() => openSubPage('Research & Papers', { researchCardId: 'research-collab' })}
+                className="md:col-span-1 p-5 rounded-3xl bg-gradient-to-r from-[#09192f] via-[#0c223d] to-[#09192f] hover:border-cyan-400/60 border border-slate-800 cursor-pointer flex items-center gap-3 transition group"
+              >
+                <div className="w-10 h-10 rounded-full bg-teal-500/15 border border-teal-400/40 flex items-center justify-center text-teal-300 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Open for Collaboration</div>
+                  <div className="text-xs text-slate-300 leading-snug mt-0.5">
+                    PhD opportunities • Research collaboration • Academic discussions
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => openSubPage('HSC Bangla Version')}
+                className="p-5 rounded-3xl bg-gradient-to-r from-teal-950/90 to-cyan-950/80 hover:from-teal-900 hover:to-cyan-900 border border-teal-400/50 text-white text-sm font-bold flex items-center justify-between transition group"
+              >
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-teal-300" /> Explore My Teaching
+                </span>
+                <ChevronRight className="w-4 h-4 text-teal-300 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+              <button
+                onClick={() => openSubPage('Research & Papers')}
+                className="p-5 rounded-3xl bg-gradient-to-r from-amber-950/70 to-slate-900 hover:from-amber-900/70 hover:to-slate-800 border border-amber-400/50 text-white text-sm font-bold flex items-center justify-between transition group"
+              >
+                <span className="flex items-center gap-2">
+                  <Microscope className="w-4 h-4 text-amber-300" /> Explore My Research
+                </span>
+                <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {activeSubPage === 'HSC Bangla Version' && (
       <main id="hsc-bv-hub" className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         <div className="rounded-[32px] bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-950 text-white border border-slate-800 p-5 sm:p-8 shadow-2xl space-y-10 relative overflow-hidden">
