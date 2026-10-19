@@ -21,16 +21,17 @@ import {
   Lock,
   Unlock,
   Trophy,
-  Camera
+  Camera,
+  MessageCircle,
+  Send,
+  Facebook,
+  Mail
 } from 'lucide-react';
 
 const CV_CREDENTIALS = {
   fullName: 'Emran Islam',
   titles: 'Lecturer in Mathematics | PhD Applicant — Optimization & Computational Mathematics',
-  phone: '+880 1966 631211',
   email: 'emranju70@gmail.com',
-  presentAddress: '168/6 Green Road, Dhaka, Bangladesh',
-  permanentAddress: 'Miapara, Dhanbari, Tangail, Bangladesh',
   education: [
     {
       degree: 'PhD Candidate / Applicant',
@@ -1507,6 +1508,7 @@ function AboutTeacherPage({ openSubPage }) {
 function AboutResearcherPage({ openSubPage }) {
   return (
     <AboutRoleShell role="researcher">
+      <ResearchProfileLinks />
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <div className="space-y-5">
           <AboutSectionTitle>Research Interests</AboutSectionTitle>
@@ -1609,9 +1611,33 @@ function AboutAuthorPage({ onBookDetails }) {
 }
 
 // ---------------------------------------------------------------- Private batches & 1-to-1 sessions
-// Where booking requests go. Set `whatsapp` (e.g. '8801XXXXXXXXX') to send requests to WhatsApp
-// instead of email.
-const BOOKING_CONTACT = { email: CV_CREDENTIALS.email, whatsapp: '' };
+// ---------------------------------------------------------------- Site settings (fill these in)
+// Empty links stay hidden on the site. With `whatsapp` set (country code, no +, e.g. '8801XXXXXXXXX'),
+// booking, payment and question requests go to WhatsApp instead of email.
+const SITE_LINKS = {
+  whatsapp: '',
+  telegram: '', // e.g. 'https://t.me/yourchannel'
+  facebook: '', // e.g. 'https://facebook.com/yourpage'
+  email: CV_CREDENTIALS.email,
+  liveClass: '', // default Zoom / Google Meet link for live classes
+  slotSheetCsv: '', // published Google Sheet CSV for private slots (see docs/SLOTS.md)
+  googleScholar: '',
+  orcid: '',
+  researchGate: ''
+};
+
+// Numbers shown for manual Send Money payments.
+const PAYMENT_NUMBERS = { bKash: '01966-631211', Nagad: '01966-631211', Rocket: '01966-631211' };
+
+// Opens WhatsApp (if set) or the mail app with the request text; returns the channel name.
+const sendRequest = (subject, body) => {
+  if (SITE_LINKS.whatsapp) {
+    window.open(`https://wa.me/${SITE_LINKS.whatsapp}?text=${encodeURIComponent(`${subject}\n\n${body}`)}`, '_blank');
+    return 'WhatsApp';
+  }
+  window.location.href = `mailto:${SITE_LINKS.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return 'ইমেইল';
+};
 
 // Sample batches for the structure; replace with the real schedule.
 // Every batch runs both Online and Offline; the student picks one when booking.
@@ -1780,6 +1806,7 @@ function PrivateBatchHub({ onOpenOption }) {
           ))}
         </ol>
       </div>
+      <FaqSection />
     </main>
   );
 }
@@ -1888,24 +1915,19 @@ function PrivateGroupPage({ onRequest }) {
   );
 }
 
-const PRIVATE_DAYS = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'];
-const PRIVATE_TIMES = ['সকাল', 'দুপুর', 'বিকাল', 'সন্ধ্যা', 'রাত'];
-
 function PrivateOneToOnePage({ onRequest }) {
   const [level, setLevel] = useState('HSC (বাংলা ভার্সন)');
   const [mode, setMode] = useState('Online');
   const [duration, setDuration] = useState('৯০ মিনিট');
-  const [perWeek, setPerWeek] = useState('সপ্তাহে ২ দিন');
-  const [days, setDays] = useState([]);
-  const [time, setTime] = useState('সন্ধ্যা');
+  const [frequency, setFrequency] = useState('প্রতি সপ্তাহে নিয়মিত');
+  const [slots, setSlots] = useState([]);
   const [topic, setTopic] = useState('');
   const lines = [
     ['লেভেল', level],
     ['ধরন', mode],
     ['সেশনের দৈর্ঘ্য', duration],
-    ['কত দিন', perWeek],
-    ['পছন্দের দিন', days.join(', ')],
-    ['পছন্দের সময়', time],
+    ['কতবার', frequency],
+    ['স্লট', slots.join(', ')],
     ['যে বিষয়/অধ্যায়', topic]
   ];
   return (
@@ -1923,19 +1945,16 @@ function PrivateOneToOnePage({ onRequest }) {
             <ChoiceChips options={['HSC (বাংলা ভার্সন)', 'HSC (English Version)', 'O-Level', 'A-Level', 'Admission', 'B.Sc. Honours']} value={level} onChange={setLevel} />
           </PrivateField>
           <PrivateField label="ধরন">
-            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={setMode} />
+            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={(m) => { setMode(m); setSlots([]); }} />
           </PrivateField>
           <PrivateField label="প্রতিটি সেশনের দৈর্ঘ্য">
             <ChoiceChips options={['৬০ মিনিট', '৯০ মিনিট', '১২০ মিনিট']} value={duration} onChange={setDuration} />
           </PrivateField>
-          <PrivateField label="সপ্তাহে কত দিন">
-            <ChoiceChips options={['শুধু একটি সেশন', 'সপ্তাহে ১ দিন', 'সপ্তাহে ২ দিন', 'সপ্তাহে ৩ দিন']} value={perWeek} onChange={setPerWeek} />
+          <PrivateField label="কতবার">
+            <ChoiceChips options={['একটি সেশন', 'প্রতি সপ্তাহে নিয়মিত']} value={frequency} onChange={setFrequency} />
           </PrivateField>
-          <PrivateField label="পছন্দের দিন" hint="একাধিক বেছে নিতে পারেন">
-            <ChoiceChips options={PRIVATE_DAYS} value={days} onChange={setDays} multi />
-          </PrivateField>
-          <PrivateField label="পছন্দের সময়">
-            <ChoiceChips options={PRIVATE_TIMES} value={time} onChange={setTime} />
+          <PrivateField label="খালি স্লট বেছে নিন" hint="শুধু খালি স্লট বেছে নেওয়া যাবে। নিয়মিত হলে সপ্তাহের যতদিন চান ততগুলো স্লট বেছে নিন।">
+            <SlotPicker forType="one" mode={mode} selected={slots} onChange={setSlots} />
           </PrivateField>
           <PrivateField label="কোন বিষয় বা অধ্যায়ে সাহায্য দরকার?" hint="ঐচ্ছিক">
             <textarea
@@ -1950,8 +1969,8 @@ function PrivateOneToOnePage({ onRequest }) {
         <div className="lg:col-span-4">
           <PrivateSummary
             lines={lines}
-            disabled={days.length === 0}
-            note={days.length === 0 ? 'অন্তত একটি পছন্দের দিন বেছে নিন।' : 'ফি সেশনের দৈর্ঘ্য ও লেভেল অনুযায়ী কনফার্মেশনের সময় জানানো হবে।'}
+            disabled={slots.length === 0}
+            note={slots.length === 0 ? 'অন্তত একটি খালি স্লট বেছে নিন।' : 'ফি সেশনের দৈর্ঘ্য ও লেভেল অনুযায়ী কনফার্মেশনের সময় জানানো হবে।'}
             onRequest={() => onRequest('১-টু-১ প্রাইভেট সেশন', lines)}
           />
         </div>
@@ -1972,8 +1991,7 @@ function PrivateCustomOAPage({ onRequest }) {
   const [papers, setPapers] = useState([]);
   const [size, setSize] = useState(4);
   const [mode, setMode] = useState('Online');
-  const [days, setDays] = useState([]);
-  const [time, setTime] = useState('বিকাল');
+  const [slots, setSlots] = useState([]);
   const changeStage = (st) => {
     setStage(st);
     setPapers([]);
@@ -1984,8 +2002,7 @@ function PrivateCustomOAPage({ onRequest }) {
     ['পেপার', papers.join(', ')],
     ['শিক্ষার্থী সংখ্যা', `${size} জন (নির্দিষ্ট)`],
     ['ধরন', mode],
-    ['পছন্দের দিন', days.join(', ')],
-    ['পছন্দের সময়', time]
+    ['স্লট', slots.join(', ')]
   ];
   return (
     <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -2039,22 +2056,19 @@ function PrivateCustomOAPage({ onRequest }) {
             </div>
           </PrivateField>
           <PrivateField label="ধরন">
-            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={setMode} />
+            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={(m) => { setMode(m); setSlots([]); }} />
           </PrivateField>
-          <PrivateField label="পছন্দের দিন" hint="একাধিক বেছে নিতে পারেন">
-            <ChoiceChips options={PRIVATE_DAYS} value={days} onChange={setDays} multi />
-          </PrivateField>
-          <PrivateField label="পছন্দের সময়">
-            <ChoiceChips options={PRIVATE_TIMES} value={time} onChange={setTime} />
+          <PrivateField label="খালি স্লট বেছে নিন" hint="সপ্তাহে যতদিন ক্লাস চান ততগুলো স্লট বেছে নিন।">
+            <SlotPicker forType="custom" mode={mode} selected={slots} onChange={setSlots} />
           </PrivateField>
         </div>
         <div className="lg:col-span-4">
           <PrivateSummary
             lines={lines}
-            disabled={papers.length === 0 || days.length === 0}
+            disabled={papers.length === 0 || slots.length === 0}
             note={
-              papers.length === 0 || days.length === 0
-                ? 'অন্তত একটি পেপার আর একটি পছন্দের দিন বেছে নিন।'
+              papers.length === 0 || slots.length === 0
+                ? 'অন্তত একটি পেপার আর একটি খালি স্লট বেছে নিন।'
                 : 'জনপ্রতি ফি ব্যাচের আকার ও পেপার অনুযায়ী কনফার্মেশনের সময় জানানো হবে।'
             }
             onRequest={() => onRequest('কাস্টম O/A-Level ব্যাচ', lines)}
@@ -2065,34 +2079,48 @@ function PrivateCustomOAPage({ onRequest }) {
   );
 }
 
-// Contact form shown for every booking request; sends via WhatsApp if configured, else email.
-function BookingRequestModal({ request, onClose }) {
+// One form for every request a visitor can send:
+//   kind 'booking'  – private batch / session booking
+//   kind 'question' – a doubt about a chapter or lecture
+//   kind 'payment'  – Send Money done; asks for the Transaction ID so it can be verified
+function RequestModal({ request, onClose }) {
+  const kind = request.kind || 'booking';
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [institution, setInstitution] = useState('');
   const [note, setNote] = useState('');
-  const [sent, setSent] = useState(false);
-  const valid = name.trim() && /^[0-9+\-\s]{8,}$/.test(phone.trim());
+  const [method, setMethod] = useState('bKash');
+  const [trxId, setTrxId] = useState('');
+  const [sentVia, setSentVia] = useState('');
+
+  const phoneOk = /^[0-9+\-\s]{8,}$/.test(phone.trim());
+  const valid =
+    name.trim() &&
+    phoneOk &&
+    (kind !== 'question' || note.trim()) &&
+    (kind !== 'payment' || trxId.trim().length >= 4);
+
+  const heading = { booking: 'বুকিং রিকোয়েস্ট', question: 'প্রশ্ন করুন', payment: 'পেমেন্ট যাচাই' }[kind];
+  const subject = {
+    booking: `প্রাইভেট বুকিং: ${request.type}`,
+    question: `প্রশ্ন: ${request.lines[0] ? request.lines[0][1] : 'সাধারণ'}`,
+    payment: `পেমেন্ট: ${request.type}`
+  }[kind];
+
   const send = () => {
     const body = [
-      `রিকোয়েস্ট: ${request.type}`,
+      ...(kind === 'question' ? [] : [`রিকোয়েস্ট: ${request.type}`]),
       ...request.lines.map(([k, v]) => `${k}: ${v || '—'}`),
+      ...(kind === 'payment' ? [`পেমেন্ট মাধ্যম: ${method} (${PAYMENT_NUMBERS[method]})`, `Transaction ID: ${trxId}`] : []),
       '',
       `নাম: ${name}`,
       `ফোন: ${phone}`,
-      institution && `প্রতিষ্ঠান/ক্লাস: ${institution}`,
-      note && `নোট: ${note}`
-    ]
-      .filter((x) => x !== false && x !== '')
-      .join('\n');
-    const href = BOOKING_CONTACT.whatsapp
-      ? `https://wa.me/${BOOKING_CONTACT.whatsapp}?text=${encodeURIComponent(body)}`
-      : `mailto:${BOOKING_CONTACT.email}?subject=${encodeURIComponent(`প্রাইভেট বুকিং: ${request.type}`)}&body=${encodeURIComponent(body)}`;
-    // WhatsApp opens in a new tab; a mailto link opens the mail app without leaving a blank tab.
-    if (BOOKING_CONTACT.whatsapp) window.open(href, '_blank');
-    else window.location.href = href;
-    setSent(true);
+      ...(institution ? [`প্রতিষ্ঠান/ক্লাস: ${institution}`] : []),
+      ...(note ? [kind === 'question' ? `প্রশ্ন: ${note}` : `নোট: ${note}`] : [])
+    ].join('\n');
+    setSentVia(sendRequest(subject, body));
   };
+
   const input =
     'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
   return (
@@ -2105,23 +2133,29 @@ function BookingRequestModal({ request, onClose }) {
           <X className="h-4 w-4" />
         </button>
         <div>
-          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">বুকিং রিকোয়েস্ট</span>
-          <h3 className="mt-1.5 pr-8 text-xl font-extrabold">{request.type}</h3>
+          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">{heading}</span>
+          <h3 className="mt-1.5 pr-8 text-xl font-extrabold">{kind === 'question' ? 'আপনার প্রশ্ন লিখুন' : request.type}</h3>
         </div>
-        <dl className="space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-xs">
-          {request.lines.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4">
-              <dt className="text-slate-400">{k}</dt>
-              <dd className="text-right font-semibold">{v || '—'}</dd>
-            </div>
-          ))}
-        </dl>
-        {sent ? (
+        {request.lines.length > 0 && (
+          <dl className="space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-xs">
+            {request.lines.map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-4">
+                <dt className="text-slate-400">{k}</dt>
+                <dd className="text-right font-semibold">{v || '—'}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {sentVia ? (
           <div className="space-y-4 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-sm">
-            <div className="font-bold text-emerald-300">✓ রিকোয়েস্ট তৈরি হয়েছে</div>
+            <div className="font-bold text-emerald-300">✓ মেসেজ তৈরি হয়েছে</div>
             <p className="leading-relaxed text-slate-300">
-              {BOOKING_CONTACT.whatsapp ? 'WhatsApp' : 'ইমেইল'} খুলেছে, সেখান থেকে মেসেজটি পাঠিয়ে দিন। কনফার্মেশনের জন্য
-              আপনার দেওয়া ফোন নম্বরে যোগাযোগ করা হবে।
+              {sentVia} খুলেছে, সেখান থেকে মেসেজটি পাঠিয়ে দিন।{' '}
+              {kind === 'payment'
+                ? 'পেমেন্ট যাচাইয়ের পর আনলক করে আপনার ফোন নম্বরে জানানো হবে।'
+                : kind === 'question'
+                ? 'উত্তর আপনার দেওয়া ফোন নম্বরে বা যেখান থেকে পাঠিয়েছেন সেখানে দেওয়া হবে।'
+                : 'কনফার্মেশনের জন্য আপনার দেওয়া ফোন নম্বরে যোগাযোগ করা হবে।'}
             </p>
             <button onClick={onClose} className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold hover:bg-slate-700">
               বন্ধ করুন
@@ -2129,17 +2163,56 @@ function BookingRequestModal({ request, onClose }) {
           </div>
         ) : (
           <div className="space-y-3">
+            {kind === 'payment' && (
+              <div className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                <div className="text-xs font-bold text-slate-300">
+                  ১. নিচের নম্বরে {request.amount} Send Money করুন  ২. Transaction ID লিখে পাঠান
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.keys(PAYMENT_NUMBERS).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setMethod(m)}
+                      className={`rounded-xl border py-2 text-xs font-extrabold transition ${
+                        method === m ? 'border-amber-300 bg-amber-400 text-slate-950' : 'border-slate-700 bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center font-mono text-lg font-black text-amber-300">{PAYMENT_NUMBERS[method]}</div>
+              </div>
+            )}
             <input className={input} placeholder="শিক্ষার্থীর নাম *" value={name} onChange={(e) => setName(e.target.value)} />
-            <input className={input} placeholder="ফোন নম্বর (শিক্ষার্থী বা অভিভাবক) *" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <input className={input} placeholder="স্কুল/কলেজ ও ক্লাস (ঐচ্ছিক)" value={institution} onChange={(e) => setInstitution(e.target.value)} />
-            <textarea className={input} rows={2} placeholder="অন্য কিছু জানাতে চাইলে (ঐচ্ছিক)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <input
+              className={input}
+              placeholder={kind === 'payment' ? 'যে নম্বর থেকে টাকা পাঠিয়েছেন *' : 'ফোন নম্বর (শিক্ষার্থী বা অভিভাবক) *'}
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            {kind === 'payment' && (
+              <input className={`${input} font-mono`} placeholder="Transaction ID *" value={trxId} onChange={(e) => setTrxId(e.target.value)} />
+            )}
+            {kind !== 'payment' && (
+              <input className={input} placeholder="স্কুল/কলেজ ও ক্লাস (ঐচ্ছিক)" value={institution} onChange={(e) => setInstitution(e.target.value)} />
+            )}
+            <textarea
+              className={input}
+              rows={kind === 'question' ? 4 : 2}
+              placeholder={kind === 'question' ? 'আপনার প্রশ্ন *' : 'অন্য কিছু জানাতে চাইলে (ঐচ্ছিক)'}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
             <button
               type="button"
               disabled={!valid}
               onClick={send}
               className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-3 text-sm font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {BOOKING_CONTACT.whatsapp ? 'WhatsApp এ পাঠান' : 'ইমেইলে পাঠান'}
+              {SITE_LINKS.whatsapp ? 'WhatsApp এ পাঠান' : 'ইমেইলে পাঠান'}
             </button>
           </div>
         )}
@@ -2147,6 +2220,615 @@ function BookingRequestModal({ request, onClose }) {
     </div>
   );
 }
+
+// ---------------------------------------------------------------- Lecture resources, quizzes, routine, FAQ, proof
+// Videos and notes per lecture, keyed by the lecture's key (shown in each lecture's URL-free id,
+// e.g. 'p1-ch1-lec-1' for HSC Bangla, 'p3-<module>-<chapter>-lec-1' for the other tracks,
+// '<course>-<chapter>-lec-1' for special courses).
+//   youtube: the video id from the YouTube link (youtube.com/watch?v=THIS_PART)
+//   pdf:     a link to the PDF (a Google Drive "preview" link works well)
+//   live:    a Zoom / Meet link for this lecture's live class (falls back to SITE_LINKS.liveClass)
+const LECTURE_RESOURCES = {
+  // 'p1-ch1-lec-1': { youtube: 'dQw4w9WgXcQ', pdf: 'https://drive.google.com/file/d/FILE_ID/preview' },
+};
+
+// MCQs per chapter id (e.g. 'p1-ch1', 'p1-ch8'). Chapters without questions show the sample quiz.
+const QUIZ_BANK = {
+  // 'p1-ch1': [{ q: 'প্রশ্ন', options: ['ক', 'খ', 'গ', 'ঘ'], answer: 0, explain: 'ব্যাখ্যা' }],
+};
+
+const SAMPLE_QUIZ = [
+  { q: 'f(x) = x² হলে f′(x) = ?', options: ['x', '2x', 'x²/2', '2'], answer: 1, explain: 'd/dx (xⁿ) = n·xⁿ⁻¹, তাই d/dx (x²) = 2x।' },
+  { q: '∫ 2x dx = ?', options: ['2', 'x² + c', '2x² + c', 'x + c'], answer: 1, explain: '∫ xⁿ dx = xⁿ⁺¹/(n+1) + c, তাই ∫ 2x dx = x² + c।' },
+  { q: 'i² এর মান কত?', options: ['1', '0', '−1', 'i'], answer: 2, explain: 'সংজ্ঞা অনুযায়ী i = √−1, তাই i² = −1।' }
+];
+
+const toBnDigits = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+
+function QuizPanel({ quizKey }) {
+  const questions = QUIZ_BANK[quizKey] || SAMPLE_QUIZ;
+  const isSample = !QUIZ_BANK[quizKey];
+  const total = questions.length * 60;
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [left, setLeft] = useState(total);
+
+  useEffect(() => {
+    if (submitted) return undefined;
+    if (left <= 0) {
+      setSubmitted(true);
+      return undefined;
+    }
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left, submitted]);
+
+  const score = questions.filter((q, i) => answers[i] === q.answer).length;
+  const mm = String(Math.floor(left / 60)).padStart(2, '0');
+  const ss = String(left % 60).padStart(2, '0');
+
+  return (
+    <div className="space-y-4">
+      {isSample && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-2 text-[11px] text-amber-200">
+          এই অধ্যায়ের প্রশ্ন শীঘ্রই যোগ হবে। নিচে কুইজটি কেমন হবে তার নমুনা।
+        </div>
+      )}
+      <div className="flex items-center justify-between rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-xs">
+        <span className="font-bold text-slate-300">{toBnDigits(questions.length)}টি প্রশ্ন</span>
+        <span className={`font-mono text-sm font-black ${left < 30 && !submitted ? 'text-rose-300' : 'text-amber-300'}`}>
+          ⏱ {mm}:{ss}
+        </span>
+      </div>
+      {questions.map((item, qi) => (
+        <div key={qi} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-950 p-3.5">
+          <div className="text-sm font-bold text-white">{toBnDigits(qi + 1)}. {item.q}</div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {item.options.map((opt, oi) => {
+              const chosen = answers[qi] === oi;
+              const right = item.answer === oi;
+              return (
+                <button
+                  key={oi}
+                  type="button"
+                  disabled={submitted}
+                  onClick={() => setAnswers((a) => ({ ...a, [qi]: oi }))}
+                  className={`rounded-xl border p-2.5 text-left text-xs transition ${
+                    submitted
+                      ? right
+                        ? 'border-emerald-400 bg-emerald-500/20 font-bold text-emerald-200'
+                        : chosen
+                        ? 'border-rose-400 bg-rose-500/20 text-rose-200'
+                        : 'border-slate-800 bg-slate-900 text-slate-500'
+                      : chosen
+                      ? 'border-teal-400 bg-teal-500 font-bold text-slate-950'
+                      : 'border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-600'
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+          {submitted && item.explain && <div className="text-[11px] leading-relaxed text-slate-400">💡 {item.explain}</div>}
+        </div>
+      ))}
+      {!submitted ? (
+        <button
+          type="button"
+          onClick={() => setSubmitted(true)}
+          className="w-full rounded-xl bg-teal-500 py-3 text-xs font-extrabold text-slate-950 hover:bg-teal-400"
+        >
+          সাবমিট করুন ও ফলাফল দেখুন
+        </button>
+      ) : (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/50 bg-emerald-950/90 p-4">
+          <div className="text-sm font-extrabold text-emerald-300">
+            ফলাফল: {toBnDigits(score)} / {toBnDigits(questions.length)}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setAnswers({});
+              setSubmitted(false);
+              setLeft(total);
+            }}
+            className="rounded-xl bg-slate-800 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-700"
+          >
+            আবার দিন
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComingSoon({ what }) {
+  return (
+    <div className="flex aspect-video flex-col items-center justify-center gap-2 rounded-2xl border border-slate-800 bg-slate-950 p-6 text-center">
+      <Clock className="h-8 w-8 text-slate-500" />
+      <div className="text-sm font-bold text-white">{what} শীঘ্রই আসছে</div>
+      <p className="max-w-sm text-xs text-slate-400">এই লেকচারের কনটেন্ট যোগ হলেই এখানে দেখা যাবে।</p>
+    </div>
+  );
+}
+
+// Weekly live class routine (sample; replace with the real one).
+const CLASS_ROUTINE = [
+  { day: 'শনি', time: 'সন্ধ্যা ৭:০০', title: 'HSC বাংলা — ক্যালকুলাস', mode: 'Online' },
+  { day: 'রবি', time: 'বিকাল ৪:০০', title: 'Admission — BUET Written', mode: 'Offline' },
+  { day: 'সোম', time: 'রাত ৮:৩০', title: 'HSC EV — Calculus (EV)', mode: 'Online' },
+  { day: 'মঙ্গল', time: 'সন্ধ্যা ৭:০০', title: 'HSC বাংলা — ত্রিকোণমিতি', mode: 'Online' },
+  { day: 'বুধ', time: 'রাত ৯:০০', title: 'B.Sc. Honours — Linear Algebra', mode: 'Online' },
+  { day: 'বৃহস্পতি', time: 'বিকাল ৪:০০', title: 'Admission — DU Ka', mode: 'Offline' },
+  { day: 'শুক্র', time: 'সকাল ১০:০০', title: 'O-Level — Add-Math (4037)', mode: 'Online' }
+];
+
+function ClassRoutinePage({ onAsk }) {
+  const days = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'];
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PrivateHero
+        badge="WEEKLY ROUTINE"
+        title="সাপ্তাহিক ক্লাস রুটিন"
+        sub="সব লাইভ ক্লাস এক জায়গায়। Online ক্লাসের লিংক লেকচারের Live Class বাটনে আর এখানে দেওয়া হবে।"
+        grad="from-indigo-500 via-blue-600 to-cyan-600"
+        icon="🗓️"
+      />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-7">
+        {days.map((d) => {
+          const items = CLASS_ROUTINE.filter((c) => c.day === d);
+          return (
+            <div key={d} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
+              <div className="mb-2 text-sm font-extrabold text-white">{d}</div>
+              {items.length === 0 ? (
+                <div className="text-[11px] text-slate-500">ক্লাস নেই</div>
+              ) : (
+                <div className="space-y-2">
+                  {items.map((c) => (
+                    <div key={c.title + c.time} className="rounded-xl border border-slate-800 bg-slate-950 p-2.5">
+                      <div className="font-mono text-[11px] font-bold text-amber-300">{c.time}</div>
+                      <div className="mt-0.5 text-xs font-bold leading-snug text-white">{c.title}</div>
+                      <div className={`mt-1 text-[10px] font-bold ${c.mode === 'Online' ? 'text-emerald-300' : 'text-sky-300'}`}>
+                        {c.mode === 'Online' ? '● Online' : '📍 Offline'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="text-sm text-slate-300">রুটিন নিয়ে কোনো প্রশ্ন আছে?</div>
+        <button onClick={onAsk} className="rounded-xl bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+          প্রশ্ন করুন
+        </button>
+      </div>
+    </main>
+  );
+}
+
+const FAQ_ITEMS = [
+  ['প্রথম লেকচার কি ফ্রি?', 'হ্যাঁ। প্রতিটি অধ্যায়ের প্রথম লেকচার সবার জন্য খোলা। পরের লেকচারগুলো আনলক করতে হয়।'],
+  ['কীভাবে পেমেন্ট করব?', 'bKash, Nagad বা Rocket এ Send Money করে লেকচার বা কোর্সের পেজ থেকে Transaction ID সহ রিকোয়েস্ট পাঠান। যাচাইয়ের পর আনলক করে আপনাকে জানানো হবে।'],
+  ['লাইভ ক্লাস কোথায় হয়?', 'Online ক্লাস হয় Zoom বা Google Meet এ। সময় ও লিংক ক্লাস রুটিন পেজে আর লেকচারের Live Class বাটনে পাবেন।'],
+  ['প্রাইভেট ব্যাচ বা ১-টু-১ সেশন কীভাবে বুক করব?', 'প্রাইভেট ব্যাচ পেজ থেকে খালি সিট বা স্লট বেছে রিকোয়েস্ট পাঠান। কনফার্ম হলে সেই স্লট সবার জন্য লক দেখাবে।'],
+  ['পড়তে গিয়ে প্রশ্ন থাকলে কী করব?', 'প্রতিটি অধ্যায় ও লেকচারে "প্রশ্ন করুন" বাটন আছে। এছাড়া নিচের কোণের যোগাযোগ বাটন থেকেও প্রশ্ন পাঠাতে পারেন।']
+];
+
+function FaqSection() {
+  const [open, setOpen] = useState(0);
+  return (
+    <div className="rounded-[30px] border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-4">
+      <h3 className="text-xl sm:text-2xl font-extrabold text-white">সাধারণ প্রশ্নোত্তর (FAQ)</h3>
+      <div className="divide-y divide-slate-800">
+        {FAQ_ITEMS.map(([q, a], i) => (
+          <div key={q}>
+            <button
+              type="button"
+              onClick={() => setOpen(open === i ? -1 : i)}
+              className="flex w-full items-center justify-between gap-4 py-4 text-left"
+            >
+              <span className="text-sm font-bold text-white">{q}</span>
+              <ChevronRight className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open === i ? 'rotate-90' : ''}`} />
+            </button>
+            {open === i && <p className="pb-4 text-sm leading-relaxed text-slate-300">{a}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Student reviews and results. The section stays hidden until these lists have entries.
+const TESTIMONIALS = [
+  // { name: 'শিক্ষার্থীর নাম', info: 'HSC 2025, ঢাকা কলেজ', text: 'মতামত' },
+];
+const RESULT_STATS = [
+  // { value: '১২০+', label: 'HSC তে A+' },
+];
+
+function ProofSection() {
+  if (TESTIMONIALS.length === 0 && RESULT_STATS.length === 0) return null;
+  return (
+    <div className="rounded-[30px] border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-6">
+      <h3 className="text-xl sm:text-2xl font-extrabold text-white">শিক্ষার্থীদের ফলাফল ও মতামত</h3>
+      {RESULT_STATS.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {RESULT_STATS.map((r) => (
+            <div key={r.label} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-center">
+              <div className="text-3xl font-black text-emerald-300">{r.value}</div>
+              <div className="mt-1 text-xs font-semibold text-slate-400">{r.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {TESTIMONIALS.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <figure key={t.name + t.text} className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+              <blockquote className="text-sm leading-relaxed text-slate-200">“{t.text}”</blockquote>
+              <figcaption className="mt-3 text-xs">
+                <span className="font-bold text-white">{t.name}</span>
+                <span className="text-slate-400"> • {t.info}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Contact
+const CONTACT_CHANNELS = [
+  { key: 'whatsapp', label: 'WhatsApp', Icon: MessageCircle, cls: 'bg-[#25D366] text-white', href: () => `https://wa.me/${SITE_LINKS.whatsapp}` },
+  { key: 'telegram', label: 'Telegram', Icon: Send, cls: 'bg-[#229ED9] text-white', href: () => SITE_LINKS.telegram },
+  { key: 'facebook', label: 'Facebook', Icon: Facebook, cls: 'bg-[#1877F2] text-white', href: () => SITE_LINKS.facebook },
+  { key: 'email', label: 'Email', Icon: Mail, cls: 'bg-slate-700 text-white', href: () => `mailto:${SITE_LINKS.email}` }
+];
+// Channels with no link set are hidden.
+const activeChannels = () => CONTACT_CHANNELS.filter((c) => SITE_LINKS[c.key]);
+
+function ContactIcons({ size = 'sm' }) {
+  const box = size === 'sm' ? 'h-9 w-9' : 'h-11 w-11';
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {activeChannels().map((c) => (
+        <a
+          key={c.key}
+          href={c.href()}
+          target={c.key === 'email' ? undefined : '_blank'}
+          rel="noreferrer"
+          title={c.label}
+          aria-label={c.label}
+          className={`flex ${box} items-center justify-center rounded-full ${c.cls} shadow transition hover:scale-110`}
+        >
+          <c.Icon className="h-4 w-4" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function FloatingContact({ onAsk }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6">
+      {open && (
+        <div className="w-60 space-y-1.5 rounded-2xl border border-slate-700 bg-slate-900/95 p-2.5 shadow-2xl backdrop-blur">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onAsk();
+            }}
+            className="flex w-full items-center gap-3 rounded-xl bg-amber-400 px-3 py-2.5 text-left text-sm font-extrabold text-slate-950 hover:bg-amber-300"
+          >
+            <span className="text-lg">❓</span> প্রশ্ন করুন
+          </button>
+          {activeChannels().map((c) => (
+            <a
+              key={c.key}
+              href={c.href()}
+              target={c.key === 'email' ? undefined : '_blank'}
+              rel="noreferrer"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold text-white hover:bg-slate-800"
+            >
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${c.cls}`}>
+                <c.Icon className="h-4 w-4" />
+              </span>
+              {c.label}
+            </a>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="যোগাযোগ"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-slate-950 shadow-[0_10px_30px_rgba(20,184,166,0.45)] transition hover:scale-105"
+      >
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Private slots
+// Sample slots used until SITE_LINKS.slotSheetCsv is set (see docs/SLOTS.md).
+//   for:    'one' (1-to-1), 'custom' (custom O/A-Level batch) or 'all'
+//   mode:   'Online', 'Offline' or 'Both'
+//   status: 'available' or 'booked'. Slots not listed are locked.
+const SAMPLE_SLOTS = [
+  { day: 'শনি', time: 'বিকাল ৪:০০ – ৫:৩০', for: 'all', mode: 'Both', status: 'available' },
+  { day: 'শনি', time: 'সন্ধ্যা ৬:০০ – ৭:৩০', for: 'one', mode: 'Online', status: 'booked' },
+  { day: 'রবি', time: 'সকাল ১০:০০ – ১১:৩০', for: 'custom', mode: 'Both', status: 'available' },
+  { day: 'সোম', time: 'বিকাল ৪:০০ – ৫:৩০', for: 'all', mode: 'Offline', status: 'available' },
+  { day: 'সোম', time: 'রাত ৯:০০ – ১০:৩০', for: 'one', mode: 'Online', status: 'available' },
+  { day: 'বুধ', time: 'সন্ধ্যা ৬:০০ – ৭:৩০', for: 'all', mode: 'Both', status: 'booked' },
+  { day: 'বৃহস্পতি', time: 'রাত ৯:০০ – ১০:৩০', for: 'all', mode: 'Online', status: 'available' },
+  { day: 'শুক্র', time: 'সকাল ১০:০০ – ১১:৩০', for: 'custom', mode: 'Both', status: 'available' },
+  { day: 'শুক্র', time: 'বিকাল ৩:০০ – ৪:৩০', for: 'all', mode: 'Both', status: 'booked' }
+];
+
+const DAY_ALIASES = {
+  sat: 'শনি', saturday: 'শনি', sun: 'রবি', sunday: 'রবি', mon: 'সোম', monday: 'সোম', tue: 'মঙ্গল', tuesday: 'মঙ্গল',
+  wed: 'বুধ', wednesday: 'বুধ', thu: 'বৃহস্পতি', thursday: 'বৃহস্পতি', fri: 'শুক্র', friday: 'শুক্র'
+};
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') {
+      row.push(cell);
+      cell = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = '';
+    } else cell += ch;
+  }
+  if (cell || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((c) => c.trim()));
+}
+
+function slotsFromCsv(text) {
+  const [header, ...rows] = parseCsv(text);
+  const col = (name) => header.findIndex((h) => h.trim().toLowerCase() === name);
+  const idx = { day: col('day'), time: col('time'), for: col('for'), mode: col('mode'), status: col('status') };
+  return rows
+    .map((r) => {
+      const get = (k) => (idx[k] >= 0 ? (r[idx[k]] || '').trim() : '');
+      const rawDay = get('day');
+      return {
+        day: DAY_ALIASES[rawDay.toLowerCase()] || rawDay,
+        time: get('time'),
+        for: (get('for') || 'all').toLowerCase(),
+        mode: get('mode') || 'Both',
+        status: (get('status') || '').toLowerCase()
+      };
+    })
+    .filter((s) => s.day && s.time && (s.status === 'available' || s.status === 'booked'));
+}
+
+function useSlots() {
+  const [state, setState] = useState({ slots: SITE_LINKS.slotSheetCsv ? null : SAMPLE_SLOTS, error: false });
+  useEffect(() => {
+    if (!SITE_LINKS.slotSheetCsv) return undefined;
+    let cancelled = false;
+    fetch(SITE_LINKS.slotSheetCsv, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
+      .then((t) => !cancelled && setState({ slots: slotsFromCsv(t), error: false }))
+      .catch(() => !cancelled && setState({ slots: [], error: true }));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return state;
+}
+
+const slotId = (s) => `${s.day} • ${s.time}`;
+
+function SlotPicker({ forType, mode, selected, onChange }) {
+  const { slots, error } = useSlots();
+  const days = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'];
+  if (!slots) return <div className="rounded-xl bg-slate-950 p-4 text-xs text-slate-400">স্লট লোড হচ্ছে…</div>;
+  const mine = slots.filter((s) => s.for === 'all' || s.for === forType);
+  const toggle = (id) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+  return (
+    <div className="space-y-3">
+      {error && (
+        <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs text-rose-200">
+          স্লটের তালিকা এখন লোড করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন বা যোগাযোগ বাটনে জানান।
+        </div>
+      )}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+        {days.map((d) => {
+          const daySlots = mine.filter((s) => s.day === d);
+          return (
+            <div key={d} className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
+              <div className="mb-2 text-xs font-extrabold text-white">{d}</div>
+              {daySlots.length === 0 ? (
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                  <Lock className="h-3 w-3" /> কোনো খালি স্লট নেই
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {daySlots.map((s) => {
+                    const id = slotId(s);
+                    const booked = s.status === 'booked';
+                    const wrongMode = !booked && s.mode !== 'Both' && s.mode !== mode;
+                    const on = selected.includes(id);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        disabled={booked || wrongMode}
+                        onClick={() => toggle(id)}
+                        className={`flex w-full items-center justify-between gap-2 rounded-xl border px-2.5 py-2 text-left text-[11px] font-bold transition ${
+                          booked
+                            ? 'cursor-not-allowed border-slate-800 bg-slate-900 text-slate-500'
+                            : wrongMode
+                            ? 'cursor-not-allowed border-slate-800 bg-slate-900 text-slate-500'
+                            : on
+                            ? 'border-amber-400 bg-amber-400 text-slate-950'
+                            : 'border-emerald-500/50 bg-emerald-500/10 text-emerald-200 hover:border-emerald-400'
+                        }`}
+                      >
+                        <span className={booked ? 'line-through' : ''}>{s.time}</span>
+                        <span className="shrink-0">
+                          {booked ? '🔒 বুকড' : wrongMode ? `শুধু ${s.mode}` : on ? '✓' : 'খালি'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+        <span><span className="text-emerald-300">■</span> খালি — বেছে নেওয়া যাবে</span>
+        <span><span className="text-slate-500">■</span> 🔒 বুকড / লক</span>
+        <span>রিকোয়েস্ট পাঠালেই স্লট বুক হয় না; কনফার্ম হলে সবার জন্য লক দেখাবে।</span>
+      </div>
+    </div>
+  );
+}
+
+function ResearchProfileLinks() {
+  const links = [
+    ['Google Scholar', SITE_LINKS.googleScholar],
+    ['ORCID', SITE_LINKS.orcid],
+    ['ResearchGate', SITE_LINKS.researchGate]
+  ].filter(([, url]) => url);
+  if (links.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-3">
+      {links.map(([label, url]) => (
+        <a
+          key={label}
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#d6eadf] bg-white px-4 py-2.5 text-sm font-semibold text-[#2c7353] transition hover:border-[#3f8a68]"
+        >
+          <ExternalLink className="h-4 w-4" /> {label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Page addresses (#/...)
+// Every page has its own shareable address, e.g. #/hsc-bangla/paper2/p2-ch3.
+const PAGE_SLUGS = {
+  'HSC Bangla Version': 'hsc-bangla',
+  'HSC English Version': 'hsc-english',
+  'O-Level & A-Level': 'o-a-level',
+  'Admission Test (BUET/DU)': 'admission',
+  'B.Sc. Honours Math': 'honours',
+  'Research & Papers': 'research',
+  'About Me': 'about',
+  'Private Batch': 'private',
+  'Class Routine': 'routine'
+};
+const SLUG_PAGES = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([page, slug]) => [slug, page]));
+
+const navStateToHash = (st) => {
+  if (!st || st.page === 'HOME') return '#/';
+  if (st.page === 'COURSE' && st.course) {
+    const c = st.course;
+    const base = `#/${PAGE_SLUGS[c.parent] || ''}`;
+    if (c.kind === 'bv') return `${base}/course/${c.id}`;
+    if (c.kind === 'bvChapter') return `${base}/${c.paperKey}/${c.chapterId}`;
+    if (c.kind === 'track') return `${base}/m${c.moduleIdx}`;
+    if (c.kind === 'trackChapter') return `${base}/m${c.moduleIdx}/c${c.chapterIdx}`;
+    if (c.kind === 'about') return `${base}/${c.role}`;
+    if (c.kind === 'private') return `${base}/${c.option}`;
+    return base;
+  }
+  const slug = PAGE_SLUGS[st.page];
+  if (!slug) return '#/';
+  const o = st.options || {};
+  if (o.researchCardId) return `#/${slug}/${o.researchCardId}`;
+  if (o.bvPaperKey) return `#/${slug}/${o.bvPaperKey}`;
+  return `#/${slug}`;
+};
+
+// Rebuilds the navigation state (same shape openSubPage / openCourse use) from an address.
+const hashToNavState = (hash) => {
+  const parts = (hash || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  const page = SLUG_PAGES[parts[0]];
+  if (!page) return { page: 'HOME' };
+  const [, a, b] = parts;
+  if (!a) return { page };
+
+  if (page === 'HSC Bangla Version') {
+    if (a === 'course') {
+      const c = SPECIAL_COURSES_WITH_BOOKS.find((x) => x.id === b);
+      return c ? { page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page, title: c.courseTitle } } : { page };
+    }
+    const paper = HSC_BV_PAPERS[a];
+    if (!paper) return { page };
+    const ch = b && paper.chapters.find((x) => x.id === b);
+    if (!ch) return { page, options: { bvPaperKey: a } };
+    return { page: 'COURSE', course: { kind: 'bvChapter', paperKey: a, chapterId: ch.id, parent: page, title: `${ch.num}: ${ch.title}` } };
+  }
+
+  const track = PART3_ACADEMIC_TRACKS[page];
+  if (track) {
+    const mm = /^m(\d+)$/.exec(a);
+    const mod = mm && track.modules[Number(mm[1])];
+    if (!mod) return { page };
+    const moduleIdx = Number(mm[1]);
+    const cm = b && /^c(\d+)$/.exec(b);
+    const ch = cm && mod.chapters[Number(cm[1])];
+    if (ch) {
+      return {
+        page: 'COURSE',
+        course: { kind: 'trackChapter', trackId: page, parent: page, moduleIdx, chapterIdx: Number(cm[1]), title: `${ch.num} — ${ch.title}`, sub: `${mod.name} • ${ch.eng}`, icon: ch.icon, grad: mod.grad }
+      };
+    }
+    return {
+      page: 'COURSE',
+      course: { kind: 'track', trackId: page, parent: page, moduleIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad }
+    };
+  }
+
+  if (page === 'Research & Papers' && RESEARCH_SHOWCASE_CARDS.some((x) => x.id === a)) {
+    return { page, options: { researchCardId: a, anchorId: 'research-detail' } };
+  }
+  if (page === 'About Me') {
+    const r = ABOUT_ROLES.find((x) => x.key === a);
+    return r ? { page: 'COURSE', course: { kind: 'about', role: r.key, parent: page, title: r.title } } : { page };
+  }
+  if (page === 'Private Batch') {
+    const o = PRIVATE_OPTIONS.find((x) => x.key === a);
+    return o ? { page: 'COURSE', course: { kind: 'private', option: o.key, parent: page, title: o.title } } : { page };
+  }
+  return { page };
+};
 
 export default function App() {
   const [lang, setLang] = useState('bn');
@@ -2158,20 +2840,29 @@ export default function App() {
   // HSC Bangla Version states
   const [hscBvPaperKey, setHscBvPaperKey] = useState('paper1');
   const [selectedBvChapterId, setSelectedBvChapterId] = useState('p1-ch1');
-  const [unlockedLectures, setUnlockedLectures] = useState({});
+  // Lectures unlock after payment is verified; until there is a login, nothing is unlocked here.
+  const [unlockedLectures] = useState({});
   const [unlockModalLecture, setUnlockModalLecture] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('bKash');
-  const [paymentPhone, setPaymentPhone] = useState('');
-  const [paymentTrxId, setPaymentTrxId] = useState('');
 
   // Special Courses Inside Classroom states (Course 1 to Course 6)
   const [activeSpecialCourseId, setActiveSpecialCourseId] = useState('course-calculus');
   const [selectedCourseChapterIdx, setSelectedCourseChapterIdx] = useState(0);
-  const [enrolledCourses, setEnrolledCourses] = useState({ 'course-calculus': true });
-  const [completedCourseLectures, setCompletedCourseLectures] = useState({
-    'course-calculus-p1-ch8-lec-1': true,
-    'course-calculus-p1-ch8-lec-2': true
+  const [enrolledCourses] = useState({});
+  // Completed lectures are remembered on this device.
+  const [completedCourseLectures, setCompletedCourseLectures] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('completedLectures') || '{}');
+    } catch {
+      return {};
+    }
   });
+  useEffect(() => {
+    try {
+      localStorage.setItem('completedLectures', JSON.stringify(completedCourseLectures));
+    } catch {
+      // Storage unavailable (private mode); progress just won't persist.
+    }
+  }, [completedCourseLectures]);
   const [courseEnrollModal, setCourseEnrollModal] = useState(null);
 
   // Modals
@@ -2179,11 +2870,12 @@ export default function App() {
   const [selectedSpecialCourseModal, setSelectedSpecialCourseModal] = useState(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [bookingRequest, setBookingRequest] = useState(null);
+  const askQuestion = (lines = []) => setBookingRequest({ kind: 'question', type: 'প্রশ্ন', lines });
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [selfTestAnswers, setSelfTestAnswers] = useState({});
   const [selfTestSubmitted, setSelfTestSubmitted] = useState(false);
   const [activeResearchCardId, setActiveResearchCardId] = useState('thesis-consultation');
-  const [thesisBookingSubmitted, setThesisBookingSubmitted] = useState(false);
+  const [thesisLevel, setThesisLevel] = useState('M.Sc. Thesis');
 
   const [part3ModuleIdx, setPart3ModuleIdx] = useState(0);
   const [part3ChapterIdx, setPart3ChapterIdx] = useState(0);
@@ -2342,18 +3034,6 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  const handleUnlockLectureSubmit = (e) => {
-    e.preventDefault();
-    if (!unlockModalLecture) return;
-    setUnlockedLectures((prev) => ({
-      ...prev,
-      [unlockModalLecture.lecKey]: true
-    }));
-    setUnlockModalLecture(null);
-    setPaymentPhone('');
-    setPaymentTrxId('');
-  };
-
   // Sets the page state for a sub-page without touching history or scroll.
   const applySubPage = (trackId, options = {}) => {
     setActiveCourse(null);
@@ -2416,12 +3096,13 @@ export default function App() {
   // With `replace`, swap the current entry instead (used for previous/next chapter).
   const pushNavState = (navState, replace = false) => {
     const current = window.history.state || { page: 'HOME', depth: 0 };
+    const hash = navStateToHash(navState);
     if (replace) {
-      window.history.replaceState({ ...navState, depth: current.depth || 0 }, '');
+      window.history.replaceState({ ...navState, depth: current.depth || 0 }, '', hash);
       return;
     }
     window.history.replaceState({ ...current, scrollY: window.scrollY }, '');
-    window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '');
+    window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '', hash);
   };
 
   const openSubPage = (trackId, options = {}) => {
@@ -2441,14 +3122,30 @@ export default function App() {
     else openSubPage('HOME');
   };
 
+  const applyNavState = (st) => {
+    if (st.page === 'COURSE' && st.course) applyCourse(st.course);
+    else applySubPage(st.page || 'HOME', st.options || {});
+  };
+
   useEffect(() => {
-    if (!window.history.state) {
-      window.history.replaceState({ page: 'HOME', depth: 0 }, '');
+    // Open the page named in the address (a shared link or a reload), else keep this entry's state.
+    const fromHash = hashToNavState(window.location.hash);
+    const initial = window.history.state && window.history.state.page ? window.history.state : { ...fromHash, depth: 0 };
+    window.history.replaceState(initial, '', navStateToHash(initial));
+    if (initial.page !== 'HOME') {
+      applyNavState(initial);
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => {
+          const el = initial.options && initial.options.anchorId && document.getElementById(initial.options.anchorId);
+          if (el) el.scrollIntoView({ block: 'start' });
+        })
+      );
     }
     const onPopState = (e) => {
-      const st = e.state || { page: 'HOME' };
-      if (st.page === 'COURSE' && st.course) applyCourse(st.course);
-      else applySubPage(st.page || 'HOME', st.options || {});
+      // A hand-edited address arrives without state; rebuild it from the hash.
+      const st = e.state || { ...hashToNavState(window.location.hash), depth: 0 };
+      if (!e.state) window.history.replaceState(st, '');
+      applyNavState(st);
       const y = st.scrollY || 0;
       window.requestAnimationFrame(() =>
         window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'auto' }))
@@ -2463,6 +3160,12 @@ export default function App() {
     isCourseView && (activeCourse.kind === 'track' || activeCourse.kind === 'trackChapter');
   const isTrackChapterView = isCourseView && activeCourse.kind === 'trackChapter';
   const part3TrackKey = isTrackCourse ? activeCourse.trackId : activeSubPage;
+
+  // Browser tab title follows the page.
+  useEffect(() => {
+    const label = isCourseView ? `${activeCourse.title} • ${activeCourse.parent}` : activeSubPage === 'HOME' ? '' : activeSubPage;
+    document.title = label ? `${label} | Emran Islam` : 'Emran Islam | Lecturer in Mathematics';
+  }, [activeSubPage, activeCourse, isCourseView]);
 
   const openBvChapter = (paper, ch, replace = false) =>
     openCourse({
@@ -2508,6 +3211,12 @@ export default function App() {
                 ← মূল হোমপেজ (Home)
               </button>
             )}
+            <button
+              onClick={() => openSubPage('Class Routine')}
+              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 font-semibold border border-slate-700"
+            >
+              🗓️ ক্লাস রুটিন
+            </button>
             <button
               onClick={() => setCvModalOpen(true)}
               className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-semibold border border-slate-700"
@@ -2709,7 +3418,8 @@ export default function App() {
                 { id: 'B.Sc. Honours Math', label: 'Honours' },
                 { id: 'Research & Papers', label: 'Research' },
                 { id: 'About Me', label: 'About Me' },
-                { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' }
+                { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' },
+                { id: 'Class Routine', label: 'ক্লাস রুটিন' }
               ]
                 .filter((t) => t.id !== navActive)
                 .map((t) => (
@@ -3133,9 +3843,15 @@ export default function App() {
               </div>
             </div>
           </div>
+
+          <ProofSection />
+          <FaqSection />
         </div>
       </section>
       )}
+
+      {/* VIEW: CLASS ROUTINE */}
+      {activeSubPage === 'Class Routine' && <ClassRoutinePage onAsk={() => askQuestion([['বিষয়', 'ক্লাস রুটিন']])} />}
 
       {/* VIEW: PRIVATE BATCH HUB + OPTION PAGES */}
       {activeSubPage === 'Private Batch' && (
@@ -3339,6 +4055,15 @@ export default function App() {
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">১০টি লেকচার</span>
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">✓ ১ম লেকচার ফ্রি</span>
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">পরের লেকচার ৳৩০</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      askQuestion([['অধ্যায়', `${currentBvPaper.title} • ${currentBvChapter.num}: ${currentBvChapter.title}`]])
+                    }
+                    className="rounded-lg bg-white px-3 py-1 text-slate-900 shadow hover:bg-amber-100"
+                  >
+                    ❓ প্রশ্ন করুন
+                  </button>
                 </div>
               </div>
             </div>
@@ -3832,6 +4557,15 @@ export default function App() {
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{activeCourse.title}</h3>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1">{activeCourse.sub}</p>
               </div>
+              {isTrackChapterView && (
+                <button
+                  type="button"
+                  onClick={() => askQuestion([['অধ্যায়', activeCourse.title], ['কোর্স', activeCourse.sub]])}
+                  className="ml-auto shrink-0 rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-300"
+                >
+                  ❓ প্রশ্ন করুন
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -4229,73 +4963,23 @@ export default function App() {
                     </span>
                   </div>
 
-                  {!thesisBookingSubmitted ? (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        setThesisBookingSubmitted(true);
-                      }}
-                      className="space-y-3 text-xs"
+                  <div className="space-y-3 text-xs">
+                    <div className="text-slate-400">কী নিয়ে সাহায্য দরকার?</div>
+                    <ChoiceChips
+                      options={['M.Sc. Thesis', 'B.Sc. (Honours) Project', 'Journal Paper Conversion']}
+                      value={thesisLevel}
+                      onChange={setThesisLevel}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBookingRequest({ kind: 'booking', type: 'থিসিস কনসালটেশন', lines: [['ধরন', thesisLevel]] })
+                      }
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold shadow-lg transition"
                     >
-                      <div>
-                        <label className="block text-slate-400 mb-1">আপনার নাম ও বিশ্ববিদ্যালয় *</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Arif Rahman, Dept. of Math"
-                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="block text-slate-400 mb-1">ডিগ্রি লেভেল *</label>
-                          <select className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white">
-                            <option>M.Sc. Thesis</option>
-                            <option>B.Sc. (Honours) Project</option>
-                            <option>Journal Paper Conversion</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-slate-400 mb-1">হোয়াটসঅ্যাপ নম্বর *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="017XXXXXXXX"
-                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">গবেষণার ক্ষেত্র / বর্তমান অবস্থা</label>
-                        <textarea
-                          rows={2}
-                          placeholder="Need help with topic selection / Optimization / ML / LaTeX..."
-                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold shadow-lg transition"
-                      >
-                        থিসিস কনসালটেশন স্লট রিকোয়েস্ট পাঠান
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-400/50 text-xs space-y-2">
-                      <div className="text-sm font-extrabold text-emerald-300">
-                        ✓ আপনার থিসিস কনসালটেশন রিকোয়েস্ট গৃহীত হয়েছে!
-                      </div>
-                      <p className="text-slate-200">
-                        প্রভাষক ইমরান ইসলাম স্যার খুব শীঘ্রই আপনার সাথে যোগাযোগ করে সেশনের সময়সূচি চূড়ান্ত করবেন। জরুরি প্রয়োজনে কল/হোয়াটসঅ্যাপ করুন: <strong>+880 1966 631211</strong>।
-                      </p>
-                      <button
-                        onClick={() => setThesisBookingSubmitted(false)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-900 text-teal-300 font-bold"
-                      >
-                        নতুন রিকোয়েস্ট পাঠান
-                      </button>
-                    </div>
-                  )}
+                      থিসিস কনসালটেশন রিকোয়েস্ট পাঠান
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -4411,362 +5095,147 @@ export default function App() {
       )}
       </div>
 
-      {/* COURSE ENROLLMENT MODAL */}
+      {/* PAYMENT REQUESTS (course enrollment / single lecture unlock) */}
       {courseEnrollModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-md w-full p-6 border border-amber-400/50 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  {courseEnrollModal.courseNum} • Full Course Enrollment
-                </span>
-                <h3 className="text-lg font-extrabold text-white mt-1.5">
-                  {courseEnrollModal.courseTitle} কোর্সে ভর্তি হোন
-                </h3>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  অন্তর্ভুক্ত অধ্যায়: {courseEnrollModal.chaptersIncluded}
-                </p>
-              </div>
-              <button
-                onClick={() => setCourseEnrollModal(null)}
-                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
-              <div className="font-bold text-teal-300">কোর্সে Enroll করলেই পাবেন:</div>
-              <div className="text-slate-300">✓ সকল অধ্যায়ের লেকচার নোট (PDF) ও Recorded Class</div>
-              <div className="text-slate-300">✓ রুটিন অনুযায়ী Scheduled Live Class ({courseEnrollModal.liveSchedule})</div>
-              <div className="text-slate-300">✓ প্রতিটি লেকচারে Google Form Self Test ও Course Progress Bar</div>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setEnrolledCourses((prev) => ({ ...prev, [courseEnrollModal.id]: true }));
-                setCourseEnrollModal(null);
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">শিক্ষার্থীর নাম / মোবাইল *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="017XXXXXXXX"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">
-                    bKash/Nagad TrxID ({courseEnrollModal.priceBdt}) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 9K4M2P"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 text-slate-950 font-extrabold text-xs shadow-lg transition"
-              >
-                {courseEnrollModal.priceBdt} পেমেন্ট নিশ্চিত করে কোর্স আনলক করুন
-              </button>
-            </form>
-          </div>
-        </div>
+        <RequestModal
+          request={{
+            kind: 'payment',
+            type: `কোর্সে ভর্তি: ${courseEnrollModal.courseTitle}`,
+            amount: courseEnrollModal.priceBdt,
+            lines: [
+              ['কোর্স', `${courseEnrollModal.courseNum}: ${courseEnrollModal.courseTitle}`],
+              ['অধ্যায়', courseEnrollModal.chaptersIncluded],
+              ['ফি', courseEnrollModal.priceBdt]
+            ]
+          }}
+          onClose={() => setCourseEnrollModal(null)}
+        />
       )}
-
-      {}
       {unlockModalLecture && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-md w-full p-6 border border-amber-400/50 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  Instant Lecture Unlock • ৳৩০ মাত্র
-                </span>
-                <h3 className="text-lg font-extrabold text-white mt-1.5">
-                  {unlockModalLecture.titleBn} আনলক করুন
-                </h3>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  {currentBvPaper.title} • {currentBvChapter.num}: {currentBvChapter.title}
-                </p>
-              </div>
-              <button
-                onClick={() => setUnlockModalLecture(null)}
-                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
-              <div className="font-bold text-teal-300">আনলক করলেই সাথে সাথে পাবেন:</div>
-              <div className="text-slate-300">✓ ১. পূর্ণাঙ্গ ক্লাস নোট (PDF Download & Print)</div>
-              <div className="text-slate-300">✓ ২. এইচডি রেকর্ডেড ভিডিও লেকচার</div>
-              <div className="text-slate-300">✓ ৩. Self Test (Google Form কুইজ ও তাৎক্ষণিক ফলাফল)</div>
-            </div>
-
-            <form onSubmit={handleUnlockLectureSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  পেমেন্ট মাধ্যম নির্বাচন করুন (Send Money: 01966-631211)
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['bKash', 'Nagad', 'Rocket'].map((m) => (
-                    <button
-                      type="button"
-                      key={m}
-                      onClick={() => setPaymentMethod(m)}
-                      className={`py-2 rounded-xl text-xs font-extrabold border transition ${
-                        paymentMethod === m
-                          ? 'bg-amber-400 text-slate-950 border-amber-300'
-                          : 'bg-slate-800 text-slate-300 border-slate-700'
-                      }`}
-                    >
-                      {m} (৳৩০)
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">আপনার মোবাইল নম্বর *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="017XXXXXXXX"
-                    value={paymentPhone}
-                    onChange={(e) => setPaymentPhone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Transaction ID *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 8N7A6K"
-                    value={paymentTrxId}
-                    onChange={(e) => setPaymentTrxId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 text-slate-950 font-extrabold text-xs shadow-lg transition"
-              >
-                ৳৩০ পেমেন্ট নিশ্চিত করে লেকচার আনলক করুন
-              </button>
-            </form>
-          </div>
-        </div>
+        <RequestModal
+          request={{
+            kind: 'payment',
+            type: `লেকচার আনলক: ${unlockModalLecture.titleBn}`,
+            amount: `৳${unlockModalLecture.priceBdt}`,
+            lines: [
+              ['লেকচার', unlockModalLecture.titleBn],
+              ['বিষয়', unlockModalLecture.topic],
+              ['ফি', `৳${unlockModalLecture.priceBdt}`]
+            ]
+          }}
+          onClose={() => setUnlockModalLecture(null)}
+        />
       )}
 
-      {/* LECTURE RESOURCE MODAL (PDF / VIDEO / SELF TEST GOOGLE FORM) */}
-      {activeLectureResourceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 border border-cyan-500/40 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
-                  {activeLectureResourceModal.paper.title} • {activeLectureResourceModal.chapter.num} • {activeLectureResourceModal.lec.titleBn}
-                </span>
-                <h3 className="text-lg sm:text-xl font-extrabold text-white mt-1.5">
-                  {activeLectureResourceModal.lec.topic}
-                </h3>
-              </div>
-              <button
-                onClick={() => setActiveLectureResourceModal(null)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {activeLectureResourceModal.type === 'pdf' && (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-                  <div className="text-teal-300 font-bold text-sm">
-                    📄 লেকচার হ্যান্ডনোট ও সূত্রাবলি (PDF ক্লাস নোট)
-                  </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    প্রভাষক ইমরান ইসলাম স্যারের ক্লাসের সম্পূর্ণ হাতে লেখা নোট, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও ভর্তি পরীক্ষার গুরুত্বপূর্ণ টাইপভিত্তিক উদাহরণ এই PDF নোটে অন্তর্ভুক্ত রয়েছে।
-                  </p>
-                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 font-mono text-amber-300">
-                    • অধ্যায়: {activeLectureResourceModal.chapter.title} ({activeLectureResourceModal.lec.titleBn})
-                    <br />• প্রস্তুতকারক: Emran Islam, Lecturer in Mathematics (Hamdard Public College, Dhaka)
-                  </div>
+      {/* LECTURE RESOURCE MODAL (PDF / VIDEO / LIVE / SELF TEST) */}
+      {activeLectureResourceModal && (() => {
+        const m = activeLectureResourceModal;
+        const res = LECTURE_RESOURCES[m.lec.lecKey || m.lec.progressKey] || {};
+        const liveUrl = res.live || SITE_LINKS.liveClass;
+        const close = () => setActiveLectureResourceModal(null);
+        return (
+          <div onClick={close} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 text-white rounded-3xl max-w-3xl w-full p-6 sm:p-7 border border-cyan-500/40 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                    {m.paper.title} • {m.chapter.num} • {m.lec.titleBn}
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-white mt-1.5">{m.lec.topic}</h3>
                 </div>
-                <button
-                  onClick={() => window.print()}
-                  className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5"
-                >
-                  <Download className="w-4 h-4" /> ক্লাস নোট PDF ডাউনলোড / প্রিন্ট করুন
+                <button onClick={close} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            )}
 
-            {activeLectureResourceModal.type === 'video' && (
-              <div className="aspect-video rounded-2xl bg-slate-950 border border-cyan-500/30 flex flex-col items-center justify-center p-6 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-teal-500/20 border border-teal-400 flex items-center justify-center text-teal-300">
-                  <Play className="w-6 h-6 fill-teal-300" />
-                </div>
-                <div className="text-sm sm:text-base font-bold text-white">
-                  {activeLectureResourceModal.lec.titleBn} — HD Recorded Video Lecture Player
-                </div>
-                <p className="text-xs text-slate-400 max-w-md">
-                  {activeLectureResourceModal.lec.topic} • Duration: {activeLectureResourceModal.lec.duration}
-                </p>
-              </div>
-            )}
-
-            {activeLectureResourceModal.type === 'live' && (
-              <div className="p-6 rounded-2xl bg-slate-950 border border-purple-500/40 space-y-4 text-center">
-                <div className="w-14 h-14 mx-auto rounded-full bg-purple-500/20 border border-purple-400 flex items-center justify-center text-purple-300">
-                  <Video className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-extrabold">
-                    🔴 Scheduled Live Class (Zoom / Google Meet)
-                  </span>
-                  <h4 className="text-base sm:text-lg font-extrabold text-white pt-1">
-                    {activeLectureResourceModal.lec.titleBn}: {activeLectureResourceModal.lec.topic}
-                  </h4>
-                  <p className="text-xs text-amber-300 font-semibold">
-                    সময়সূচি: {activeLectureResourceModal.lec.liveDate || 'রুটিন অনুযায়ী রাত ৮:৩০ PM'}
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 max-w-md mx-auto">
-                  লাইভ ক্লাসে সরাসরি স্যারের সাথে প্রশ্নোত্তর, ডিজিটাল হোয়াইটবোর্ডে গাণিতিক সমস্যার সমাধান এবং পোল কুইজে অংশ নেওয়া যাবে।
-                </div>
-                <a
-                  href="https://zoom.us"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg"
-                >
-                  <ExternalLink className="w-4 h-4" /> Join Scheduled Live Class
-                </a>
-              </div>
-            )}
-
-            {activeLectureResourceModal.type === 'selftest' && (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-extrabold text-amber-300 uppercase">
-                      Google Form Self Test • পরীক্ষা শেষেই তাৎক্ষণিক ফলাফল (Instant Score)
-                    </div>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      সরাসরি Google Form-এ পরীক্ষা দিন অথবা নিচে তাৎক্ষণিক কুইজে অংশ নিয়ে সাথে সাথেই ফলাফল দেখুন।
-                    </p>
+              {m.type === 'pdf' &&
+                (res.pdf ? (
+                  <div className="space-y-3">
+                    <iframe title="Lecture note" src={res.pdf} className="h-[60vh] w-full rounded-2xl border border-slate-800 bg-white" />
+                    <a
+                      href={res.pdf}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-teal-400"
+                    >
+                      <Download className="w-4 h-4" /> নতুন ট্যাবে খুলুন / ডাউনলোড
+                    </a>
                   </div>
-                  <a
-                    href={activeLectureResourceModal.lec.googleFormUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shrink-0"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" /> Open Google Form
-                  </a>
-                </div>
-
-                <div className="space-y-3">
-                  {[
-                    {
-                      qId: 'st1',
-                      q: `১. ${activeLectureResourceModal.chapter.title} (${activeLectureResourceModal.lec.titleBn})-এর মূল সূত্রের ক্ষেত্রে নিচের কোনটি সঠিক?`,
-                      options: ['সর্বদা সংজ্ঞায়িত ও অবিচ্ছিন্ন', 'শুধুমাত্র ধনাত্মক মানের জন্য প্রযোজ্য', 'শূন্য বিন্দুতে অসংজ্ঞায়িত', 'কোনোটিই নয়'],
-                      correct: 0
-                    },
-                    {
-                      qId: 'st2',
-                      q: `২. বোর্ড ও এডমিশন পরীক্ষায় ${activeLectureResourceModal.chapter.title} থেকে কোন ধরনের প্রশ্ন সবচেয়ে বেশি আসে?`,
-                      options: ['গাণিতিক প্রমাণ ও শর্টকাট অ্যাপ্লিকেশন', 'শুধুমাত্র সংজ্ঞা', 'তাত্ত্বিক ইতিহাস', 'কোনোটিই নয়'],
-                      correct: 0
-                    },
-                    {
-                      qId: 'st3',
-                      q: `৩. এই অধ্যায়ের গাণিতিক সমস্যা দ্রুত সমাধানের মূল কৌশল কোনটি?`,
-                      options: ['মূল সূত্র ও জ্যামিতিক তাৎপর্য প্রয়োগ', 'যেকোনো ধ্রুবক যোগ করা', 'বর্গমূল করা', 'ভাগ করা'],
-                      correct: 0
-                    }
-                  ].map((item) => (
-                    <div key={item.qId} className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-                      <div className="text-xs font-bold text-white">{item.q}</div>
-                      <div className="grid sm:grid-cols-2 gap-2">
-                        {item.options.map((opt, oIdx) => {
-                          const chosen = selfTestAnswers[item.qId] === oIdx;
-                          const isRight = item.correct === oIdx;
-                          return (
-                            <button
-                              key={oIdx}
-                              type="button"
-                              disabled={selfTestSubmitted}
-                              onClick={() =>
-                                setSelfTestAnswers((prev) => ({ ...prev, [item.qId]: oIdx }))
-                              }
-                              className={`p-2 rounded-xl border text-left text-xs transition ${
-                                selfTestSubmitted
-                                  ? isRight
-                                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200 font-bold'
-                                    : chosen
-                                    ? 'bg-rose-500/20 border-rose-400 text-rose-200'
-                                    : 'bg-slate-900 border-slate-800 text-slate-500'
-                                  : chosen
-                                  ? 'bg-teal-500 text-slate-950 border-teal-400 font-bold'
-                                  : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
-                              }`}
-                            >
-                              {opt}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {!selfTestSubmitted ? (
-                  <button
-                    onClick={() => setSelfTestSubmitted(true)}
-                    className="w-full py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs"
-                  >
-                    সাবমিট করুন ও তাৎক্ষণিক ফলাফল দেখুন (View Score)
-                  </button>
                 ) : (
-                  <div className="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-xs space-y-1">
-                    <div className="text-sm font-extrabold text-emerald-300">
-                      ✓ আপনার ফলাফল (Instant Result):{' '}
-                      {
-                        [0, 0, 0].filter(
-                          (ans, idx) => selfTestAnswers[`st${idx + 1}`] === ans
-                        ).length
-                      }{' '}
-                      / 3
-                    </div>
-                    <p className="text-emerald-200">
-                      সঠিক উত্তরগুলো সবুজ রঙে চিহ্নিত করে দেওয়া হয়েছে।
-                    </p>
+                  <ComingSoon what="ক্লাস নোট (PDF)" />
+                ))}
+
+              {m.type === 'video' &&
+                (res.youtube ? (
+                  <div className="aspect-video overflow-hidden rounded-2xl border border-slate-800 bg-black">
+                    <iframe
+                      title="Video lecture"
+                      src={`https://www.youtube-nocookie.com/embed/${res.youtube}?rel=0`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
-                )}
+                ) : (
+                  <ComingSoon what="ভিডিও লেকচার" />
+                ))}
+
+              {m.type === 'live' && (
+                <div className="p-6 rounded-2xl bg-slate-950 border border-purple-500/40 space-y-4 text-center">
+                  <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-extrabold">
+                    🔴 Live Class (Zoom / Google Meet)
+                  </span>
+                  <p className="text-xs text-amber-300 font-semibold">সময়সূচি: {m.lec.liveDate || 'ক্লাস রুটিন অনুযায়ী'}</p>
+                  {liveUrl ? (
+                    <a
+                      href={liveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg"
+                    >
+                      <ExternalLink className="w-4 h-4" /> লাইভ ক্লাসে যোগ দিন
+                    </a>
+                  ) : (
+                    <p className="text-xs text-slate-400">ক্লাসের লিংক ক্লাস শুরুর আগে এখানে দেওয়া হবে।</p>
+                  )}
+                  <div>
+                    <button
+                      onClick={() => {
+                        close();
+                        openSubPage('Class Routine');
+                      }}
+                      className="text-xs font-bold text-cyan-300 hover:underline"
+                    >
+                      🗓️ পুরো ক্লাস রুটিন দেখুন →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {m.type === 'selftest' && <QuizPanel key={m.lec.lecKey || m.lec.progressKey} quizKey={m.chapter.id || m.chapter.chId} />}
+
+              <div className="flex items-center justify-between gap-3 border-t border-slate-800 pt-4">
+                <span className="text-xs text-slate-400">এই লেকচার নিয়ে কিছু বুঝতে সমস্যা?</span>
+                <button
+                  onClick={() => {
+                    close();
+                    askQuestion([
+                      ['লেকচার', `${m.paper.title} • ${m.chapter.num} • ${m.lec.titleBn}`],
+                      ['বিষয়', m.lec.topic]
+                    ]);
+                  }}
+                  className="rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-300"
+                >
+                  ❓ প্রশ্ন করুন
+                </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* SPECIAL COURSE & FEATURED BOOK MODAL */}
       {selectedSpecialCourseModal && (
@@ -4825,8 +5294,10 @@ export default function App() {
       )}
 
       {bookingRequest && (
-        <BookingRequestModal key={bookingRequest.type + bookingRequest.lines.length} request={bookingRequest} onClose={() => setBookingRequest(null)} />
+        <RequestModal key={bookingRequest.type + bookingRequest.lines.length} request={bookingRequest} onClose={() => setBookingRequest(null)} />
       )}
+
+      <FloatingContact onAsk={() => askQuestion()} />
 
       {/* AUTHORED BOOKS MODAL (shop style) */}
       {bookModalOpen && (
@@ -4895,7 +5366,7 @@ export default function App() {
                   {CV_CREDENTIALS.titles}
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  Present: {CV_CREDENTIALS.presentAddress} • Permanent: {CV_CREDENTIALS.permanentAddress} • {CV_CREDENTIALS.phone} • {CV_CREDENTIALS.email}
+                  Dhaka, Bangladesh • {CV_CREDENTIALS.email}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -4964,12 +5435,15 @@ export default function App() {
         </div>
       )}
 
-      <footer className="bg-[#030812] text-slate-400 border-t border-slate-800/80 py-6 text-xs">
+      <footer className="bg-[#030812] text-slate-400 border-t border-slate-800/80 pt-6 pb-24 text-xs">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <strong className="text-white">Emran Islam</strong> — Lecturer in Mathematics (Hamdard Public College, Dhaka) • M.Sc. & B.Sc. Hons (Jahangirnagar University)
           </div>
-          <div>168/6 Green Road, Dhaka • +880 1966 631211 • emranju70@gmail.com</div>
+          <div className="flex flex-col items-center gap-2 sm:items-end">
+            <ContactIcons />
+            <div>Dhaka, Bangladesh • {CV_CREDENTIALS.email}</div>
+          </div>
         </div>
       </footer>
     </div>
