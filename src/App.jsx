@@ -1614,13 +1614,13 @@ function AboutAuthorPage({ onBookDetails }) {
 const BOOKING_CONTACT = { email: CV_CREDENTIALS.email, whatsapp: '' };
 
 // Sample batches for the structure; replace with the real schedule.
+// Every batch runs both Online and Offline; the student picks one when booking.
 const PRIVATE_BATCHES = [
-  { id: 'pb-hsc-bv-online', title: 'HSC উচ্চতর গণিত (বাংলা ভার্সন)', level: 'HSC', mode: 'Online', days: 'শনি • সোম • বুধ', time: 'সন্ধ্যা ৭:০০ – ৮:৩০', seats: 15, seatsLeft: 6, fee: '৳ ২,৫০০ / মাস', icon: '🏆', grad: 'from-sky-400 via-blue-500 to-indigo-600' },
-  { id: 'pb-hsc-bv-offline', title: 'HSC উচ্চতর গণিত (বাংলা ভার্সন)', level: 'HSC', mode: 'Offline', days: 'রবি • মঙ্গল • বৃহস্পতি', time: 'বিকাল ৪:০০ – ৫:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 12, seatsLeft: 3, fee: '৳ ৩,০০০ / মাস', icon: '🏆', grad: 'from-sky-400 via-blue-500 to-indigo-600' },
-  { id: 'pb-hsc-ev-online', title: 'HSC Higher Math (English Version)', level: 'HSC', mode: 'Online', days: 'Sun • Tue • Thu', time: '8:30 – 10:00 PM', seats: 12, seatsLeft: 8, fee: '৳ 2,800 / month', icon: '🎯', grad: 'from-cyan-400 via-teal-500 to-emerald-600' },
-  { id: 'pb-oa-online', title: 'O-Level D-Math & Add-Math', level: 'O/A-Level', mode: 'Online', days: 'Fri • Sat', time: '10:00 – 11:30 AM', seats: 8, seatsLeft: 2, fee: '৳ 4,000 / month', icon: '📐', grad: 'from-violet-400 via-purple-500 to-indigo-700' },
-  { id: 'pb-adm-offline', title: 'Admission (BUET / DU Ka) Math', level: 'Admission', mode: 'Offline', days: 'প্রতিদিন (রবি – বৃহস্পতি)', time: 'সকাল ৮:০০ – ৯:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 20, seatsLeft: 9, fee: '৳ ৩,৫০০ / মাস', icon: '🚀', grad: 'from-amber-400 via-orange-500 to-red-600' },
-  { id: 'pb-hons-online', title: 'B.Sc. Honours Math (1st Year)', level: 'Honours', mode: 'Online', days: 'Sat • Mon', time: '9:00 – 10:30 PM', seats: 10, seatsLeft: 5, fee: '৳ 3,000 / month', icon: '🎓', grad: 'from-emerald-400 via-green-500 to-teal-700' }
+  { id: 'pb-hsc-bv', title: 'HSC উচ্চতর গণিত (বাংলা ভার্সন)', level: 'HSC', days: 'শনি • সোম • বুধ', time: 'সন্ধ্যা ৭:০০ – ৮:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 15, seatsLeft: 6, fee: { Online: '৳ ২,৫০০ / মাস', Offline: '৳ ৩,০০০ / মাস' }, icon: '🏆', grad: 'from-sky-400 via-blue-500 to-indigo-600' },
+  { id: 'pb-hsc-ev', title: 'HSC Higher Math (English Version)', level: 'HSC', days: 'Sun • Tue • Thu', time: '8:30 – 10:00 PM', place: 'Green Road, Dhaka', seats: 12, seatsLeft: 8, fee: { Online: '৳ 2,800 / month', Offline: '৳ 3,300 / month' }, icon: '🎯', grad: 'from-cyan-400 via-teal-500 to-emerald-600' },
+  { id: 'pb-oa', title: 'O-Level D-Math & Add-Math', level: 'O/A-Level', days: 'Fri • Sat', time: '10:00 – 11:30 AM', place: 'Green Road, Dhaka', seats: 8, seatsLeft: 2, fee: { Online: '৳ 4,000 / month', Offline: '৳ 4,500 / month' }, icon: '📐', grad: 'from-violet-400 via-purple-500 to-indigo-700' },
+  { id: 'pb-adm', title: 'Admission (BUET / DU Ka) Math', level: 'Admission', days: 'রবি – বৃহস্পতি', time: 'সকাল ৮:০০ – ৯:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 20, seatsLeft: 9, fee: { Online: '৳ ৩,০০০ / মাস', Offline: '৳ ৩,৫০০ / মাস' }, icon: '🚀', grad: 'from-amber-400 via-orange-500 to-red-600' },
+  { id: 'pb-hons', title: 'B.Sc. Honours Math (1st Year)', level: 'Honours', days: 'Sat • Mon', time: '9:00 – 10:30 PM', place: 'Green Road, Dhaka', seats: 10, seatsLeft: 0, fee: { Online: '৳ 3,000 / month', Offline: '৳ 3,500 / month' }, icon: '🎓', grad: 'from-emerald-400 via-green-500 to-teal-700' }
 ];
 
 const PRIVATE_OPTIONS = [
@@ -1628,8 +1628,8 @@ const PRIVATE_OPTIONS = [
     key: 'group',
     code: 'GROUP',
     title: 'গ্রুপ প্রাইভেট ব্যাচ',
-    sub: 'চলমান Online ও Offline ব্যাচে সিট বুক করুন। ছোট ব্যাচ, নিয়মিত রুটিন, মাসিক টেস্ট।',
-    chips: ['Online', 'Offline', 'সীমিত সিট'],
+    sub: 'চলমান ব্যাচে সিট বুক করুন — Online বা Offline, যেভাবে সুবিধা। ছোট ব্যাচ, নিয়মিত রুটিন, মাসিক টেস্ট।',
+    chips: ['Online + Offline', 'সীমিত সিট'],
     icon: '👥',
     grad: 'from-teal-400 via-cyan-500 to-sky-600',
     cta: 'ব্যাচ দেখুন'
@@ -1639,7 +1639,7 @@ const PRIVATE_OPTIONS = [
     code: '1-TO-1',
     title: '১-টু-১ প্রাইভেট সেশন',
     sub: 'শুধু আপনার জন্য সেশন: নিজের সময়, নিজের গতি, নিজের দুর্বল অধ্যায়।',
-    chips: ['যেকোনো লেভেল', 'নিজের সময়'],
+    chips: ['Online + Offline', 'নিজের সময়'],
     icon: '🎯',
     grad: 'from-amber-400 via-orange-500 to-rose-600',
     cta: 'সেশন বুক করুন'
@@ -1649,7 +1649,7 @@ const PRIVATE_OPTIONS = [
     code: 'O / A-LEVEL',
     title: 'কাস্টম O/A-Level ব্যাচ',
     sub: 'বোর্ড, পেপার আর কতজন শিক্ষার্থী সেটা নিজেরা ঠিক করে বন্ধুদের নিয়ে আলাদা ব্যাচ বানান।',
-    chips: ['CAIE / Edexcel', '২–৮ জন'],
+    chips: ['Online + Offline', 'CAIE / Edexcel', '২–৮ জন'],
     icon: '📐',
     grad: 'from-violet-400 via-purple-500 to-fuchsia-600',
     cta: 'ব্যাচ সাজান'
@@ -1784,87 +1784,104 @@ function PrivateBatchHub({ onOpenOption }) {
   );
 }
 
+function PrivateBatchCard({ b, onRequest }) {
+  const [mode, setMode] = useState('Online');
+  const filled = Math.round(((b.seats - b.seatsLeft) / b.seats) * 100);
+  const full = b.seatsLeft <= 0;
+  return (
+    <div className="flex flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#0a1222]">
+      <div className={`relative bg-gradient-to-br ${b.grad} p-4`}>
+        <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:14px_14px]" />
+        <div className="relative flex items-start justify-between">
+          <span className="rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25">
+            ● Online • 📍 Offline
+          </span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-xl ring-1 ring-white/30">{b.icon}</span>
+        </div>
+        <div className="relative mt-3 text-[11px] font-bold text-white/85">{b.level}</div>
+        <h4 className="relative text-base font-extrabold leading-snug text-white">{b.title}</h4>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-4 text-sm">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-900 p-1">
+          {['Online', 'Offline'].map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`rounded-lg py-2 text-xs font-extrabold transition ${
+                mode === m ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              {m === 'Online' ? '● Online' : '📍 Offline'}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-between gap-3"><span className="text-slate-400">দিন</span><span className="text-right font-semibold text-white">{b.days}</span></div>
+        <div className="flex justify-between gap-3"><span className="text-slate-400">সময়</span><span className="text-right font-semibold text-white">{b.time}</span></div>
+        <div className="flex justify-between gap-3">
+          <span className="text-slate-400">{mode === 'Online' ? 'ক্লাস' : 'স্থান'}</span>
+          <span className="text-right font-semibold text-white">{mode === 'Online' ? 'Zoom / Google Meet' : b.place}</span>
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-slate-400">সিট</span>
+            <span className={`font-bold ${b.seatsLeft <= 3 ? 'text-rose-300' : 'text-emerald-300'}`}>
+              {full ? 'সিট পূর্ণ' : `${b.seatsLeft} / ${b.seats} খালি`}
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className={`h-full rounded-full bg-gradient-to-r ${b.grad}`} style={{ width: `${filled}%` }} />
+          </div>
+        </div>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+          <span className="whitespace-nowrap text-base font-black text-amber-300">{b.fee[mode]}</span>
+          <button
+            type="button"
+            onClick={() =>
+              onRequest(full ? 'গ্রুপ ব্যাচ — ওয়েটিং লিস্ট' : 'গ্রুপ প্রাইভেট ব্যাচ', [
+                ['ব্যাচ', b.title],
+                ['ধরন', mode],
+                ['দিন', b.days],
+                ['সময়', b.time],
+                ...(mode === 'Offline' ? [['স্থান', b.place]] : []),
+                ['ফি', b.fee[mode]]
+              ])
+            }
+            className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
+          >
+            {full ? 'ওয়েটিং লিস্টে যোগ দিন' : 'সিট বুক করুন'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PrivateGroupPage({ onRequest }) {
-  const [mode, setMode] = useState('সব');
   const [level, setLevel] = useState('সব');
   const levels = ['সব', ...Array.from(new Set(PRIVATE_BATCHES.map((b) => b.level)))];
-  const shown = PRIVATE_BATCHES.filter(
-    (b) => (mode === 'সব' || b.mode === mode) && (level === 'সব' || b.level === level)
-  );
+  const shown = PRIVATE_BATCHES.filter((b) => level === 'সব' || b.level === level);
   return (
     <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <PrivateHero
         badge="GROUP • ONLINE / OFFLINE"
         title="গ্রুপ প্রাইভেট ব্যাচ"
-        sub="ছোট ব্যাচে নিয়মিত ক্লাস। নিচে চলমান ব্যাচগুলো দেখুন আর পছন্দের ব্যাচে সিট বুক করুন।"
+        sub="ছোট ব্যাচে নিয়মিত ক্লাস। প্রতিটি ব্যাচে Online ও Offline দুইভাবেই যোগ দেওয়া যায়, বুক করার সময় বেছে নিন।"
         grad="from-teal-400 via-cyan-500 to-sky-600"
         icon="👥"
       />
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <ChoiceChips options={['সব', 'Online', 'Offline']} value={mode} onChange={setMode} />
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
         <ChoiceChips options={levels} value={level} onChange={setLevel} />
       </div>
       {shown.length === 0 ? (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
-          এই ফিল্টারে এখন কোনো ব্যাচ নেই। ১-টু-১ সেশন বা কাস্টম ব্যাচের রিকোয়েস্ট পাঠাতে পারেন।
+          এই লেভেলে এখন কোনো ব্যাচ নেই। ১-টু-১ সেশন বা কাস্টম ব্যাচের রিকোয়েস্ট পাঠাতে পারেন।
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((b) => {
-            const filled = Math.round(((b.seats - b.seatsLeft) / b.seats) * 100);
-            const full = b.seatsLeft <= 0;
-            return (
-              <div key={b.id} className="flex flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#0a1222]">
-                <div className={`relative bg-gradient-to-br ${b.grad} p-4`}>
-                  <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:14px_14px]" />
-                  <div className="relative flex items-start justify-between">
-                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ring-1 ring-white/25 ${b.mode === 'Online' ? 'bg-emerald-950/40 text-emerald-100' : 'bg-black/30 text-white'}`}>
-                      {b.mode === 'Online' ? '● Online' : '📍 Offline'}
-                    </span>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-xl ring-1 ring-white/30">{b.icon}</span>
-                  </div>
-                  <div className="relative mt-3 text-[11px] font-bold text-white/85">{b.level}</div>
-                  <h4 className="relative text-base font-extrabold leading-snug text-white">{b.title}</h4>
-                </div>
-                <div className="flex flex-1 flex-col gap-3 p-4 text-sm">
-                  <div className="flex justify-between gap-3"><span className="text-slate-400">দিন</span><span className="text-right font-semibold text-white">{b.days}</span></div>
-                  <div className="flex justify-between gap-3"><span className="text-slate-400">সময়</span><span className="text-right font-semibold text-white">{b.time}</span></div>
-                  {b.place && <div className="flex justify-between gap-3"><span className="text-slate-400">স্থান</span><span className="text-right font-semibold text-white">{b.place}</span></div>}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-400">সিট</span>
-                      <span className={`font-bold ${b.seatsLeft <= 3 ? 'text-rose-300' : 'text-emerald-300'}`}>
-                        {full ? 'সিট পূর্ণ' : `${b.seatsLeft} / ${b.seats} খালি`}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                      <div className={`h-full rounded-full bg-gradient-to-r ${b.grad}`} style={{ width: `${filled}%` }} />
-                    </div>
-                  </div>
-                  <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-                    <span className="whitespace-nowrap text-base font-black text-amber-300">{b.fee}</span>
-                    <button
-                      type="button"
-                      disabled={full}
-                      onClick={() =>
-                        onRequest('গ্রুপ প্রাইভেট ব্যাচ', [
-                          ['ব্যাচ', b.title],
-                          ['ধরন', b.mode],
-                          ['দিন', b.days],
-                          ['সময়', b.time],
-                          ...(b.place ? [['স্থান', b.place]] : []),
-                          ['ফি', b.fee]
-                        ])
-                      }
-                      className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400 disabled:opacity-40"
-                    >
-                      {full ? 'ওয়েটিং লিস্ট' : 'সিট বুক করুন'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {shown.map((b) => (
+            <PrivateBatchCard key={b.id} b={b} onRequest={onRequest} />
+          ))}
         </div>
       )}
     </main>
