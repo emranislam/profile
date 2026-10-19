@@ -1083,6 +1083,98 @@ function BookShopCard({ book, onDetails }) {
   );
 }
 
+// Shared premium course card. `wide` puts the art panel beside the text on larger screens.
+function PremiumCard({ grad, icon, code, bigTag, title, sub, chips = [], price, cta, onClick, wide = false, selected = false }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick && onClick();
+        }
+      }}
+      className="group relative isolate h-full cursor-pointer select-none rounded-[22px] p-px transition-transform duration-300 hover:-translate-y-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+    >
+      <div className="absolute inset-0 rounded-[22px] bg-gradient-to-b from-white/[0.16] to-white/[0.03]" />
+      <div
+        className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${grad} transition-opacity duration-300 ${
+          selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute -inset-2 -z-10 rounded-[30px] bg-gradient-to-br ${grad} blur-2xl transition-opacity duration-300 ${
+          selected ? 'opacity-30' : 'opacity-0 group-hover:opacity-35'
+        }`}
+      />
+      <div
+        className={`relative flex h-full overflow-hidden rounded-[21px] bg-[#0a1222] ${
+          wide ? 'flex-col sm:flex-row' : 'flex-col'
+        }`}
+      >
+        <div
+          className={`relative shrink-0 overflow-hidden bg-gradient-to-br ${grad} ${
+            wide ? 'h-28 sm:h-auto sm:w-44' : 'h-28 sm:h-32'
+          }`}
+        >
+          <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:14px_14px]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-white/10" />
+          <div className="absolute -bottom-7 -right-3 rotate-12 text-[92px] leading-none opacity-25 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
+            {icon}
+          </div>
+          <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-white/25 blur-md transition-all duration-700 ease-out group-hover:left-[130%]" />
+          <div className="relative flex h-full flex-col justify-between gap-3 p-3.5">
+            <div className="flex items-start justify-between gap-2">
+              {code ? (
+                <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25 backdrop-blur-sm">
+                  {code}
+                </span>
+              ) : (
+                <span />
+              )}
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-xl shadow-lg ring-1 ring-white/30 backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
+                {icon}
+              </span>
+            </div>
+            {bigTag && (
+              <span className="text-2xl font-black tracking-tight text-white drop-shadow-md sm:text-3xl">
+                {bigTag}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col p-4">
+          <h4 className="text-sm font-extrabold leading-snug text-white line-clamp-2 sm:text-[15px]">{title}</h4>
+          {sub && <p className="mt-1 text-xs leading-relaxed text-slate-400 line-clamp-2">{sub}</p>}
+          {chips.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {chips.map((c) => (
+                <span
+                  key={c}
+                  className="rounded-md bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-slate-300 ring-1 ring-white/10"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="mt-auto flex items-center justify-between gap-2 pt-4">
+            {price ? <span className="whitespace-nowrap text-base font-black text-amber-300">{price}</span> : <span />}
+            <span className="inline-flex items-center gap-2 whitespace-nowrap text-xs font-bold text-slate-300 transition group-hover:text-white">
+              <span className={price ? 'hidden sm:inline' : ''}>{cta}</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 transition-all duration-300 group-hover:bg-white group-hover:text-slate-950">
+                <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState(OFFLINE_AVATAR_SVG);
@@ -1387,13 +1479,6 @@ export default function App() {
     isCourseView && activeCourse.kind === 'track' ? activeCourse.trackId : activeSubPage;
   const navActive = isCourseView ? activeCourse.parent : activeSubPage;
 
-  const scrollToHomeStep = (sectionId) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-teal-500 selection:text-slate-950 flex flex-col justify-between">
       <div>
@@ -1651,151 +1736,77 @@ export default function App() {
               </p>
             </div>
 
-            {/* 10 MINUTE SCHOOL INSPIRED 6 SQUARE TRACK CARDS */}
+            {/* SIX PROGRAM CARDS */}
             <div className="space-y-3 pt-1">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {[
                   {
                     id: 'HSC Bangla Version',
-                    stepAnchor: 'home-step-1',
                     code: 'HSC',
                     bigTag: 'BV',
                     icon: '🏆',
                     title: 'HSC বাংলা ভার্সন',
                     sub: '২টি পত্র + ৬টি স্পেশাল কোর্স + ৬টি বই',
                     tileGrad: 'from-sky-400 via-blue-500 to-indigo-600',
-                    ringGlow: 'hover:border-amber-400/90 border-amber-500/40',
-                    pillText: '৮টি কার্ড + ৬টি বই দেখুন',
-                    pillGrad: 'from-amber-600 to-orange-600'
                   },
                   {
                     id: 'HSC English Version',
-                    stepAnchor: 'home-step-2',
                     code: 'HSC',
                     bigTag: 'EV',
                     icon: '🎯',
                     title: 'HSC English Version',
                     sub: '1st & 2nd Paper + 6 EV Courses',
                     tileGrad: 'from-cyan-400 via-teal-500 to-emerald-600',
-                    ringGlow: 'hover:border-teal-400/90 border-teal-500/40',
-                    pillText: '৮টি ইংলিশ ভার্সন কার্ড',
-                    pillGrad: 'from-teal-600 to-emerald-600'
                   },
                   {
                     id: 'O-Level & A-Level',
-                    stepAnchor: 'home-step-3',
                     code: 'CAIE/IAL',
                     bigTag: 'O/A',
                     icon: '📐',
                     title: 'O & A-Level Math',
                     sub: 'D-Math, Add-Math, P1–P4, M1, S1',
                     tileGrad: 'from-violet-400 via-purple-500 to-indigo-700',
-                    ringGlow: 'hover:border-purple-400/90 border-purple-500/40',
-                    pillText: '৬টি O/A-Level কার্ড',
-                    pillGrad: 'from-purple-600 to-indigo-600'
                   },
                   {
                     id: 'Admission Test (BUET/DU)',
-                    stepAnchor: 'home-step-4',
                     code: 'ADM',
                     bigTag: 'ADM',
                     icon: '🚀',
                     title: 'Admission Test',
                     sub: 'Medi-Math, DU Ka, BUET & Archive',
                     tileGrad: 'from-amber-400 via-orange-500 to-red-600',
-                    ringGlow: 'hover:border-orange-400/90 border-orange-500/40',
-                    pillText: 'Medi-Math সহ ৪টি কার্ড',
-                    pillGrad: 'from-red-700 to-orange-600'
                   },
                   {
                     id: 'B.Sc. Honours Math',
-                    stepAnchor: 'home-step-5',
                     code: 'B.Sc.',
                     bigTag: 'HON',
                     icon: '🎓',
                     title: 'B.Sc. Honours Math',
                     sub: 'Calculus, LinAlg, ODE, Num, OR/TSP',
                     tileGrad: 'from-emerald-400 via-green-500 to-teal-700',
-                    ringGlow: 'hover:border-emerald-400/90 border-emerald-500/40',
-                    pillText: 'অনার্সের ৬টি মেজর কোর্স কার্ড',
-                    pillGrad: 'from-emerald-700 to-teal-600'
                   },
                   {
                     id: 'Research & Papers',
-                    stepAnchor: 'home-step-6',
                     code: 'PhD/RES',
                     bigTag: 'RES',
                     icon: '🔬',
                     title: 'Research & Thesis',
                     sub: 'Thesis Consultation, ML & Papers',
                     tileGrad: 'from-rose-400 via-pink-500 to-purple-700',
-                    ringGlow: 'hover:border-rose-400/90 border-rose-500/40',
-                    pillText: 'থিসিস কনসালটেশন ও গবেষণা',
-                    pillGrad: 'from-rose-700 to-pink-600'
                   }
-                ].map((card) => {
-                  return (
-                    <div
-                      key={card.id}
-                      onClick={() => openSubPage(card.id)}
-                      className="group cursor-pointer flex flex-col items-center select-none"
-                    >
-                      <div
-                        className={`w-full rounded-[26px] bg-gradient-to-b from-slate-900/95 to-slate-950 p-3 border-2 transition-all duration-300 transform group-hover:-translate-y-1.5 shadow-xl ${card.ringGlow}`}
-                      >
-                        <div
-                          className={`relative h-24 sm:h-28 rounded-2xl bg-gradient-to-br ${card.tileGrad} p-3.5 flex flex-col justify-between overflow-hidden shadow-inner`}
-                        >
-                          <div className="absolute -right-3 -bottom-3 w-16 h-16 rounded-full bg-white/15 blur-md pointer-events-none" />
-                          <div className="flex items-center justify-between z-10">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-950/35 backdrop-blur-sm text-[10px] font-extrabold tracking-wider text-white uppercase">
-                              {card.code}
-                            </span>
-                            <span className="text-xl sm:text-2xl transform group-hover:scale-125 transition-transform duration-300 drop-shadow">
-                              {card.icon}
-                            </span>
-                          </div>
-
-                          <div className="z-10 flex items-baseline justify-between">
-                            <span className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-md">
-                              {card.bigTag}
-                            </span>
-                            <span className="w-6 h-6 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-white group-hover:text-slate-950 transition">
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-center pt-2.5 pb-1 px-1">
-                          <div className="text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 transition line-clamp-1">
-                            {card.title}
-                          </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                            {card.sub}
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          scrollToHomeStep(card.stepAnchor);
-                        }}
-                        className="relative mt-2 flex flex-col items-center group/pill"
-                      >
-                        <div
-                          className={`w-2.5 h-2.5 rotate-45 -mb-1.5 bg-gradient-to-tl ${card.pillGrad}`}
-                        />
-                        <div
-                          className={`px-3 py-1 rounded-full bg-gradient-to-r ${card.pillGrad} text-white text-[10px] font-bold shadow-md border border-white/15 text-center leading-tight group-hover/pill:scale-105 transition`}
-                        >
-                          ↓ {card.pillText}
-                        </div>
-                      </button>
-                    </div>
-                  );
-                })}
+                ].map((card) => (
+                  <PremiumCard
+                    key={card.id}
+                    grad={card.tileGrad}
+                    icon={card.icon}
+                    code={card.code}
+                    bigTag={card.bigTag}
+                    title={card.title}
+                    sub={card.sub}
+                    cta="দেখুন"
+                    onClick={() => openSubPage(card.id)}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -1825,33 +1836,19 @@ export default function App() {
             {/* 2 Paper Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {Object.values(HSC_BV_PAPERS).map((paper) => (
-                <div
+                <PremiumCard
                   key={paper.id}
+                  wide
+                  grad={paper.tileGrad}
+                  icon={paper.icon}
+                  code={paper.code}
+                  bigTag={paper.bigTag}
+                  title={paper.title}
+                  sub={paper.sub}
+                  chips={['১০টি অধ্যায়', 'প্রতি অধ্যায়ে ১০টি লেকচার']}
+                  cta="সাব-পেজ"
                   onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 hover:bg-slate-900 border-2 border-slate-800 hover:border-amber-400/80 p-3.5 transition-all duration-300 transform hover:-translate-y-1 shadow-lg flex items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${paper.tileGrad} flex flex-col items-center justify-center text-white shrink-0 shadow-md`}
-                    >
-                      <span className="text-xl">{paper.icon}</span>
-                      <span className="text-xs font-black mt-0.5">{paper.bigTag}</span>
-                    </div>
-                    <div>
-                      <span className="px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 text-[10px] font-extrabold">
-                        {paper.code} • ১০টি অধ্যায়
-                      </span>
-                      <h4 className="text-base sm:text-lg font-extrabold text-white group-hover:text-amber-300 transition mt-0.5">
-                        {paper.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 mt-0.5">{paper.sub}</p>
-                    </div>
-                  </div>
-                  <div className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-amber-400 text-amber-300 text-xs font-extrabold flex items-center gap-1 shrink-0">
-                    <span>সাব-পেজ</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
 
@@ -1862,42 +1859,20 @@ export default function App() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                 {SPECIAL_COURSES_WITH_BOOKS.map((c) => (
-                  <div
+                  <PremiumCard
                     key={c.id}
+                    grad={c.grad}
+                    icon={c.icon}
+                    code={c.courseNum}
+                    title={c.courseTitle}
+                    sub={c.chaptersIncluded}
+                    chips={[`${c.syllabusChapters.length}টি অধ্যায়`]}
+                    price={c.priceBdt}
+                    cta="ক্লাসরুম"
                     onClick={() =>
                       openCourse({ kind: 'bv', id: c.id, parent: 'HSC Bangla Version', title: c.courseTitle })
                     }
-                    className="group cursor-pointer rounded-2xl bg-slate-900/95 border-2 border-slate-800 hover:border-amber-400 p-2.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div
-                        className={`h-20 rounded-xl bg-gradient-to-br ${c.grad} p-2.5 flex flex-col justify-between text-white`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-950/45 text-[9px] font-extrabold">
-                            {c.courseNum}
-                          </span>
-                          <span className="text-lg">{c.icon}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] font-black">
-                          <span>{c.priceBdt}</span>
-                          <span className="px-1.5 py-0.5 rounded bg-white/20">{c.syllabusChapters.length} অধ্যায়</span>
-                        </div>
-                      </div>
-                      <div className="pt-2 px-1">
-                        <div className="text-xs font-extrabold text-white group-hover:text-amber-300 transition line-clamp-1">
-                          {c.courseTitle}
-                        </div>
-                        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                          {c.chaptersIncluded}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-bold text-teal-300 px-1">
-                      <span>ক্লাসরুমে যান</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
             </div>
@@ -1949,77 +1924,40 @@ export default function App() {
             {/* 2 EV Paper Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {PART3_ACADEMIC_TRACKS['HSC English Version'].modules.map((mod, mIdx) => (
-                <div
+                <PremiumCard
                   key={mod.id}
+                  wide
+                  grad={mod.grad}
+                  icon={mod.icon}
+                  code={mod.code}
+                  title={mod.name}
+                  sub={mod.sub}
+                  chips={['NCTB English Version', '10 Chapters']}
+                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 hover:bg-slate-900 border-2 border-slate-800 hover:border-teal-400 p-3.5 transition-all transform hover:-translate-y-1 flex items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${mod.grad} flex flex-col items-center justify-center text-white shrink-0 shadow-md`}
-                    >
-                      <span className="text-xl">{mod.icon}</span>
-                      <span className="text-[10px] font-black mt-1">{mod.code}</span>
-                    </div>
-                    <div>
-                      <span className="px-2 py-0.5 rounded bg-teal-500/15 text-teal-300 text-[10px] font-extrabold">
-                        NCTB ENGLISH VERSION • 10 CHAPTERS
-                      </span>
-                      <h4 className="text-base sm:text-lg font-extrabold text-white group-hover:text-teal-300 transition mt-0.5">
-                        {mod.name}
-                      </h4>
-                      <p className="text-xs text-slate-400 mt-0.5">{mod.sub}</p>
-                    </div>
-                  </div>
-                  <div className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-teal-400 text-teal-300 text-xs font-extrabold flex items-center gap-1 shrink-0">
-                    <span>Open</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
 
             {/* 6 EV Special Course Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
               {EV_SPECIAL_COURSES.map((evc) => (
-                <div
+                <PremiumCard
                   key={evc.id}
+                  grad={evc.grad}
+                  icon={evc.icon}
+                  code={evc.courseNum}
+                  title={evc.courseTitle}
+                  sub={evc.sub}
+                  chips={['EV Batch']}
+                  price={evc.priceBdt}
+                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: evc.moduleIdx, chapterIdx: evc.chapterIdx, title: evc.courseTitle, sub: evc.sub, icon: evc.icon, grad: evc.grad })
                   }
-                  className="group cursor-pointer rounded-2xl bg-slate-900/95 border-2 border-slate-800 hover:border-teal-400 p-2.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between"
-                >
-                  <div>
-                    <div
-                      className={`h-20 rounded-xl bg-gradient-to-br ${evc.grad} p-2.5 flex flex-col justify-between text-white`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-950/45 text-[9px] font-extrabold">
-                          {evc.courseNum}
-                        </span>
-                        <span className="text-lg">{evc.icon}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[10px] font-black">
-                        <span>{evc.priceBdt}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-white/20">EV Batch</span>
-                      </div>
-                    </div>
-                    <div className="pt-2 px-1">
-                      <div className="text-xs font-extrabold text-white group-hover:text-teal-300 transition line-clamp-1">
-                        {evc.courseTitle}
-                      </div>
-                      <div className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">
-                        {evc.sub}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-bold text-amber-300 px-1">
-                    <span>Open EV Course</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </div>
@@ -2045,40 +1983,20 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {OA_LEVEL_SHOWCASE_CARDS.map((oa) => (
-                <div
+                <PremiumCard
                   key={oa.id}
+                  grad={oa.grad}
+                  icon={oa.icon}
+                  code={oa.code}
+                  bigTag={oa.bigTag}
+                  title={oa.title}
+                  sub={oa.sub}
+                  chips={['Topical Past Papers']}
+                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: oa.moduleIdx, chapterIdx: oa.chapterIdx, title: oa.title, sub: oa.sub, icon: oa.icon, grad: oa.grad })
                   }
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-purple-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
-                >
-                  <div
-                    className={`h-24 rounded-2xl bg-gradient-to-br ${oa.grad} p-3.5 flex flex-col justify-between text-white`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold">
-                        {oa.code}
-                      </span>
-                      <span className="text-2xl">{oa.icon}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xl font-black tracking-tight">{oa.bigTag}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/25 text-[10px] font-bold">
-                        Topical Past Papers
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-extrabold text-white group-hover:text-purple-300 transition">
-                      {oa.title}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{oa.sub}</p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-amber-300">
-                    <span>Open Topical Lectures & Notes</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </div>
@@ -2104,42 +2022,19 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'].modules.map((mod, mIdx) => (
-                <div
+                <PremiumCard
                   key={mod.id}
+                  grad={mod.grad}
+                  icon={mod.icon}
+                  code={mod.code}
+                  title={mod.name}
+                  sub={mod.sub}
+                  chips={[mIdx === 0 ? 'Medical + DU Ka' : `${mod.chapters.length} Modules`, '1st Lec Free']}
+                  cta="প্রবেশ করুন"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'Admission Test (BUET/DU)', parent: 'Admission Test (BUET/DU)', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-amber-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
-                >
-                  <div
-                    className={`h-24 rounded-2xl bg-gradient-to-br ${mod.grad} p-3.5 flex flex-col justify-between text-white`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold">
-                        {mod.code}
-                      </span>
-                      <span className="text-2xl">{mod.icon}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase">
-                        {mIdx === 0 ? 'Medical + DU Ka' : `${mod.chapters.length} Modules`}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/25 text-[10px] font-bold">
-                        1st Lec Free
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-extrabold text-white group-hover:text-amber-300 transition leading-snug">
-                      {mod.name}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{mod.sub}</p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-teal-300">
-                    <span>সাব-পেজে প্রবেশ করুন</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </div>
@@ -2165,40 +2060,19 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {PART3_ACADEMIC_TRACKS['B.Sc. Honours Math'].modules.map((mod, mIdx) => (
-                <div
+                <PremiumCard
                   key={mod.id}
+                  grad={mod.grad}
+                  icon={mod.icon}
+                  code={mod.code}
+                  title={mod.name}
+                  sub={mod.sub}
+                  chips={[`${mod.chapters.length} Core Units`, 'Theorem Proofs + PDF']}
+                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'B.Sc. Honours Math', parent: 'B.Sc. Honours Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-emerald-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
-                >
-                  <div
-                    className={`h-24 rounded-2xl bg-gradient-to-br ${mod.grad} p-3.5 flex flex-col justify-between text-white`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold">
-                        {mod.code}
-                      </span>
-                      <span className="text-2xl">{mod.icon}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black">{mod.chapters.length} Core Units</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/25 text-[10px] font-bold">
-                        Theorem Proofs + PDF
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-extrabold text-white group-hover:text-emerald-300 transition">
-                      {mod.name}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{mod.sub}</p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-amber-300">
-                    <span>Open Course Sub-page</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </div>
@@ -2224,38 +2098,18 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {RESEARCH_SHOWCASE_CARDS.map((rc) => (
-                <div
+                <PremiumCard
                   key={rc.id}
+                  grad={rc.grad}
+                  icon={rc.icon}
+                  code={rc.code}
+                  bigTag={rc.bigTag}
+                  title={rc.title}
+                  sub={rc.sub}
+                  chips={[rc.badge]}
+                  cta="বিস্তারিত"
                   onClick={() => openSubPage('Research & Papers', { researchCardId: rc.id, anchorId: 'research-detail' })}
-                  className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-rose-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
-                >
-                  <div
-                    className={`h-24 rounded-2xl bg-gradient-to-br ${rc.grad} p-3.5 flex flex-col justify-between text-white`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold">
-                        {rc.code}
-                      </span>
-                      <span className="text-2xl">{rc.icon}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xl font-black tracking-tight">{rc.bigTag}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/25 text-[10px] font-bold">
-                        {rc.badge}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-extrabold text-white group-hover:text-rose-300 transition">
-                      {rc.title}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{rc.sub}</p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-amber-300">
-                    <span>Open Dedicated View</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </div>
+                />
               ))}
             </div>
 
@@ -2871,54 +2725,25 @@ export default function App() {
 
             {/* 6 Special Courses in 1 Row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-              {SPECIAL_COURSES_WITH_BOOKS.map((item) => {
-                const isSelectedCourse = false;
-                const isEnrolled = !!enrolledCourses[item.id];
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() =>
-                      openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
-                    }
-                    className="group cursor-pointer flex flex-col items-center select-none"
-                  >
-                    <div
-                      className={`w-full rounded-[24px] bg-gradient-to-b from-slate-900 to-slate-950 p-2.5 border-2 transition-all duration-300 transform group-hover:-translate-y-1.5 shadow-xl ${
-                        isSelectedCourse
-                          ? 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.35)]'
-                          : 'border-slate-800 hover:border-teal-400/70'
-                      }`}
-                    >
-                      <div
-                        className={`relative h-24 rounded-2xl bg-gradient-to-br ${item.grad} p-3 flex flex-col justify-between overflow-hidden`}
-                      >
-                        <div className="flex items-center justify-between z-10">
-                          <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold text-white">
-                            {item.courseNum}
-                          </span>
-                          <span className="text-xl">{item.icon}</span>
-                        </div>
-                        <div className="z-10 flex items-baseline justify-between">
-                          <span className="text-xs font-black text-white drop-shadow">
-                            {isEnrolled ? '✓ ENROLLED' : item.priceBdt}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded-full bg-white/25 text-[9px] font-bold text-white">
-                            {item.syllabusChapters.length}টি অধ্যায়
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-center pt-2.5 pb-1 px-1">
-                        <div className="text-xs font-extrabold text-white group-hover:text-amber-300 transition line-clamp-1">
-                          {item.courseTitle}
-                        </div>
-                        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                          {item.chaptersIncluded}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                <PremiumCard
+                  key={item.id}
+                  grad={item.grad}
+                  icon={item.icon}
+                  code={item.courseNum}
+                  title={item.courseTitle}
+                  sub={item.chaptersIncluded}
+                  chips={[
+                    `${item.syllabusChapters.length}টি অধ্যায়`,
+                    ...(enrolledCourses[item.id] ? ['✓ Enrolled'] : [])
+                  ]}
+                  price={item.priceBdt}
+                  cta="ক্লাসরুম"
+                  onClick={() =>
+                    openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
+                  }
+                />
+              ))}
             </div>
 
             {/* Authored Books (shop style) */}
@@ -3342,55 +3167,22 @@ export default function App() {
                         : 'lg:grid-cols-2 max-w-3xl mx-auto'
                     } gap-4`}
                   >
-                    {currentTrack.modules.map((mod, mIdx) => {
-                      const isModSelected = currentModule.id === mod.id;
-                      return (
-                        <div
-                          key={mod.id}
-                          onClick={() => {
-                            setSelectedTrack(currentTrack.id);
-                            setPart3ModuleIdx(mIdx);
-                            setPart3ChapterIdx(0);
-                          }}
-                          className="group cursor-pointer flex flex-col items-center select-none"
-                        >
-                          <div
-                            className={`w-full rounded-[24px] bg-gradient-to-b from-slate-900 to-slate-950 p-3 border-2 transition-all duration-300 transform group-hover:-translate-y-1 shadow-xl ${
-                              isModSelected
-                                ? 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.3)]'
-                                : 'border-slate-800 hover:border-cyan-400/60'
-                            }`}
-                          >
-                            <div
-                              className={`relative h-24 rounded-2xl bg-gradient-to-br ${mod.grad} p-3.5 flex flex-col justify-between overflow-hidden`}
-                            >
-                              <div className="flex items-center justify-between z-10">
-                                <span className="px-2 py-0.5 rounded bg-slate-950/45 text-[10px] font-extrabold text-white uppercase">
-                                  {mod.code}
-                                </span>
-                                <span className="text-2xl">{mod.icon}</span>
-                              </div>
-                              <div className="z-10 flex items-baseline justify-between">
-                                <span className="text-sm font-black text-white drop-shadow line-clamp-1">
-                                  {mod.name}
-                                </span>
-                                <span className="px-2 py-0.5 rounded-full bg-white/25 text-[10px] font-bold text-white shrink-0">
-                                  {mod.chapters.length} Units
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-center pt-2.5 pb-1 px-1">
-                              <div className="text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 transition line-clamp-1">
-                                {mod.name}
-                              </div>
-                              <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                                {mod.sub}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {currentTrack.modules.map((mod, mIdx) => (
+                      <PremiumCard
+                        key={mod.id}
+                        grad={mod.grad}
+                        icon={mod.icon}
+                        code={mod.code}
+                        title={mod.name}
+                        sub={mod.sub}
+                        chips={[`${mod.chapters.length} Units`]}
+                        cta="Open"
+                        selected={currentModule.id === mod.id}
+                        onClick={() =>
+                          openCourse({ kind: 'track', trackId: currentTrack.id, parent: currentTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
                 )}
