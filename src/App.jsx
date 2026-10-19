@@ -24,42 +24,6 @@ import {
   Camera
 } from 'lucide-react';
 
-const OFFLINE_AVATAR_SVG =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="100%" height="100%">
-      <defs>
-        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#042f2e"/>
-          <stop offset="50%" stop-color="#0f172a"/>
-          <stop offset="100%" stop-color="#020617"/>
-        </linearGradient>
-        <linearGradient id="suit" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#1e293b"/>
-          <stop offset="100%" stop-color="#090d16"/>
-        </linearGradient>
-      </defs>
-      <rect width="400" height="440" fill="url(#bg)"/>
-      <circle cx="320" cy="80" r="110" fill="#14b8a6" opacity="0.12"/>
-      <circle cx="70" cy="360" r="130" fill="#06b6d4" opacity="0.1"/>
-      <text x="28" y="70" fill="#2dd4bf" opacity="0.18" font-family="monospace" font-size="22">∫ f(x)dx</text>
-      <text x="275" y="120" fill="#fbbf24" opacity="0.18" font-family="monospace" font-size="20">det(A - λI) = 0</text>
-      <path d="M70 440 C75 335 130 305 200 305 C270 305 325 335 330 440 Z" fill="url(#suit)" stroke="#334155" stroke-width="2"/>
-      <polygon points="175,305 225,305 210,440 190,440" fill="#f8fafc"/>
-      <polygon points="193,320 207,320 212,425 200,438 188,425" fill="#0d9488"/>
-      <rect x="176" y="255" width="48" height="60" rx="16" fill="#d9a074"/>
-      <ellipse cx="200" cy="195" rx="64" ry="76" fill="#e6b187"/>
-      <path d="M136 185 C132 120 170 100 205 104 C245 104 268 128 264 185 C255 150 235 138 200 138 C165 138 145 152 136 185 Z" fill="#0f172a"/>
-      <path d="M142 212 C145 258 172 276 200 276 C228 276 255 258 258 212 C252 242 230 258 200 258 C170 258 148 242 142 212 Z" fill="#1e293b" opacity="0.9"/>
-      <rect x="152" y="176" width="40" height="24" rx="5" fill="none" stroke="#0f172a" stroke-width="4"/>
-      <rect x="208" y="176" width="40" height="24" rx="5" fill="none" stroke="#0f172a" stroke-width="4"/>
-      <line x1="192" y1="186" x2="208" y2="186" stroke="#0f172a" stroke-width="4"/>
-      <circle cx="172" cy="188" r="4" fill="#0f172a"/>
-      <circle cx="228" cy="188" r="4" fill="#0f172a"/>
-      <path d="M182 232 Q200 244 218 232" fill="none" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
-    </svg>
-  `);
-
 const CV_CREDENTIALS = {
   fullName: 'Emran Islam',
   titles: 'Lecturer in Mathematics | PhD Applicant — Optimization & Computational Mathematics',
@@ -1037,9 +1001,15 @@ function BookCover({ book, large = false }) {
   );
 }
 
-function BookShopCard({ book, onDetails }) {
+function BookShopCard({ book, onDetails, light = false }) {
   return (
-    <div className="group flex flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 transition hover:border-amber-400/60 hover:bg-slate-900 sm:p-4">
+    <div
+      className={`group flex flex-col rounded-2xl border p-3 transition sm:p-4 ${
+        light
+          ? 'border-[#e3e6ee] bg-white hover:border-[#c8d3ea] hover:shadow-[0_14px_30px_-18px_rgba(20,33,61,0.35)]'
+          : 'border-slate-800 bg-slate-900/70 hover:border-amber-400/60 hover:bg-slate-900'
+      }`}
+    >
       <button type="button" onClick={onDetails || undefined} className="block w-full px-2 pb-4 pt-1">
         <BookCover book={book} />
       </button>
@@ -1049,17 +1019,17 @@ function BookShopCard({ book, onDetails }) {
             {book.badge}
           </span>
         )}
-        <div className="text-sm font-extrabold leading-snug text-white line-clamp-2">
+        <div className={`text-sm font-extrabold leading-snug line-clamp-2 ${light ? 'text-[#14213d]' : 'text-white'}`}>
           {book.title}
         </div>
-        <div className="text-[11px] text-slate-400">লেখক: {book.author}</div>
-        {book.meta && <div className="text-[10px] text-slate-500 line-clamp-1">{book.meta}</div>}
+        <div className={`text-[11px] ${light ? 'text-[#5b6882]' : 'text-slate-400'}`}>লেখক: {book.author}</div>
+        {book.meta && <div className={`text-[10px] line-clamp-1 ${light ? 'text-[#8a94a8]' : 'text-slate-500'}`}>{book.meta}</div>}
       </div>
       <div className="pt-2.5">
         {book.price ? (
-          <span className="text-lg font-black text-amber-300">{book.price}</span>
+          <span className={`text-lg font-black ${light ? 'text-[#b45309]' : 'text-amber-300'}`}>{book.price}</span>
         ) : (
-          <span className="text-[11px] font-semibold text-teal-300">{book.series}</span>
+          <span className={`text-[11px] font-semibold ${light ? 'text-[#2c7353]' : 'text-teal-300'}`}>{book.series}</span>
         )}
       </div>
       <div className={`grid gap-2 pt-2.5 ${onDetails ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -1067,7 +1037,9 @@ function BookShopCard({ book, onDetails }) {
           <button
             type="button"
             onClick={onDetails}
-            className="rounded-xl bg-slate-800 py-2 text-xs font-bold text-white transition hover:bg-slate-700"
+            className={`rounded-xl py-2 text-xs font-bold transition ${
+              light ? 'bg-[#eef1f6] text-[#14213d] hover:bg-[#e2e7f0]' : 'bg-slate-800 text-white hover:bg-slate-700'
+            }`}
           >
             বিস্তারিত
           </button>
@@ -1175,9 +1147,470 @@ function PremiumCard({ grad, icon, code, bigTag, title, sub, chips = [], price, 
   );
 }
 
+// ---------------------------------------------------------------- About Me (light editorial design)
+const ABOUT_PORTRAIT = 'assets/emran-portrait.webp';
+
+const ABOUT_ROLES = [
+  {
+    key: 'teacher',
+    title: 'Teacher',
+    tagline: 'INSPIRE • GUIDE • EMPOWER',
+    text: 'I teach mathematics at different levels — from HSC to O/A Level, admission tests and university courses. My goal is to build strong conceptual understanding and problem-solving skills, not just exam results.',
+    cta: 'Explore Teaching',
+    Icon: GraduationCap,
+    iconBg: 'bg-[#4f7fd1]',
+    accent: 'text-[#2f5fb3]',
+    cardBg: 'from-[#eef3fc] to-[#f7f9fe]',
+    border: 'border-[#dbe5f7]'
+  },
+  {
+    key: 'researcher',
+    title: 'Researcher',
+    tagline: 'EXPLORE • ANALYZE • CONTRIBUTE',
+    text: 'I work on optimization, computational mathematics and scientific machine learning — including leakage-controlled ML for earthquake precursor detection. I believe in rigorous methods, real-world relevance and open knowledge.',
+    cta: 'Explore Research',
+    Icon: Microscope,
+    iconBg: 'bg-[#3f8a68]',
+    accent: 'text-[#2c7353]',
+    cardBg: 'from-[#edf6f1] to-[#f7fbf8]',
+    border: 'border-[#d6eadf]'
+  },
+  {
+    key: 'author',
+    title: 'Author',
+    tagline: 'WRITE • SHARE • MAKE AN IMPACT',
+    text: 'I write to simplify complex ideas, turn research into useful knowledge, and create educational content for students and curious minds. Books, articles and teaching materials are part of my journey.',
+    cta: 'Explore My Books',
+    Icon: BookOpen,
+    iconBg: 'bg-[#7a5cc7]',
+    accent: 'text-[#5d41a8]',
+    cardBg: 'from-[#f2eefb] to-[#f9f7fd]',
+    border: 'border-[#e3dbf5]'
+  }
+];
+
+const ABOUT_FACTS = [
+  { Icon: GraduationCap, label: 'Education', value: 'M.Sc. & B.Sc. (Hons) in Mathematics, Jahangirnagar University' },
+  { Icon: MapPin, label: 'Location', value: 'Dhaka, Bangladesh' },
+  { Icon: BookOpen, label: 'Languages', value: 'Bangla, English' },
+  { Icon: Sparkles, label: 'Interests', value: 'Math, Research, Books, Technology, Nature, Learning' }
+];
+
+function ScriptUnderline({ className = '' }) {
+  return (
+    <svg viewBox="0 0 120 12" className={className} fill="none" aria-hidden="true">
+      <path d="M2 9 C 30 3, 70 2, 118 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Layered mountains at dusk with the four verbs across the top.
+function AboutMountainBanner() {
+  return (
+    <div className="relative h-36 sm:h-44 overflow-hidden">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <defs>
+          <linearGradient id="about-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#e9e6f1" />
+            <stop offset="55%" stopColor="#f3d9c9" />
+            <stop offset="100%" stopColor="#f0c9b4" />
+          </linearGradient>
+        </defs>
+        <rect width="1440" height="200" fill="url(#about-sky)" />
+        <path d="M0 120 L120 95 L240 115 L380 80 L520 110 L660 85 L820 112 L980 78 L1130 104 L1280 88 L1440 108 L1440 200 L0 200 Z" fill="#a9b3cc" opacity="0.55" />
+        <path d="M0 145 L150 118 L300 140 L460 108 L620 138 L780 112 L940 142 L1100 115 L1260 138 L1440 120 L1440 200 L0 200 Z" fill="#7f8bab" opacity="0.7" />
+        <path d="M0 170 L180 148 L360 168 L540 140 L720 166 L900 146 L1080 170 L1260 150 L1440 168 L1440 200 L0 200 Z" fill="#56627f" />
+      </svg>
+      <div className="relative flex items-start justify-center pt-6 sm:pt-8">
+        <div className="flex items-center gap-3 sm:gap-5 px-4 text-[10px] sm:text-xs font-semibold tracking-[0.35em] text-[#34405c]">
+          <span className="hidden sm:block h-px w-16 bg-[#34405c]/40" />
+          <span>TEACH</span><span className="opacity-50">/</span>
+          <span>RESEARCH</span><span className="opacity-50">/</span>
+          <span>WRITE</span><span className="opacity-50">/</span>
+          <span className="whitespace-nowrap">MAKE AN IMPACT</span>
+          <span className="hidden sm:block h-px w-16 bg-[#34405c]/40" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AboutPage({ onOpenRole }) {
+  return (
+    <section className="bg-[#fbfaf7] text-[#1d2a44]">
+      {/* HERO */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#f5f2ec] to-[#eef2ee]">
+        <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#dfe9e2] opacity-60 blur-3xl" />
+        <div className="relative mx-auto grid max-w-[1200px] grid-cols-1 items-end gap-8 px-5 pt-10 sm:px-8 md:grid-cols-12 md:pt-14">
+          <div className="md:col-span-6 space-y-5 pb-10 md:pb-16">
+            <div className="text-xs font-semibold tracking-[0.35em] text-[#3d63a8]">ABOUT ME</div>
+            <h2 className="font-serif text-4xl font-semibold leading-tight text-[#14213d] sm:text-5xl">
+              Hi, I’m Emran Islam
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg text-[#4a5875] sm:text-xl">
+              <span>Teacher</span><span className="text-[#9aa5bb]">•</span>
+              <span>Researcher</span><span className="text-[#9aa5bb]">•</span>
+              <span>Author</span>
+            </div>
+            <p className="max-w-xl text-[15px] leading-relaxed text-[#33405a]">
+              I am a passionate educator, researcher and writer, dedicated to making mathematics more
+              accessible, meaningful and useful in the real world. I teach at Hamdard Public College,
+              Dhaka, and through teaching, research and writing I aim to contribute to a better
+              understanding of mathematics and its role in solving important problems.
+            </p>
+            <div className="pt-1 text-[#1d2a44]">
+              <div className="font-script text-3xl leading-none">Emran Islam</div>
+              <ScriptUnderline className="mt-1 h-3 w-28 text-[#1d2a44]" />
+            </div>
+          </div>
+
+          <div className="relative md:col-span-6 flex justify-center md:justify-end">
+            <div className="relative w-full max-w-[420px]">
+              <div className="absolute inset-x-6 bottom-0 top-10 rounded-t-full bg-gradient-to-b from-[#c9ddd1] to-[#a9c8b6]" />
+              <div className="absolute inset-x-1 bottom-0 top-4 rounded-t-full border border-[#9dbfab]/70" />
+              <div className="absolute -inset-x-3 bottom-0 top-0 rounded-t-full border border-[#9dbfab]/40" />
+              <img
+                src={ABOUT_PORTRAIT}
+                alt="Emran Islam"
+                className="relative z-10 mx-auto block w-[88%] select-none"
+                draggable="false"
+              />
+              <div className="absolute bottom-0 inset-x-0 z-20 h-10 bg-gradient-to-t from-[#f5f2ec] to-transparent" />
+              <div className="absolute -right-1 top-6 z-20 hidden max-w-[150px] rotate-[-4deg] font-script text-2xl leading-snug text-[#2c7353] sm:block md:-right-6">
+                “Better Questions Lead to Deeper Understanding”
+                <ScriptUnderline className="mt-1 h-3 w-24 text-[#2c7353]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ROLE CARDS */}
+      <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {ABOUT_ROLES.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => onOpenRole(r.key)}
+              className={`group flex flex-col rounded-2xl border ${r.border} bg-gradient-to-b ${r.cardBg} p-7 text-left shadow-[0_1px_2px_rgba(20,33,61,0.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(20,33,61,0.25)]`}
+            >
+              <span className={`flex h-14 w-14 items-center justify-center rounded-full ${r.iconBg} text-white shadow-md`}>
+                <r.Icon className="h-7 w-7" />
+              </span>
+              <h3 className="mt-5 font-serif text-3xl font-semibold text-[#14213d]">{r.title}</h3>
+              <div className={`mt-2 font-mono text-[11px] font-semibold tracking-[0.25em] ${r.accent}`}>{r.tagline}</div>
+              <p className="mt-4 flex-1 text-sm leading-relaxed text-[#46536d]">{r.text}</p>
+              <span className={`mt-6 inline-flex items-center gap-2 text-sm font-semibold ${r.accent}`}>
+                {r.cta}
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* MORE ABOUT ME + QUICK FACTS + QUOTE */}
+      <div className="mx-auto max-w-[1200px] px-5 pb-14 sm:px-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-5 lg:border-r lg:border-[#e3e6ee] lg:pr-10 space-y-4">
+            <h3 className="font-serif text-3xl font-semibold text-[#14213d]">More About Me</h3>
+            <p className="text-[15px] leading-relaxed text-[#46536d]">
+              I am a lifelong learner, always curious about how things work and how they can be
+              improved. I enjoy working with data, building ideas, and creating resources that help
+              others grow.
+            </p>
+            <p className="text-[15px] leading-relaxed text-[#46536d]">
+              Outside of academics, I love reading, exploring new technology, and spending time in
+              nature. I believe in continuous learning, kindness, and the power of education to create
+              a brighter future.
+            </p>
+            <div className="pt-2 text-[#1d2a44]">
+              <div className="font-script text-2xl">Same passion. Different forms.</div>
+              <ScriptUnderline className="h-3 w-40 text-[#4f7fd1]" />
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 space-y-5">
+            <h4 className="text-xl font-semibold text-[#14213d]">Quick Facts</h4>
+            <ul className="space-y-4">
+              {ABOUT_FACTS.map((f) => (
+                <li key={f.label} className="flex items-start gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eaf0fa] text-[#2f4f8f]">
+                    <f.Icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold text-[#14213d]">{f.label}</div>
+                    <div className="text-xs leading-relaxed text-[#5b6882]">{f.value}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="lg:col-span-3 flex items-center">
+            <figure className="relative w-full rounded-[38%_62%_55%_45%/45%_40%_60%_55%] bg-gradient-to-br from-[#e6eef9] to-[#dfe8f6] px-8 py-10">
+              <blockquote className="font-serif text-lg italic leading-relaxed text-[#1d2a44]">
+                “Education is not just about knowledge, but about building the capacity to create a
+                better tomorrow.”
+              </blockquote>
+              <figcaption className="mt-4 text-right font-script text-xl text-[#33405a]">— Emran Islam</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <AboutMountainBanner />
+    </section>
+  );
+}
+
+// Shared shell for the Teacher / Researcher / Author pages.
+function AboutRoleShell({ role, children }) {
+  const r = ABOUT_ROLES.find((x) => x.key === role);
+  return (
+    <section className="bg-[#fbfaf7] text-[#1d2a44]">
+      <div className={`relative overflow-hidden bg-gradient-to-br ${r.cardBg}`}>
+        <div className="relative mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-8 px-5 py-10 sm:px-8 md:grid-cols-12 md:py-14">
+          <div className="md:col-span-8 space-y-4">
+            <span className={`flex h-14 w-14 items-center justify-center rounded-full ${r.iconBg} text-white shadow-md`}>
+              <r.Icon className="h-7 w-7" />
+            </span>
+            <h2 className="font-serif text-4xl font-semibold text-[#14213d] sm:text-5xl">{r.title}</h2>
+            <div className={`font-mono text-xs font-semibold tracking-[0.3em] ${r.accent}`}>{r.tagline}</div>
+            <p className="max-w-2xl text-[15px] leading-relaxed text-[#46536d]">{r.text}</p>
+          </div>
+          <div className="md:col-span-4 hidden md:flex justify-end">
+            <div className="relative h-56 w-48 overflow-hidden rounded-t-full bg-gradient-to-b from-[#c9ddd1] to-[#a9c8b6]">
+              <img src={ABOUT_PORTRAIT} alt="Emran Islam" className="absolute bottom-0 left-1/2 w-[120%] max-w-none -translate-x-1/2" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mx-auto max-w-[1200px] space-y-12 px-5 py-12 sm:px-8">{children}</div>
+      <AboutMountainBanner />
+    </section>
+  );
+}
+
+function AboutSectionTitle({ children, sub }) {
+  return (
+    <div className="space-y-1">
+      <h3 className="font-serif text-2xl font-semibold text-[#14213d] sm:text-3xl">{children}</h3>
+      {sub && <p className="text-sm text-[#5b6882]">{sub}</p>}
+    </div>
+  );
+}
+
+function AboutTimeline({ items }) {
+  return (
+    <ol className="relative ml-2 space-y-6 border-l border-[#d9dfea]">
+      {items.map((it) => (
+        <li key={it.key} className="relative pl-6">
+          <span className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full bg-[#4f7fd1] ring-4 ring-[#fbfaf7]" />
+          <div className="font-mono text-xs font-semibold text-[#2f5fb3]">{it.when}</div>
+          <div className="mt-0.5 text-base font-semibold text-[#14213d]">{it.title}</div>
+          <div className="text-sm text-[#3f8a68] font-medium">{it.org}</div>
+          {it.note && <p className="mt-1 text-sm leading-relaxed text-[#5b6882]">{it.note}</p>}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function AboutAwardList({ awards }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {awards.map((aw) => (
+        <div key={aw.title} className="flex items-start gap-3 rounded-xl border border-[#e6e9f0] bg-white p-4">
+          <Trophy className="mt-0.5 h-5 w-5 shrink-0 text-[#c58a1c]" />
+          <div className="text-sm leading-snug">
+            <span className="mr-2 rounded bg-[#eef3fc] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#2f5fb3]">{aw.level}</span>
+            <span className="font-semibold text-[#14213d]">{aw.title}</span>
+            <span className="ml-1 text-[#7a859b]">({aw.year})</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const TEACHING_LEVELS = [
+  { page: 'HSC Bangla Version', title: 'HSC বাংলা ভার্সন', sub: 'উচ্চতর গণিত ১ম ও ২য় পত্র + ৬টি স্পেশাল কোর্স', icon: '🏆' },
+  { page: 'HSC English Version', title: 'HSC English Version', sub: 'Higher Math 1st & 2nd Paper + EV courses', icon: '🎯' },
+  { page: 'O-Level & A-Level', title: 'O & A-Level Mathematics', sub: 'D-Math, Add-Math, P1–P4, M1, S1', icon: '📐' },
+  { page: 'Admission Test (BUET/DU)', title: 'Admission Test', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
+  { page: 'B.Sc. Honours Math', title: 'B.Sc. (Honours) Mathematics', sub: 'Calculus, Linear Algebra, ODE, Numerical, OR', icon: '🎓' }
+];
+
+function AboutLinkCard({ icon, title, sub, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex items-center gap-4 rounded-2xl border border-[#e3e6ee] bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-[#c8d3ea] hover:shadow-[0_14px_30px_-18px_rgba(20,33,61,0.35)]"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f1f4fa] text-2xl">{icon}</span>
+      <span className="flex-1">
+        <span className="block text-base font-semibold text-[#14213d]">{title}</span>
+        <span className="block text-xs text-[#5b6882]">{sub}</span>
+      </span>
+      <ChevronRight className="h-5 w-5 text-[#9aa5bb] transition-transform group-hover:translate-x-1 group-hover:text-[#2f5fb3]" />
+    </button>
+  );
+}
+
+function AboutTeacherPage({ openSubPage }) {
+  return (
+    <AboutRoleShell role="teacher">
+      <div className="space-y-5">
+        <AboutSectionTitle sub="প্রতিটি লেভেলের নিজের পেজ আছে — চাপ দিলেই খুলবে।">What I Teach</AboutSectionTitle>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {TEACHING_LEVELS.map((l) => (
+            <AboutLinkCard key={l.page} icon={l.icon} title={l.title} sub={l.sub} onClick={() => openSubPage(l.page)} />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <div className="space-y-5">
+          <AboutSectionTitle>Teaching Experience</AboutSectionTitle>
+          <AboutTimeline
+            items={CV_CREDENTIALS.experience.map((e) => ({ key: e.org, when: e.period, title: e.role, org: e.org, note: e.highlight }))}
+          />
+        </div>
+        <div className="space-y-5">
+          <AboutSectionTitle>How I Teach</AboutSectionTitle>
+          <div className="space-y-3">
+            {[
+              ['Concepts first', 'Every chapter starts from the idea behind the formula, so students can rebuild it instead of memorising it.'],
+              ['Problem solving', 'Board questions, admission problems and past papers are solved step by step, with the reasoning written out.'],
+              ['Steady practice', 'Lecture notes, recorded classes and self-tests for every lecture keep learning regular, not last-minute.']
+            ].map(([t, d]) => (
+              <div key={t} className="rounded-2xl border border-[#dbe5f7] bg-[#f5f8fd] p-5">
+                <div className="font-semibold text-[#14213d]">{t}</div>
+                <p className="mt-1 text-sm leading-relaxed text-[#46536d]">{d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <AboutSectionTitle>Teaching Awards</AboutSectionTitle>
+        <AboutAwardList awards={CV_CREDENTIALS.awards.filter((a) => ['Institutional', 'Upazila', 'Leadership'].includes(a.level))} />
+      </div>
+    </AboutRoleShell>
+  );
+}
+
+function AboutResearcherPage({ openSubPage }) {
+  return (
+    <AboutRoleShell role="researcher">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <div className="space-y-5">
+          <AboutSectionTitle>Research Interests</AboutSectionTitle>
+          <ul className="space-y-3">
+            {[
+              'Optimization (convex, non-convex, metaheuristics)',
+              'Computational Mathematics',
+              'Scientific Machine Learning',
+              'Earthquake Precursors & Seismology',
+              'Travelling Salesman Problem & combinatorial optimization'
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-[15px] text-[#33405a]">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-[#3f8a68]" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-5">
+          <AboutSectionTitle>Current Research</AboutSectionTitle>
+          <div className="rounded-2xl border border-[#d6eadf] bg-[#f3f9f5] p-6 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-[11px] font-semibold tracking-[0.2em] text-[#2c7353]">SPRINGER NATURE • UNDER REVIEW</span>
+              <span className="font-mono text-xs text-[#5b6882]">2025–2026</span>
+            </div>
+            <div className="text-lg font-semibold leading-snug text-[#14213d]">
+              Leakage-Controlled ML Framework for Short-Term Earthquake Precursor Detection
+            </div>
+            <p className="text-sm leading-relaxed text-[#46536d]">
+              13 seismicity features and a hybrid Fuzzy-MOGA-Random Forest pipeline (ROC-AUC ≈ 0.87),
+              benchmarked against an Omori-law baseline on the Eastern Indian Plate margin.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <AboutSectionTitle>Publications</AboutSectionTitle>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-[#e3e6ee] bg-white p-5">
+            <div className="font-mono text-[11px] font-semibold tracking-[0.2em] text-[#2f5fb3]">JOURNAL ARTICLES • 2018</div>
+            <div className="mt-2 font-semibold text-[#14213d]">Improved Nearest Neighbour Algorithm for TSP</div>
+            <div className="mt-1 text-sm text-[#5b6882]">IJSRCSEIT & IJMTT</div>
+          </div>
+          {CV_CREDENTIALS.books.slice(0, 2).map((b) => (
+            <div key={b.title} className="rounded-2xl border border-[#e3e6ee] bg-white p-5">
+              <div className="font-mono text-[11px] font-semibold tracking-[0.2em] text-[#5d41a8]">MONOGRAPH</div>
+              <div className="mt-2 font-semibold text-[#14213d]">{b.title}</div>
+              <div className="mt-1 text-sm text-[#5b6882]">{b.publisher}</div>
+              <div className="mt-1 font-mono text-xs text-[#7a859b]">{b.isbn}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <div className="space-y-5">
+          <AboutSectionTitle>Education</AboutSectionTitle>
+          <AboutTimeline
+            items={CV_CREDENTIALS.education.map((e) => ({ key: e.degree, when: e.year, title: e.degree, org: e.institution, note: `${e.result} • ${e.thesis}` }))}
+          />
+        </div>
+        <div className="space-y-5">
+          <AboutSectionTitle>Academic Honours</AboutSectionTitle>
+          <AboutAwardList awards={CV_CREDENTIALS.awards.filter((a) => ['International', 'National'].includes(a.level))} />
+          <button
+            type="button"
+            onClick={() => openSubPage('Research & Papers', { researchCardId: 'research-collab', anchorId: 'research-detail' })}
+            className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[#3f8a68] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#2c7353]"
+          >
+            Open for collaboration <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </AboutRoleShell>
+  );
+}
+
+function AboutAuthorPage({ onBookDetails }) {
+  return (
+    <AboutRoleShell role="author">
+      <div className="space-y-5">
+        <AboutSectionTitle sub="HSC কোর্স-ভিত্তিক বই — প্রতিটি স্পেশাল কোর্সের জন্য একটি করে।">The Fuel of Higher Math</AboutSectionTitle>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+            <BookShopCard key={`author-${item.id}`} light book={courseBookToShop(item)} onDetails={() => onBookDetails(item)} />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-5">
+        <AboutSectionTitle sub="আন্তর্জাতিক মনোগ্রাফ ও পাঠ্যবই">Published Books</AboutSectionTitle>
+        <div className="grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
+          {CV_SHOP_BOOKS.map((book) => (
+            <BookShopCard key={`author-${book.key}`} light book={book} />
+          ))}
+        </div>
+      </div>
+    </AboutRoleShell>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('bn');
-  const [profilePhoto, setProfilePhoto] = useState(OFFLINE_AVATAR_SVG);
+  const [profilePhoto, setProfilePhoto] = useState('assets/emran-avatar.jpg');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [activeCourse, setActiveCourse] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
@@ -1415,6 +1848,8 @@ export default function App() {
     if (course.kind === 'bv') {
       setActiveSpecialCourseId(course.id);
       setSelectedCourseChapterIdx(0);
+    } else if (course.kind === 'about') {
+      // About Me role pages need no extra state.
     } else if (course.kind === 'bvChapter') {
       setHscBvPaperKey(course.paperKey);
       setSelectedBvChapterId(course.chapterId);
@@ -2124,288 +2559,24 @@ export default function App() {
       </section>
       )}
 
-      {/* VIEW: DEDICATED ABOUT ME / FULL PROFILE SUB-PAGE */}
+      {/* VIEW: ABOUT ME */}
       {activeSubPage === 'About Me' && (
-        <section className="relative bg-slate-950 text-white overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(34,211,238,0.14),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(245,158,11,0.10),_transparent_55%)]" />
+        <AboutPage
+          onOpenRole={(role) =>
+            openCourse({ kind: 'about', role, parent: 'About Me', title: ABOUT_ROLES.find((r) => r.key === role).title })
+          }
+        />
+      )}
 
-          <div className="relative max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8">
-            {/* PROFILE HERO */}
-            <div className="bg-gradient-to-br from-[#071527] via-[#061222] to-[#040c18] border border-cyan-500/30 rounded-[28px] shadow-[0_0_40px_rgba(6,182,212,0.12)] p-5 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
-              <div className="md:col-span-4 flex flex-col items-center gap-3">
-                <label
-                  title="আপনার নিজের ছবি আপলোড করতে ক্লিক করুন"
-                  className="relative group cursor-pointer w-full max-w-[280px]"
-                >
-                  <div className="w-full aspect-[4/4.3] rounded-3xl overflow-hidden border-2 border-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.25)] bg-slate-900">
-                    <img
-                      src={profilePhoto}
-                      alt="Emran Islam"
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-slate-950/85 text-cyan-300 border border-cyan-500/40 text-[10px] font-semibold flex items-center gap-1">
-                    <Camera className="w-3 h-3" /> ছবি পরিবর্তন
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCustomPhotoUpload}
-                    className="hidden"
-                  />
-                </label>
-                <div className="text-slate-300/90 text-base italic font-serif tracking-wide select-none">
-                  Emran Islam
-                </div>
-              </div>
-
-              <div className="md:col-span-8 space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-950/90 border border-teal-500/40 text-teal-300 text-xs font-semibold">
-                  <Users className="w-3.5 h-3.5 text-teal-400" />
-                  Mathematics Educator & Researcher
-                </div>
-                <div>
-                  <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Emran Islam</h2>
-                  <p className="text-base sm:text-lg text-slate-300 font-medium mt-1">
-                    Lecturer in Mathematics •{' '}
-                    <span className="text-teal-300">PhD Applicant — Optimization & Computational Mathematics</span>
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300">
-                  <span className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
-                    Hamdard Public College, Dhaka
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-teal-400 shrink-0" />
-                    M.Sc. (3.79) & B.Sc. Hons (3.52) • Jahangirnagar University
-                  </span>
-                </div>
-                <div className="border-l-2 border-cyan-400 pl-3 py-0.5">
-                  <p className="text-sm italic text-slate-300 leading-relaxed">
-                    Teaching mathematics with clarity, discipline and a passion for research.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['Optimization', 'Computational Mathematics', 'Scientific ML', 'Metaheuristics', 'Seismology'].map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-3 pt-1">
-                  <button
-                    onClick={() => setCvModalOpen(true)}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-300 hover:to-cyan-300 text-slate-950 text-sm font-extrabold flex items-center gap-2 shadow-md transition"
-                  >
-                    <FileText className="w-4 h-4" /> Full Academic CV
-                  </button>
-                  <a
-                    href={`mailto:${CV_CREDENTIALS.email}`}
-                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white text-sm font-bold flex items-center gap-2 transition"
-                  >
-                    <ExternalLink className="w-4 h-4 text-cyan-300" /> {CV_CREDENTIALS.email}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* AT A GLANCE STATS */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { value: '8+', label: 'Years Teaching', color: 'text-teal-300' },
-                { value: '3', label: 'Authored Books', color: 'text-amber-300' },
-                { value: `${CV_CREDENTIALS.awards.length}`, label: 'Awards & Honours', color: 'text-rose-300' },
-                { value: '3.79', label: 'M.Sc. CGPA (JU)', color: 'text-cyan-300' }
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-2xl bg-slate-900/80 border border-slate-800 p-4 text-center"
-                >
-                  <div className={`text-3xl font-extrabold ${s.color}`}>{s.value}</div>
-                  <div className="text-xs text-slate-400 font-semibold mt-1">{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* ABOUT + RESEARCH INTERESTS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-3">
-                <h3 className="text-lg font-extrabold flex items-center gap-2">
-                  <Users className="w-5 h-5 text-cyan-300" /> About Me
-                </h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  I am a mathematics educator and researcher with a strong foundation in
-                  mathematical sciences, passionate about teaching, optimization, and machine
-                  learning for real-world problems.
-                </p>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  I have <strong className="text-white">8+ years of college-level teaching</strong>,
-                  including nearly 7 years at Ghatail Cantonment Public School & College, and now
-                  teach at Hamdard Public College, Dhaka. Alongside teaching, I am pursuing PhD
-                  research in{' '}
-                  <strong className="text-teal-300">
-                    Combinatorial Optimization & Scientific Machine Learning
-                  </strong>
-                  .
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-3">
-                <h3 className="text-lg font-extrabold flex items-center gap-2">
-                  <Microscope className="w-5 h-5 text-cyan-300" /> Research Interests
-                </h3>
-                <ul className="space-y-2.5 text-sm text-slate-300">
-                  {[
-                    'Optimization (convex, non-convex, metaheuristics)',
-                    'Computational Mathematics',
-                    'Scientific Machine Learning',
-                    'Earthquake Precursors & Seismology'
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* EXPERIENCE + EDUCATION TIMELINES */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
-                <h3 className="text-lg font-extrabold flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-amber-300" /> Teaching Experience
-                </h3>
-                <ol className="relative border-l border-slate-700 ml-2 space-y-5">
-                  {CV_CREDENTIALS.experience.map((exp) => (
-                    <li key={exp.org} className="pl-5 relative">
-                      <span className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-amber-400 ring-4 ring-slate-950" />
-                      <div className="text-xs font-mono text-amber-300 font-bold">{exp.period}</div>
-                      <div className="text-sm font-bold text-white mt-0.5">{exp.role}</div>
-                      <div className="text-xs font-semibold text-teal-300">{exp.org}</div>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{exp.highlight}</p>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
-                <h3 className="text-lg font-extrabold flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-teal-300" /> Education
-                </h3>
-                <ol className="relative border-l border-slate-700 ml-2 space-y-5">
-                  {CV_CREDENTIALS.education.map((ed) => (
-                    <li key={ed.degree} className="pl-5 relative">
-                      <span className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-teal-400 ring-4 ring-slate-950" />
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                        <span className="text-sm font-bold text-white">{ed.degree}</span>
-                        <span className="text-xs font-mono text-amber-300 font-bold">{ed.year}</span>
-                      </div>
-                      <div className="text-xs font-semibold text-teal-300">{ed.institution}</div>
-                      <div className="text-xs text-slate-300 mt-0.5">{ed.result}</div>
-                      <div className="text-xs text-slate-500">{ed.thesis}</div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </div>
-
-            {/* CURRENT RESEARCH + PUBLICATIONS */}
-            <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
-              <h3 className="text-lg font-extrabold flex items-center gap-2">
-                <BookMarked className="w-5 h-5 text-cyan-300" /> Research & Publications
-              </h3>
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-cyan-500/30 space-y-1.5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-300">
-                    Springer Nature (Under Review)
-                  </span>
-                  <span className="text-xs font-mono text-amber-300 font-semibold">2025–2026</span>
-                </div>
-                <div className="text-sm font-bold text-white leading-snug">
-                  Leakage-Controlled ML Framework for Short-Term Earthquake Precursor Detection
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  13 seismicity features + Hybrid Fuzzy-MOGA-Random Forest pipeline (ROC-AUC ≈ 0.87)
-                  benchmarked against Omori-law baseline on Eastern Indian Plate margin.
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300">
-                <strong className="text-white">Journal Articles:</strong> Improved Nearest Neighbour
-                Algorithm for TSP (IJSRCSEIT & IJMTT, 2018).
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
-                {CV_SHOP_BOOKS.map((book) => (
-                  <BookShopCard key={`about-${book.key}`} book={book} />
-                ))}
-              </div>
-            </div>
-
-            {/* AWARDS */}
-            <div className="rounded-3xl bg-[#09192f]/90 border border-slate-800 p-6 space-y-4">
-              <h3 className="text-lg font-extrabold flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" /> Awards & Honours
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {CV_CREDENTIALS.awards.map((aw) => (
-                  <div
-                    key={aw.title}
-                    className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-start gap-3"
-                  >
-                    <Trophy className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div className="text-xs leading-snug">
-                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 mr-1.5">
-                        {aw.level}
-                      </span>
-                      <span className="font-semibold text-white">{aw.title}</span>
-                      <span className="text-slate-400 ml-1">({aw.year})</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* COLLABORATION + QUICK LINKS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div
-                onClick={() => openSubPage('Research & Papers', { researchCardId: 'research-collab' })}
-                className="md:col-span-1 p-5 rounded-3xl bg-gradient-to-r from-[#09192f] via-[#0c223d] to-[#09192f] hover:border-cyan-400/60 border border-slate-800 cursor-pointer flex items-center gap-3 transition group"
-              >
-                <div className="w-10 h-10 rounded-full bg-teal-500/15 border border-teal-400/40 flex items-center justify-center text-teal-300 shrink-0">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">Open for Collaboration</div>
-                  <div className="text-xs text-slate-300 leading-snug mt-0.5">
-                    PhD opportunities • Research collaboration • Academic discussions
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => openSubPage('HSC Bangla Version')}
-                className="p-5 rounded-3xl bg-gradient-to-r from-teal-950/90 to-cyan-950/80 hover:from-teal-900 hover:to-cyan-900 border border-teal-400/50 text-white text-sm font-bold flex items-center justify-between transition group"
-              >
-                <span className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-teal-300" /> Explore My Teaching
-                </span>
-                <ChevronRight className="w-4 h-4 text-teal-300 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-              <button
-                onClick={() => openSubPage('Research & Papers')}
-                className="p-5 rounded-3xl bg-gradient-to-r from-amber-950/70 to-slate-900 hover:from-amber-900/70 hover:to-slate-800 border border-amber-400/50 text-white text-sm font-bold flex items-center justify-between transition group"
-              >
-                <span className="flex items-center gap-2">
-                  <Microscope className="w-4 h-4 text-amber-300" /> Explore My Research
-                </span>
-                <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </section>
+      {/* VIEW: ABOUT ME → TEACHER / RESEARCHER / AUTHOR */}
+      {isCourseView && activeCourse.kind === 'about' && activeCourse.role === 'teacher' && (
+        <AboutTeacherPage openSubPage={openSubPage} />
+      )}
+      {isCourseView && activeCourse.kind === 'about' && activeCourse.role === 'researcher' && (
+        <AboutResearcherPage openSubPage={openSubPage} />
+      )}
+      {isCourseView && activeCourse.kind === 'about' && activeCourse.role === 'author' && (
+        <AboutAuthorPage onBookDetails={(item) => setSelectedSpecialCourseModal(item)} />
       )}
 
       {/* VIEW 2: DEDICATED SUB-PAGE FOR HSC BANGLA VERSION */}
