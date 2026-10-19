@@ -1415,6 +1415,9 @@ export default function App() {
     if (course.kind === 'bv') {
       setActiveSpecialCourseId(course.id);
       setSelectedCourseChapterIdx(0);
+    } else if (course.kind === 'bvChapter') {
+      setHscBvPaperKey(course.paperKey);
+      setSelectedBvChapterId(course.chapterId);
     } else {
       setSelectedTrack(course.trackId);
       setPart3ModuleIdx(course.moduleIdx);
@@ -1434,8 +1437,13 @@ export default function App() {
 
   // Remember where the viewer was, then add a history entry so the browser
   // back button (and our Back button) returns to the same spot.
-  const pushNavState = (navState) => {
+  // With `replace`, swap the current entry instead (used for previous/next chapter).
+  const pushNavState = (navState, replace = false) => {
     const current = window.history.state || { page: 'HOME', depth: 0 };
+    if (replace) {
+      window.history.replaceState({ ...navState, depth: current.depth || 0 }, '');
+      return;
+    }
     window.history.replaceState({ ...current, scrollY: window.scrollY }, '');
     window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '');
   };
@@ -1446,8 +1454,8 @@ export default function App() {
     scrollToAnchorOrTop(options.anchorId);
   };
 
-  const openCourse = (course) => {
-    pushNavState({ page: 'COURSE', course });
+  const openCourse = (course, replace = false) => {
+    pushNavState({ page: 'COURSE', course }, replace);
     applyCourse(course);
     scrollToAnchorOrTop();
   };
@@ -1475,8 +1483,32 @@ export default function App() {
   }, []);
 
   const isCourseView = activeSubPage === 'COURSE' && !!activeCourse;
-  const part3TrackKey =
-    isCourseView && activeCourse.kind === 'track' ? activeCourse.trackId : activeSubPage;
+  const isTrackCourse =
+    isCourseView && (activeCourse.kind === 'track' || activeCourse.kind === 'trackChapter');
+  const isTrackChapterView = isCourseView && activeCourse.kind === 'trackChapter';
+  const part3TrackKey = isTrackCourse ? activeCourse.trackId : activeSubPage;
+
+  const openBvChapter = (paper, ch, replace = false) =>
+    openCourse({
+      kind: 'bvChapter',
+      paperKey: paper.id,
+      chapterId: ch.id,
+      parent: 'HSC Bangla Version',
+      title: `${ch.num}: ${ch.title}`
+    }, replace);
+
+  const openTrackChapter = (track, mod, mIdx, ch, cIdx, replace = false) =>
+    openCourse({
+      kind: 'trackChapter',
+      trackId: track.id,
+      parent: track.id,
+      moduleIdx: mIdx,
+      chapterIdx: cIdx,
+      title: `${ch.num} — ${ch.title}`,
+      sub: `${mod.name} • ${ch.eng}`,
+      icon: ch.icon,
+      grad: mod.grad
+    }, replace);
   const navActive = isCourseView ? activeCourse.parent : activeSubPage;
 
   return (
@@ -1825,12 +1857,6 @@ export default function App() {
                   HSC উচ্চতর গণিত বাংলা ভার্সন
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('HSC Bangla Version')}
-                className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                পূর্ণাঙ্গ HSC বাংলা সাব-পেজ <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             {/* 2 Paper Cards */}
@@ -1913,12 +1939,6 @@ export default function App() {
                   HSC Higher Mathematics (English Version)
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('HSC English Version')}
-                className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                Open HSC EV Sub-page <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             {/* 2 EV Paper Cards */}
@@ -1973,12 +1993,6 @@ export default function App() {
                   O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('O-Level & A-Level')}
-                className="px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                Open O/A-Level Sub-page <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2012,12 +2026,6 @@ export default function App() {
                   University & Engineering Admission
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('Admission Test (BUET/DU)')}
-                className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                Open Admission Sub-page <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2050,12 +2058,6 @@ export default function App() {
                   B.Sc. (Honours) in Mathematics
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('B.Sc. Honours Math')}
-                className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                Open Honours Sub-page <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2088,12 +2090,6 @@ export default function App() {
                   Thesis Consultation, Ongoing Research & Publications
                 </h3>
               </div>
-              <button
-                onClick={() => openSubPage('Research & Papers')}
-                className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
-              >
-                Open Research Sub-page <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2443,65 +2439,24 @@ export default function App() {
 
             {/* 2 Paper Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto pt-1">
-              {Object.values(HSC_BV_PAPERS).map((paper) => {
-                const isSelected = hscBvPaperKey === paper.id;
-                return (
-                  <div
-                    key={paper.id}
-                    onClick={() => {
-                      setHscBvPaperKey(paper.id);
-                      setSelectedBvChapterId(paper.chapters[0].id);
-                    }}
-                    className="group cursor-pointer flex flex-col items-center select-none"
-                  >
-                    <div
-                      className={`w-full rounded-[26px] bg-gradient-to-b from-slate-900/95 to-slate-950 p-3.5 border-2 transition-all duration-300 transform group-hover:-translate-y-1 shadow-xl ${
-                        isSelected
-                          ? 'border-amber-400 shadow-[0_0_28px_rgba(251,191,36,0.35)]'
-                          : 'border-slate-700/80 hover:border-teal-400/70'
-                      }`}
-                    >
-                      <div
-                        className={`relative h-24 sm:h-28 rounded-2xl bg-gradient-to-br ${paper.tileGrad} p-4 flex flex-col justify-between overflow-hidden shadow-inner`}
-                      >
-                        <div className="absolute -right-3 -bottom-3 w-20 h-20 rounded-full bg-white/15 blur-md pointer-events-none" />
-                        <div className="flex items-center justify-between z-10">
-                          <span className="px-2.5 py-0.5 rounded-md bg-slate-950/40 backdrop-blur-sm text-[11px] font-extrabold tracking-wider text-white uppercase">
-                            {paper.code}
-                          </span>
-                          <span className="text-2xl transform group-hover:scale-125 transition-transform">
-                            {paper.icon}
-                          </span>
-                        </div>
-                        <div className="z-10 flex items-baseline justify-between">
-                          <span className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow">
-                            {paper.bigTag}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-white/25 backdrop-blur-md text-[11px] font-bold text-white flex items-center gap-1">
-                            ধারাবাহিক ১০টি অধ্যায় <ChevronRight className="w-3.5 h-3.5" />
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-center pt-3 pb-1">
-                        <div className="text-sm sm:text-base font-extrabold text-white group-hover:text-amber-300 transition">
-                          {paper.title}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">{paper.sub}</div>
-                      </div>
-                    </div>
-                    <div className="relative mt-2 flex flex-col items-center">
-                      <div
-                        className={`w-2.5 h-2.5 rotate-45 -mb-1.5 bg-gradient-to-tl ${paper.pillGrad}`}
-                      />
-                      <div
-                        className={`px-3.5 py-1 rounded-full bg-gradient-to-r ${paper.pillGrad} text-white text-[10px] font-bold shadow-md border border-white/15`}
-                      >
-                        {isSelected ? '✓ নির্বাচিত পত্র (নিচে ১০টি অধ্যায় দেখুন)' : paper.pillText}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {Object.values(HSC_BV_PAPERS).map((paper) => (
+                <PremiumCard
+                  key={paper.id}
+                  grad={paper.tileGrad}
+                  icon={paper.icon}
+                  code={paper.code}
+                  bigTag={paper.bigTag}
+                  title={paper.title}
+                  sub={paper.sub}
+                  chips={['ধারাবাহিক ১০টি অধ্যায়']}
+                  cta={hscBvPaperKey === paper.id ? 'নির্বাচিত' : 'দেখুন'}
+                  selected={hscBvPaperKey === paper.id}
+                  onClick={() => {
+                    setHscBvPaperKey(paper.id);
+                    setSelectedBvChapterId(paper.chapters[0].id);
+                  }}
+                />
+              ))}
             </div>
           </div>
 
@@ -2510,65 +2465,116 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-base sm:text-lg font-extrabold text-teal-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-amber-400" />
-                {currentBvPaper.title} — ধারাবাহিক ১০টি অধ্যায় (যেকোনো অধ্যায়ে ক্লিক করে লেকচার ওপেন করুন):
+                {currentBvPaper.title} — ধারাবাহিক ১০টি অধ্যায়
               </h4>
-              <span className="text-xs text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-                নির্বাচিত অধ্যায়:{' '}
-                <strong className="text-amber-300">
-                  {currentBvChapter.num}: {currentBvChapter.title}
-                </strong>
-              </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-              {currentBvPaper.chapters.map((ch, idx) => {
-                const isChSelected = currentBvChapter.id === ch.id;
-                return (
-                  <div
-                    key={ch.id}
-                    onClick={() => setSelectedBvChapterId(ch.id)}
-                    className="group cursor-pointer flex flex-col items-center select-none"
-                  >
-                    <div
-                      className={`w-full rounded-[22px] bg-gradient-to-b from-slate-900 to-slate-950 p-2.5 border-2 transition-all duration-300 transform group-hover:-translate-y-1 ${
-                        isChSelected
-                          ? 'border-amber-400 shadow-[0_0_22px_rgba(251,191,36,0.3)]'
-                          : 'border-slate-800 hover:border-cyan-400/60'
-                      }`}
-                    >
-                      <div
-                        className={`relative h-20 rounded-xl bg-gradient-to-br ${ch.color} p-3 flex flex-col justify-between overflow-hidden`}
-                      >
-                        <div className="flex items-center justify-between z-10">
-                          <span className="px-2 py-0.5 rounded bg-slate-950/40 text-[10px] font-extrabold text-white">
-                            {ch.num}
-                          </span>
-                          <span className="text-lg">{ch.icon}</span>
-                        </div>
-                        <div className="z-10 flex items-end justify-between">
-                          <span className="text-lg font-black text-white drop-shadow">
-                            CH-{String(idx + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/25 text-white">
-                            ১০ লেকচার
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-center pt-2 pb-1 px-1">
-                        <div className="text-xs font-extrabold text-white group-hover:text-amber-300 transition line-clamp-1">
-                          {ch.title}
-                        </div>
-                        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                          {ch.eng}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {currentBvPaper.chapters.map((ch, idx) => (
+                <PremiumCard
+                  key={ch.id}
+                  grad={ch.color}
+                  icon={ch.icon}
+                  code={ch.num}
+                  bigTag={`CH-${String(idx + 1).padStart(2, '0')}`}
+                  title={ch.title}
+                  sub={ch.eng}
+                  chips={['১০টি লেকচার']}
+                  cta="লেকচার"
+                  onClick={() => openBvChapter(currentBvPaper, ch)}
+                />
+              ))}
             </div>
           </div>
+
+          {/* STEP 4: 6 SPECIAL COURSES IN 1 ROW + COURSE INSIDE CLASSROOM (WITH PROGRESS BAR) + 6 BOOKS IN 1 ROW */}
+          <div id="special-courses-row" className="relative space-y-7 pt-6 border-t border-slate-800/90">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                  স্পেশাল কোর্সসমূহ (Course 1 – Course 6) ও কোর্স-ভিত্তিক রচিত বইসমূহ
+                </span>
+                <h4 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
+                  ৬টি স্পেশাল গণিত কোর্স
+                </h4>
+              </div>
+            </div>
+
+            {/* 6 Special Courses in 1 Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                <PremiumCard
+                  key={item.id}
+                  grad={item.grad}
+                  icon={item.icon}
+                  code={item.courseNum}
+                  title={item.courseTitle}
+                  sub={item.chaptersIncluded}
+                  chips={[
+                    `${item.syllabusChapters.length}টি অধ্যায়`,
+                    ...(enrolledCourses[item.id] ? ['✓ Enrolled'] : [])
+                  ]}
+                  price={item.priceBdt}
+                  cta="ক্লাসরুম"
+                  onClick={() =>
+                    openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
+                  }
+                />
+              ))}
+            </div>
+
+            {/* Authored Books (shop style) */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <BookMarked className="w-4 h-4 text-amber-400" /> কোর্স-ভিত্তিক বই
+                </span>
+                <button
+                  onClick={() => setBookModalOpen(true)}
+                  className="text-xs font-bold text-amber-300 hover:underline"
+                >
+                  সব বই দেখুন →
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                  <BookShopCard
+                    key={`book-${item.id}`}
+                    book={courseBookToShop(item)}
+                    onDetails={() => setSelectedSpecialCourseModal(item)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      )}
+
+      {/* VIEW: DEDICATED CHAPTER PAGE (HSC BANGLA VERSION) */}
+      {isCourseView && activeCourse.kind === 'bvChapter' && (() => {
+        const chIdx = currentBvPaper.chapters.findIndex((c) => c.id === currentBvChapter.id);
+        const prevCh = currentBvPaper.chapters[chIdx - 1];
+        const nextCh = currentBvPaper.chapters[chIdx + 1];
+        return (
+          <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+            <div className={`relative overflow-hidden rounded-[28px] bg-gradient-to-br ${currentBvChapter.color} p-6 sm:p-8 text-white shadow-2xl`}>
+              <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:16px_16px]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+              <div className="absolute -right-4 -bottom-10 rotate-12 text-[160px] leading-none opacity-20">{currentBvChapter.icon}</div>
+              <div className="relative space-y-2">
+                <span className="inline-block rounded-full bg-black/25 px-3 py-1 text-xs font-extrabold ring-1 ring-white/25 backdrop-blur-sm">
+                  {currentBvPaper.title} • {currentBvChapter.num}
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-black tracking-tight drop-shadow">{currentBvChapter.title}</h2>
+                <p className="text-sm sm:text-base font-semibold text-white/85">{currentBvChapter.eng}</p>
+                <div className="flex flex-wrap gap-2 pt-2 text-xs font-bold">
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">১০টি লেকচার</span>
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">✓ ১ম লেকচার ফ্রি</span>
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">পরের লেকচার ৳৩০</span>
+                </div>
+              </div>
+            </div>
 
           {/* STEP 3: LECTURE LIST (লেকচার ১, লেকচার ২... প্রতিটি লেকচারে ৩ ধরনের লিংক) */}
           <div className="relative bg-[#071527]/95 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
@@ -2689,8 +2695,8 @@ export default function App() {
                       </button>
                     </div>
                   ) : (
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-400 whitespace-nowrap">
                         <span>📄 ক্লাস নোট (PDF)</span>
                         <span>•</span>
                         <span>🎥 ভিডিও লেকচার</span>
@@ -2710,69 +2716,29 @@ export default function App() {
             </div>
           </div>
 
-          {/* STEP 4: 6 SPECIAL COURSES IN 1 ROW + COURSE INSIDE CLASSROOM (WITH PROGRESS BAR) + 6 BOOKS IN 1 ROW */}
-          <div id="special-courses-row" className="relative space-y-7 pt-6 border-t border-slate-800/90">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                  স্পেশাল কোর্সসমূহ (Course 1 – Course 6) ও কোর্স-ভিত্তিক রচিত বইসমূহ
-                </span>
-                <h4 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
-                  ৬টি স্পেশাল গণিত কোর্স
-                </h4>
-              </div>
-            </div>
-
-            {/* 6 Special Courses in 1 Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-              {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                <PremiumCard
-                  key={item.id}
-                  grad={item.grad}
-                  icon={item.icon}
-                  code={item.courseNum}
-                  title={item.courseTitle}
-                  sub={item.chaptersIncluded}
-                  chips={[
-                    `${item.syllabusChapters.length}টি অধ্যায়`,
-                    ...(enrolledCourses[item.id] ? ['✓ Enrolled'] : [])
-                  ]}
-                  price={item.priceBdt}
-                  cta="ক্লাসরুম"
-                  onClick={() =>
-                    openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
-                  }
-                />
-              ))}
-            </div>
-
-            {/* Authored Books (shop style) */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <BookMarked className="w-4 h-4 text-amber-400" /> কোর্স-ভিত্তিক বই
-                </span>
+            <div className="grid grid-cols-2 gap-3">
+              {prevCh ? (
                 <button
-                  onClick={() => setBookModalOpen(true)}
-                  className="text-xs font-bold text-amber-300 hover:underline"
+                  onClick={() => openBvChapter(currentBvPaper, prevCh, true)}
+                  className="group rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-left transition hover:border-slate-600"
                 >
-                  সব বই দেখুন →
+                  <div className="text-[11px] font-bold text-slate-400">← আগের অধ্যায়</div>
+                  <div className="mt-1 text-sm font-extrabold text-white line-clamp-1">{prevCh.num}: {prevCh.title}</div>
                 </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                  <BookShopCard
-                    key={`book-${item.id}`}
-                    book={courseBookToShop(item)}
-                    onDetails={() => setSelectedSpecialCourseModal(item)}
-                  />
-                ))}
-              </div>
+              ) : <span />}
+              {nextCh ? (
+                <button
+                  onClick={() => openBvChapter(currentBvPaper, nextCh, true)}
+                  className="group rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-right transition hover:border-slate-600"
+                >
+                  <div className="text-[11px] font-bold text-slate-400">পরের অধ্যায় →</div>
+                  <div className="mt-1 text-sm font-extrabold text-white line-clamp-1">{nextCh.num}: {nextCh.title}</div>
+                </button>
+              ) : <span />}
             </div>
-          </div>
-        </div>
-      </main>
-      )}
+          </main>
+        );
+      })()}
 
       {/* VIEW: DEDICATED SPECIAL COURSE PAGE (HSC BANGLA VERSION) */}
       {isCourseView && activeCourse.kind === 'bv' && (
@@ -3187,56 +3153,39 @@ export default function App() {
                 </div>
                 )}
 
-                {/* STEP 2: Chapter / Unit Selection Cards */}
+                {/* Chapter / Unit cards (each opens its own chapter page) */}
+                {!isTrackChapterView && (
                 <div className="space-y-3 pt-4 border-t border-slate-800/80">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h4 className="text-sm sm:text-base font-extrabold text-teal-300 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-amber-400" />
                       {currentModule.name}: Select Chapter / Unit
                     </h4>
-                    <span className="text-xs text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-                      Selected:{' '}
-                      <strong className="text-amber-300">
-                        {currentChapter.num} — {currentChapter.title}
-                      </strong>
-                    </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {currentModule.chapters.map((ch, cIdx) => {
-                      const isChSelected = currentChapter.id === ch.id;
-                      return (
-                        <button
-                          key={ch.id}
-                          type="button"
-                          onClick={() => setPart3ChapterIdx(cIdx)}
-                          className={`p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 ${
-                            isChSelected
-                              ? 'bg-slate-900 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)]'
-                              : 'bg-slate-950/90 border-slate-800 hover:border-cyan-400/60'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[10px] font-extrabold">
-                              {ch.num}
-                            </span>
-                            <span className="text-lg">{ch.icon}</span>
-                          </div>
-                          <div>
-                            <div className="text-xs font-extrabold text-white line-clamp-2">
-                              {ch.title}
-                            </div>
-                            <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                              {ch.eng}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                    {currentModule.chapters.map((ch, cIdx) => (
+                      <PremiumCard
+                        key={ch.id}
+                        grad={currentModule.grad}
+                        icon={ch.icon}
+                        code={ch.num}
+                        title={ch.title}
+                        sub={ch.eng}
+                        chips={[`${currentModule.lectureBlueprint.length} Lectures`]}
+                        cta="Lectures"
+                        onClick={() =>
+                          openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
+                )}
 
-                {/* STEP 3: Lectures List for Selected Chapter */}
+                {/* Lecture list (chapter pages only) */}
+                {isTrackChapterView && (
+                  <>
                 <div className="bg-[#071527]/95 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div>
@@ -3349,7 +3298,7 @@ export default function App() {
                             </button>
                           </div>
                         ) : (
-                          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                          <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                             <span className="text-[11px] text-slate-400">
                               📄 PDF Note • 🎥 Video • 📝 Self Test
                             </span>
@@ -3365,6 +3314,36 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {currentModule.chapters[part3ChapterIdx - 1] ? (
+                      <button
+                        onClick={() =>
+                          openTrackChapter(currentTrack, currentModule, part3ModuleIdx, currentModule.chapters[part3ChapterIdx - 1], part3ChapterIdx - 1, true)
+                        }
+                        className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-left transition hover:border-slate-600"
+                      >
+                        <div className="text-[11px] font-bold text-slate-400">← Previous chapter</div>
+                        <div className="mt-1 text-sm font-extrabold text-white line-clamp-1">
+                          {currentModule.chapters[part3ChapterIdx - 1].title}
+                        </div>
+                      </button>
+                    ) : <span />}
+                    {currentModule.chapters[part3ChapterIdx + 1] ? (
+                      <button
+                        onClick={() =>
+                          openTrackChapter(currentTrack, currentModule, part3ModuleIdx, currentModule.chapters[part3ChapterIdx + 1], part3ChapterIdx + 1, true)
+                        }
+                        className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-right transition hover:border-slate-600"
+                      >
+                        <div className="text-[11px] font-bold text-slate-400">Next chapter →</div>
+                        <div className="mt-1 text-sm font-extrabold text-white line-clamp-1">
+                          {currentModule.chapters[part3ChapterIdx + 1].title}
+                        </div>
+                      </button>
+                    ) : <span />}
+                  </div>
+                  </>
+                )}
               </div>
             );
           })()}
