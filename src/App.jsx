@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   BookOpen,
   Video,
@@ -568,7 +568,7 @@ const RESEARCH_SHOWCASE_CARDS = [
 const PART3_ACADEMIC_TRACKS = {
   'HSC English Version': {
     id: 'HSC English Version',
-    badge: 'PART 3 • HSC ENGLISH VERSION (NCTB EV)',
+    badge: 'HSC ENGLISH VERSION (NCTB EV)',
     title: 'HSC Higher Mathematics — English Version (1st & 2nd Paper)',
     subtitle: 'Complete English-medium terminology hand notes, step-by-step derivations, recorded lectures, and self-tests.',
     unlockFee: 40,
@@ -637,7 +637,7 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'O-Level & A-Level': {
     id: 'O-Level & A-Level',
-    badge: 'PART 3 • CAMBRIDGE (CAIE) & EDEXCEL IAL',
+    badge: 'CAMBRIDGE (CAIE) & EDEXCEL IAL',
     title: 'O-Level & A-Level Mathematics Hub (CAIE 9709 / 4024 / 4037 & Edexcel)',
     subtitle: 'Topical past paper solutions, examiner report insights, formula sheets, and 1-on-1/batch lecture modules.',
     unlockFee: 50,
@@ -723,7 +723,7 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'Admission Test (BUET/DU)': {
     id: 'Admission Test (BUET/DU)',
-    badge: 'STEP 4 • MEDI-MATH, DU KA, ENGINEERING (BUET/CKRUET) & 20-YR ARCHIVE',
+    badge: 'MEDI-MATH, DU KA, ENGINEERING (BUET/CKRUET) & 20-YR ARCHIVE',
     title: 'University Admission Mathematics Hub (Medi-Math, DU ‘Ka’, BUET/CKRUET & Question Bank)',
     subtitle: 'Dedicated Medi-Math batch for Medical + DU Ka aspirants, high-voltage BUET written derivations, and 20-year question bank hacks.',
     unlockFee: 40,
@@ -821,7 +821,7 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'B.Sc. Honours Math': {
     id: 'B.Sc. Honours Math',
-    badge: 'STEP 5 • B.SC. (HONOURS) IN MATHEMATICS (6 CORE COURSES)',
+    badge: 'B.SC. (HONOURS) IN MATHEMATICS (6 CORE COURSES)',
     title: 'B.Sc. (Honours) & Undergraduate Mathematics Portal',
     subtitle: 'Rigorous theorem proofs, lecture notes, and solved problem sets for Major & Non-Major undergraduate courses (Public Universities, NU & 7-College).',
     unlockFee: 50,
@@ -965,10 +965,129 @@ const PART3_ACADEMIC_TRACKS = {
   }
 };
 
+const CV_BOOK_COVERS = [
+  { grad: 'from-slate-700 via-slate-800 to-slate-950', icon: '🧭', series: 'LAP LAMBERT • Germany' },
+  { grad: 'from-sky-600 via-blue-700 to-indigo-900', icon: '💻', series: 'LAP LAMBERT • Germany' },
+  { grad: 'from-amber-400 via-orange-500 to-red-600', icon: '🔥', series: 'Textbook • Bangladesh' }
+];
+
+const courseBookToShop = (item) => {
+  const [series, title] = item.bookTitle.includes(': ')
+    ? item.bookTitle.split(': ')
+    : ['', item.bookTitle];
+  return {
+    key: item.id,
+    series,
+    title,
+    author: item.author,
+    grad: item.grad,
+    icon: item.icon,
+    badge: item.badge,
+    price: item.bookPriceBdt,
+    meta: item.chaptersIncluded
+  };
+};
+
+const CV_SHOP_BOOKS = CV_CREDENTIALS.books.map((b, i) => ({
+  key: `cv-book-${i}`,
+  series: CV_BOOK_COVERS[i].series,
+  title: b.title,
+  author: CV_CREDENTIALS.fullName,
+  grad: CV_BOOK_COVERS[i].grad,
+  icon: CV_BOOK_COVERS[i].icon,
+  badge: b.type.includes('International') ? 'International' : 'Textbook',
+  price: null,
+  meta: b.isbn
+}));
+
+const bookOrderHref = (book) =>
+  `mailto:${CV_CREDENTIALS.email}?subject=${encodeURIComponent(
+    `বই অর্ডার: ${book.series ? `${book.series}: ` : ''}${book.title}`
+  )}`;
+
+function BookCover({ book, large = false }) {
+  return (
+    <div className="relative aspect-[3/4] w-full [perspective:900px]">
+      <div
+        className={`relative h-full w-full origin-left rounded-l-[4px] rounded-r-xl bg-gradient-to-br ${book.grad} overflow-hidden shadow-[8px_10px_24px_rgba(0,0,0,0.55)] transition-transform duration-500 group-hover:[transform:rotateY(-10deg)]`}
+      >
+        <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
+        <div className="absolute inset-y-0 left-3.5 w-px bg-white/30" />
+        <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
+        <div className="absolute -left-6 bottom-10 h-20 w-20 rounded-full bg-black/10" />
+        <div className={`absolute inset-0 flex flex-col justify-between text-white ${large ? 'p-5 pl-8' : 'p-3 pl-6'}`}>
+          <div>
+            {book.series && (
+              <div className={`font-bold uppercase text-white/85 line-clamp-1 ${large ? 'text-xs tracking-[0.14em]' : 'text-[8px] tracking-[0.06em]'}`}>
+                {book.series}
+              </div>
+            )}
+            <div className="mt-1.5 h-0.5 w-8 rounded bg-white/70" />
+          </div>
+          <div className={`drop-shadow-lg ${large ? 'text-6xl' : 'text-4xl'}`}>{book.icon}</div>
+          <div>
+            <div className={`font-black leading-tight drop-shadow line-clamp-3 ${large ? 'text-2xl sm:text-3xl' : 'text-sm sm:text-base'}`}>
+              {book.title}
+            </div>
+            <div className={`mt-1 font-semibold text-white/90 ${large ? 'text-sm' : 'text-[10px]'}`}>{book.author}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookShopCard({ book, onDetails }) {
+  return (
+    <div className="group flex flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 transition hover:border-amber-400/60 hover:bg-slate-900 sm:p-4">
+      <button type="button" onClick={onDetails || undefined} className="block w-full px-2 pb-4 pt-1">
+        <BookCover book={book} />
+      </button>
+      <div className="flex-1 space-y-1">
+        {book.badge && (
+          <span className="inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">
+            {book.badge}
+          </span>
+        )}
+        <div className="text-sm font-extrabold leading-snug text-white line-clamp-2">
+          {book.title}
+        </div>
+        <div className="text-[11px] text-slate-400">লেখক: {book.author}</div>
+        {book.meta && <div className="text-[10px] text-slate-500 line-clamp-1">{book.meta}</div>}
+      </div>
+      <div className="pt-2.5">
+        {book.price ? (
+          <span className="text-lg font-black text-amber-300">{book.price}</span>
+        ) : (
+          <span className="text-[11px] font-semibold text-teal-300">{book.series}</span>
+        )}
+      </div>
+      <div className={`grid gap-2 pt-2.5 ${onDetails ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {onDetails && (
+          <button
+            type="button"
+            onClick={onDetails}
+            className="rounded-xl bg-slate-800 py-2 text-xs font-bold text-white transition hover:bg-slate-700"
+          >
+            বিস্তারিত
+          </button>
+        )}
+        <a
+          href={bookOrderHref(book)}
+          className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
+        >
+          অর্ডার করুন
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState(OFFLINE_AVATAR_SVG);
   const [activeSubPage, setActiveSubPage] = useState('HOME');
+  const [activeCourse, setActiveCourse] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
 
   // HSC Bangla Version states
@@ -1169,10 +1288,11 @@ export default function App() {
     setPaymentTrxId('');
   };
 
-  const openSubPage = (trackId, options = {}) => {
+  // Sets the page state for a sub-page without touching history or scroll.
+  const applySubPage = (trackId, options = {}) => {
+    setActiveCourse(null);
     if (trackId === 'HOME') {
       setActiveSubPage('HOME');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (options.bvPaperKey) {
@@ -1195,8 +1315,77 @@ export default function App() {
     }
     setSelectedTrack(trackId);
     setActiveSubPage(trackId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Course pages: { kind: 'bv', id, parent, title } or
+  // { kind: 'track', trackId, moduleIdx, chapterIdx, parent, title, sub, icon, grad }.
+  const applyCourse = (course) => {
+    if (course.kind === 'bv') {
+      setActiveSpecialCourseId(course.id);
+      setSelectedCourseChapterIdx(0);
+    } else {
+      setSelectedTrack(course.trackId);
+      setPart3ModuleIdx(course.moduleIdx);
+      setPart3ChapterIdx(course.chapterIdx || 0);
+    }
+    setActiveCourse(course);
+    setActiveSubPage('COURSE');
+  };
+
+  const scrollToAnchorOrTop = (anchorId) => {
+    window.requestAnimationFrame(() => {
+      const el = anchorId && document.getElementById(anchorId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  // Remember where the viewer was, then add a history entry so the browser
+  // back button (and our Back button) returns to the same spot.
+  const pushNavState = (navState) => {
+    const current = window.history.state || { page: 'HOME', depth: 0 };
+    window.history.replaceState({ ...current, scrollY: window.scrollY }, '');
+    window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '');
+  };
+
+  const openSubPage = (trackId, options = {}) => {
+    pushNavState({ page: trackId, options });
+    applySubPage(trackId, options);
+    scrollToAnchorOrTop(options.anchorId);
+  };
+
+  const openCourse = (course) => {
+    pushNavState({ page: 'COURSE', course });
+    applyCourse(course);
+    scrollToAnchorOrTop();
+  };
+
+  const goBack = () => {
+    if ((window.history.state?.depth || 0) > 0) window.history.back();
+    else openSubPage('HOME');
+  };
+
+  useEffect(() => {
+    if (!window.history.state) {
+      window.history.replaceState({ page: 'HOME', depth: 0 }, '');
+    }
+    const onPopState = (e) => {
+      const st = e.state || { page: 'HOME' };
+      if (st.page === 'COURSE' && st.course) applyCourse(st.course);
+      else applySubPage(st.page || 'HOME', st.options || {});
+      const y = st.scrollY || 0;
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'auto' }))
+      );
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const isCourseView = activeSubPage === 'COURSE' && !!activeCourse;
+  const part3TrackKey =
+    isCourseView && activeCourse.kind === 'track' ? activeCourse.trackId : activeSubPage;
+  const navActive = isCourseView ? activeCourse.parent : activeSubPage;
 
   const scrollToHomeStep = (sectionId) => {
     const el = document.getElementById(sectionId);
@@ -1287,7 +1476,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('HOME')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'HOME'
+                navActive === 'HOME'
                   ? 'bg-white text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800'
               }`}
@@ -1297,7 +1486,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('HSC Bangla Version')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'HSC Bangla Version'
+                navActive === 'HSC Bangla Version'
                   ? 'bg-teal-500 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-teal-300 border border-slate-800'
               }`}
@@ -1307,7 +1496,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('HSC English Version')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'HSC English Version'
+                navActive === 'HSC English Version'
                   ? 'bg-cyan-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800'
               }`}
@@ -1317,7 +1506,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('O-Level & A-Level')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'O-Level & A-Level'
+                navActive === 'O-Level & A-Level'
                   ? 'bg-purple-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-purple-300 border border-slate-800'
               }`}
@@ -1327,7 +1516,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('Admission Test (BUET/DU)')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'Admission Test (BUET/DU)'
+                navActive === 'Admission Test (BUET/DU)'
                   ? 'bg-amber-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800'
               }`}
@@ -1337,7 +1526,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('B.Sc. Honours Math')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'B.Sc. Honours Math'
+                navActive === 'B.Sc. Honours Math'
                   ? 'bg-emerald-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800'
               }`}
@@ -1347,7 +1536,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('Research & Papers')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'Research & Papers'
+                navActive === 'Research & Papers'
                   ? 'bg-rose-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-rose-300 border border-slate-800'
               }`}
@@ -1363,7 +1552,7 @@ export default function App() {
             <button
               onClick={() => openSubPage('About Me')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
-                activeSubPage === 'About Me'
+                navActive === 'About Me'
                   ? 'bg-sky-400 text-slate-950 shadow-sm'
                   : 'bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-800'
               }`}
@@ -1380,15 +1569,30 @@ export default function App() {
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => openSubPage('HOME')}
+                onClick={goBack}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-300 hover:to-cyan-300 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-md transition"
               >
-                ← মূল পেজে ফিরে যান (Back to Home)
+                ← ফিরে যান (Back)
               </button>
-              <div className="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-2">
-                <span className="text-slate-500">Home</span>
+              <div className="text-xs sm:text-sm font-bold text-slate-300 flex flex-wrap items-center gap-2">
+                <button onClick={() => openSubPage('HOME')} className="text-slate-500 hover:text-white transition">
+                  Home
+                </button>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                <span className="text-amber-300 font-extrabold">{activeSubPage}</span>
+                {isCourseView ? (
+                  <>
+                    <button
+                      onClick={() => openSubPage(activeCourse.parent)}
+                      className="text-slate-400 hover:text-white transition"
+                    >
+                      {activeCourse.parent}
+                    </button>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="text-amber-300 font-extrabold">{activeCourse.title}</span>
+                  </>
+                ) : (
+                  <span className="text-amber-300 font-extrabold">{activeSubPage}</span>
+                )}
               </div>
             </div>
 
@@ -1403,7 +1607,7 @@ export default function App() {
                 { id: 'Research & Papers', label: 'Research' },
                 { id: 'About Me', label: 'About Me' }
               ]
-                .filter((t) => t.id !== activeSubPage)
+                .filter((t) => t.id !== navActive)
                 .map((t) => (
                   <button
                     key={t.id}
@@ -1454,7 +1658,7 @@ export default function App() {
                   {
                     id: 'HSC Bangla Version',
                     stepAnchor: 'home-step-1',
-                    code: 'STEP 01 • HSC',
+                    code: 'HSC',
                     bigTag: 'BV',
                     icon: '🏆',
                     title: 'HSC বাংলা ভার্সন',
@@ -1467,7 +1671,7 @@ export default function App() {
                   {
                     id: 'HSC English Version',
                     stepAnchor: 'home-step-2',
-                    code: 'STEP 02 • HSC',
+                    code: 'HSC',
                     bigTag: 'EV',
                     icon: '🎯',
                     title: 'HSC English Version',
@@ -1480,7 +1684,7 @@ export default function App() {
                   {
                     id: 'O-Level & A-Level',
                     stepAnchor: 'home-step-3',
-                    code: 'STEP 03 • CAIE/IAL',
+                    code: 'CAIE/IAL',
                     bigTag: 'O/A',
                     icon: '📐',
                     title: 'O & A-Level Math',
@@ -1493,7 +1697,7 @@ export default function App() {
                   {
                     id: 'Admission Test (BUET/DU)',
                     stepAnchor: 'home-step-4',
-                    code: 'STEP 04 • ADM',
+                    code: 'ADM',
                     bigTag: 'ADM',
                     icon: '🚀',
                     title: 'Admission Test',
@@ -1506,7 +1710,7 @@ export default function App() {
                   {
                     id: 'B.Sc. Honours Math',
                     stepAnchor: 'home-step-5',
-                    code: 'STEP 05 • B.Sc.',
+                    code: 'B.Sc.',
                     bigTag: 'HON',
                     icon: '🎓',
                     title: 'B.Sc. Honours Math',
@@ -1519,7 +1723,7 @@ export default function App() {
                   {
                     id: 'Research & Papers',
                     stepAnchor: 'home-step-6',
-                    code: 'STEP 06 • PhD/RES',
+                    code: 'PhD/RES',
                     bigTag: 'RES',
                     icon: '🔬',
                     title: 'Research & Thesis',
@@ -1606,9 +1810,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/40 text-sky-300 text-xs font-extrabold">
-                  STEP 1 • HSC বাংলা ভার্সন
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   HSC উচ্চতর গণিত বাংলা ভার্সন
                 </h3>
@@ -1663,7 +1864,9 @@ export default function App() {
                 {SPECIAL_COURSES_WITH_BOOKS.map((c) => (
                   <div
                     key={c.id}
-                    onClick={() => openSubPage('HSC Bangla Version', { specialCourseId: c.id })}
+                    onClick={() =>
+                      openCourse({ kind: 'bv', id: c.id, parent: 'HSC Bangla Version', title: c.courseTitle })
+                    }
                     className="group cursor-pointer rounded-2xl bg-slate-900/95 border-2 border-slate-800 hover:border-amber-400 p-2.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between"
                   >
                     <div>
@@ -1699,33 +1902,26 @@ export default function App() {
               </div>
             </div>
 
-            {/* 6 Authored Books Row */}
-            <div className="space-y-2.5 pt-2 border-t border-slate-800/80">
-              <div className="text-xs font-extrabold uppercase tracking-wider text-teal-300">
-                এক লাইনে ৬টি বই (প্রতিটি স্পেশাল কোর্সকে ফিচার করে প্রভাষক ইমরান ইসলাম রচিত ৬টি বই):
+            {/* Authored Books (shop style) */}
+            <div className="space-y-3 pt-4 border-t border-slate-800/80">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <BookMarked className="w-4 h-4 text-amber-400" /> লেখকের বই
+                </div>
+                <button
+                  onClick={() => setBookModalOpen(true)}
+                  className="text-xs font-bold text-amber-300 hover:underline"
+                >
+                  সব বই দেখুন →
+                </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                  <div
+                  <BookShopCard
                     key={`home-book-${item.id}`}
-                    onClick={() => setSelectedSpecialCourseModal(item)}
-                    className="cursor-pointer rounded-2xl bg-[#09192f]/95 hover:bg-[#0d2240] border border-cyan-500/30 hover:border-amber-400/70 p-2.5 flex flex-col justify-between transition group"
-                  >
-                    <div
-                      className={`h-20 rounded-xl bg-gradient-to-br ${item.grad} p-2 flex flex-col justify-between text-white`}
-                    >
-                      <span className="px-1.5 py-0.5 rounded bg-slate-950/60 text-[8px] font-bold text-amber-300 w-fit">
-                        {item.badge}
-                      </span>
-                      <div className="text-[10px] font-black leading-tight line-clamp-2">
-                        {item.bookTitle}
-                      </div>
-                    </div>
-                    <div className="pt-2 flex items-center justify-between text-[10px] font-bold text-amber-300">
-                      <span>বই: {item.bookPriceBdt}</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+                    book={courseBookToShop(item)}
+                    onDetails={() => setSelectedSpecialCourseModal(item)}
+                  />
                 ))}
               </div>
             </div>
@@ -1738,9 +1934,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/40 text-teal-300 text-xs font-extrabold">
-                  STEP 2 • HSC ENGLISH VERSION
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   HSC Higher Mathematics (English Version)
                 </h3>
@@ -1758,7 +1951,9 @@ export default function App() {
               {PART3_ACADEMIC_TRACKS['HSC English Version'].modules.map((mod, mIdx) => (
                 <div
                   key={mod.id}
-                  onClick={() => openSubPage('HSC English Version', { moduleIdx: mIdx, chapterIdx: 0 })}
+                  onClick={() =>
+                    openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
+                  }
                   className="group cursor-pointer rounded-3xl bg-slate-900/95 hover:bg-slate-900 border-2 border-slate-800 hover:border-teal-400 p-3.5 transition-all transform hover:-translate-y-1 flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-4">
@@ -1792,10 +1987,7 @@ export default function App() {
                 <div
                   key={evc.id}
                   onClick={() =>
-                    openSubPage('HSC English Version', {
-                      moduleIdx: evc.moduleIdx,
-                      chapterIdx: evc.chapterIdx
-                    })
+                    openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: evc.moduleIdx, chapterIdx: evc.chapterIdx, title: evc.courseTitle, sub: evc.sub, icon: evc.icon, grad: evc.grad })
                   }
                   className="group cursor-pointer rounded-2xl bg-slate-900/95 border-2 border-slate-800 hover:border-teal-400 p-2.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between"
                 >
@@ -1839,9 +2031,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/40 text-purple-300 text-xs font-extrabold">
-                  STEP 3 • O-LEVEL & A-LEVEL
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
                 </h3>
@@ -1859,10 +2048,7 @@ export default function App() {
                 <div
                   key={oa.id}
                   onClick={() =>
-                    openSubPage('O-Level & A-Level', {
-                      moduleIdx: oa.moduleIdx,
-                      chapterIdx: oa.chapterIdx
-                    })
+                    openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: oa.moduleIdx, chapterIdx: oa.chapterIdx, title: oa.title, sub: oa.sub, icon: oa.icon, grad: oa.grad })
                   }
                   className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-purple-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
                 >
@@ -1904,9 +2090,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-extrabold">
-                  STEP 4 • ADMISSION TEST
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   University & Engineering Admission
                 </h3>
@@ -1924,7 +2107,7 @@ export default function App() {
                 <div
                   key={mod.id}
                   onClick={() =>
-                    openSubPage('Admission Test (BUET/DU)', { moduleIdx: mIdx, chapterIdx: 0 })
+                    openCourse({ kind: 'track', trackId: 'Admission Test (BUET/DU)', parent: 'Admission Test (BUET/DU)', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
                   className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-amber-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
                 >
@@ -1968,9 +2151,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold">
-                  STEP 5 • B.SC. (HONOURS) MATHEMATICS
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   B.Sc. (Honours) in Mathematics
                 </h3>
@@ -1988,7 +2168,7 @@ export default function App() {
                 <div
                   key={mod.id}
                   onClick={() =>
-                    openSubPage('B.Sc. Honours Math', { moduleIdx: mIdx, chapterIdx: 0 })
+                    openCourse({ kind: 'track', trackId: 'B.Sc. Honours Math', parent: 'B.Sc. Honours Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
                   className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-emerald-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
                 >
@@ -2030,9 +2210,6 @@ export default function App() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span className="px-3 py-1 rounded-full bg-rose-500/15 border border-rose-400/40 text-rose-300 text-xs font-extrabold">
-                  STEP 6 • RESEARCH & PUBLICATIONS
-                </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   Thesis Consultation, Ongoing Research & Publications
                 </h3>
@@ -2049,7 +2226,7 @@ export default function App() {
               {RESEARCH_SHOWCASE_CARDS.map((rc) => (
                 <div
                   key={rc.id}
-                  onClick={() => openSubPage('Research & Papers', { researchCardId: rc.id })}
+                  onClick={() => openSubPage('Research & Papers', { researchCardId: rc.id, anchorId: 'research-detail' })}
                   className="group cursor-pointer rounded-3xl bg-slate-900/95 border-2 border-slate-800 hover:border-rose-400 p-3.5 transition-all transform hover:-translate-y-1 flex flex-col justify-between gap-3 shadow-lg"
                 >
                   <div
@@ -2081,12 +2258,22 @@ export default function App() {
                 </div>
               ))}
             </div>
+
+            <div className="space-y-3 pt-4 border-t border-slate-800/80">
+              <div className="text-sm font-extrabold text-white flex items-center gap-2">
+                <BookMarked className="w-4 h-4 text-amber-400" /> প্রকাশিত বই
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
+                {CV_SHOP_BOOKS.map((book) => (
+                  <BookShopCard key={book.key} book={book} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
       )}
 
-      {/* VIEW 2: DEDICATED SUB-PAGE FOR HSC BANGLA VERSION */}
       {/* VIEW: DEDICATED ABOUT ME / FULL PROFILE SUB-PAGE */}
       {activeSubPage === 'About Me' && (
         <section className="relative bg-slate-950 text-white overflow-hidden">
@@ -2301,19 +2488,9 @@ export default function App() {
                 <strong className="text-white">Journal Articles:</strong> Improved Nearest Neighbour
                 Algorithm for TSP (IJSRCSEIT & IJMTT, 2018).
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {CV_CREDENTIALS.books.map((bk) => (
-                  <div
-                    key={bk.title}
-                    className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5"
-                  >
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      {bk.type}
-                    </div>
-                    <div className="text-sm font-bold text-white leading-snug">{bk.title}</div>
-                    <div className="text-xs text-slate-400">{bk.publisher}</div>
-                    <div className="text-[11px] font-mono text-teal-300">{bk.isbn}</div>
-                  </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
+                {CV_SHOP_BOOKS.map((book) => (
+                  <BookShopCard key={`about-${book.key}`} book={book} />
                 ))}
               </div>
             </div>
@@ -2381,6 +2558,7 @@ export default function App() {
         </section>
       )}
 
+      {/* VIEW 2: DEDICATED SUB-PAGE FOR HSC BANGLA VERSION */}
       {activeSubPage === 'HSC Bangla Version' && (
       <main id="hsc-bv-hub" className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         <div className="rounded-[32px] bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-950 text-white border border-slate-800 p-5 sm:p-8 shadow-2xl space-y-10 relative overflow-hidden">
@@ -2392,7 +2570,7 @@ export default function App() {
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/40 text-teal-300 text-xs font-bold">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  HSC বাংলা ভার্সন • একাডেমিক লার্নিং পোর্টাল (Same 10MS Card Design)
+                  HSC বাংলা ভার্সন • একাডেমিক লার্নিং পোর্টাল
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
                   উচ্চতর গণিত ১ম পত্র ও ২য় পত্র — অধ্যায়ভিত্তিক লেকচার, ক্লাস নোট ও সেলফ টেস্ট
@@ -2686,26 +2864,22 @@ export default function App() {
                   স্পেশাল কোর্সসমূহ (Course 1 – Course 6) ও কোর্স-ভিত্তিক রচিত বইসমূহ
                 </span>
                 <h4 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
-                  ৬টি স্পেশাল গণিত কোর্স, কোর্সের ভেতরের ক্লাসরুম (Progress Bar সহ) এবং এক লাইনে ৬টি বই
+                  ৬টি স্পেশাল গণিত কোর্স
                 </h4>
               </div>
-              <span className="text-xs text-teal-300 font-semibold">
-                যেকোনো কোর্সে ক্লিক করলে নিচে সেই কোর্সের অধ্যায়, লেকচার ও Progress Bar ওপেন হবে
-              </span>
             </div>
 
             {/* 6 Special Courses in 1 Row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
               {SPECIAL_COURSES_WITH_BOOKS.map((item) => {
-                const isSelectedCourse = activeSpecialCourse.id === item.id;
+                const isSelectedCourse = false;
                 const isEnrolled = !!enrolledCourses[item.id];
                 return (
                   <div
                     key={item.id}
-                    onClick={() => {
-                      setActiveSpecialCourseId(item.id);
-                      setSelectedCourseChapterIdx(0);
-                    }}
+                    onClick={() =>
+                      openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
+                    }
                     className="group cursor-pointer flex flex-col items-center select-none"
                   >
                     <div
@@ -2747,7 +2921,37 @@ export default function App() {
               })}
             </div>
 
-            {}
+            {/* Authored Books (shop style) */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <BookMarked className="w-4 h-4 text-amber-400" /> কোর্স-ভিত্তিক বই
+                </span>
+                <button
+                  onClick={() => setBookModalOpen(true)}
+                  className="text-xs font-bold text-amber-300 hover:underline"
+                >
+                  সব বই দেখুন →
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                  <BookShopCard
+                    key={`book-${item.id}`}
+                    book={courseBookToShop(item)}
+                    onDetails={() => setSelectedSpecialCourseModal(item)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      )}
+
+      {/* VIEW: DEDICATED SPECIAL COURSE PAGE (HSC BANGLA VERSION) */}
+      {isCourseView && activeCourse.kind === 'bv' && (
+        <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             <div className="rounded-3xl bg-gradient-to-b from-[#08192e] via-[#061325] to-[#040c18] border-2 border-amber-400/40 p-5 sm:p-7 space-y-6 shadow-[0_0_35px_rgba(245,158,11,0.12)]">
               {/* Top Course Header + Student Enrollment & Progress Bar */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center border-b border-slate-800 pb-5">
@@ -3024,76 +3228,33 @@ export default function App() {
               </div>
             </div>
 
-            {/* 6 Authored Books in a Single Horizontal Row (এক লাইনে ৬টি বই, প্রতিটি কোর্সকে ফিচার করে) */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
-                  <BookMarked className="w-4 h-4 text-amber-400" />
-                  এক লাইনে প্রভাষক ইমরান ইসলাম রচিত ৬টি বই (প্রতিটি স্পেশাল কোর্সকে ফিচার করে একটি করে বই):
-                </span>
-                <button
-                  onClick={() => setBookModalOpen(true)}
-                  className="text-xs font-bold text-amber-300 hover:underline"
+          <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 p-5 sm:p-7 grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+            <div className="sm:col-span-4 lg:col-span-3 group max-w-[220px] w-full mx-auto">
+              <BookCover book={courseBookToShop(activeSpecialCourse)} large />
+            </div>
+            <div className="sm:col-span-8 lg:col-span-9 space-y-3">
+              <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-bold">
+                এই কোর্সের বই
+              </span>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white">{activeSpecialCourse.bookTitle}</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">{activeSpecialCourse.bookSub}</p>
+              <div className="text-sm text-slate-400">লেখক: {activeSpecialCourse.author}</div>
+              <div className="flex flex-wrap items-center gap-4 pt-1">
+                <span className="text-2xl font-black text-amber-300">{activeSpecialCourse.bookPriceBdt}</span>
+                <a
+                  href={bookOrderHref(courseBookToShop(activeSpecialCourse))}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
                 >
-                  আন্তর্জাতিক ও স্থানীয় সব বই দেখুন →
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
-                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                  <div
-                    key={`book-${item.id}`}
-                    onClick={() => setSelectedSpecialCourseModal(item)}
-                    className="cursor-pointer rounded-2xl bg-[#09192f]/95 hover:bg-[#0d2240] border border-cyan-500/30 hover:border-amber-400/70 p-3 flex flex-col justify-between transition group shadow-lg"
-                  >
-                    <div className="space-y-2">
-                      <div
-                        className={`h-28 rounded-xl bg-gradient-to-br ${item.grad} p-2.5 flex flex-col justify-between relative overflow-hidden shadow-md border border-white/15`}
-                      >
-                        <div className="absolute right-0 top-0 bottom-0 w-2 bg-black/20" />
-                        <div className="flex items-center justify-between">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-950/60 text-[9px] font-bold text-amber-300 uppercase">
-                            {item.courseNum}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded bg-white/20 text-[8px] font-bold text-white">
-                            {item.badge}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="text-[11px] font-black text-white leading-tight line-clamp-2 drop-shadow">
-                            {item.bookTitle}
-                          </div>
-                          <div className="text-[9px] text-white/90 font-semibold mt-0.5">
-                            — {item.author}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-[11px] font-bold text-teal-300 line-clamp-1">
-                          ফিচার্ড: {item.courseTitle}
-                        </div>
-                        <p className="text-[10px] text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
-                          {item.bookSub}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 mt-2 border-t border-slate-800 flex items-center justify-between text-[10px] font-bold text-amber-300 group-hover:text-amber-200">
-                      <span>বই: {item.bookPriceBdt}</span>
-                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
-                ))}
+                  বইটি অর্ডার করুন
+                </a>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
       )}
 
       {/* VIEW 3: DEDICATED SUB-PAGE FOR PART 3 TRACKS (HSC EV, O/A-LEVEL, ADMISSION, B.SC. HONOURS) */}
-      {PART3_ACADEMIC_TRACKS[activeSubPage] && (
+      {PART3_ACADEMIC_TRACKS[part3TrackKey] && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section
           id="part3-academic-hub"
@@ -3101,24 +3262,41 @@ export default function App() {
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(168,85,247,0.10),_transparent_55%)]" />
 
+          {isCourseView ? (
+            <div className="relative flex items-center gap-4 border-b border-slate-800 pb-5">
+              <div
+                className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br ${activeCourse.grad} flex items-center justify-center text-3xl sm:text-4xl shadow-lg`}
+              >
+                {activeCourse.icon}
+              </div>
+              <div>
+                <span className="text-xs font-bold text-cyan-300">{activeCourse.parent}</span>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{activeCourse.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1">{activeCourse.sub}</p>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Dedicated Sub-page Header */}
           <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                {PART3_ACADEMIC_TRACKS[activeSubPage].badge}
+                {PART3_ACADEMIC_TRACKS[part3TrackKey].badge}
               </span>
               <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                {PART3_ACADEMIC_TRACKS[activeSubPage].title}
+                {PART3_ACADEMIC_TRACKS[part3TrackKey].title}
               </h3>
               <p className="text-xs text-slate-300 mt-1">
-                {PART3_ACADEMIC_TRACKS[activeSubPage].subtitle}
+                {PART3_ACADEMIC_TRACKS[part3TrackKey].subtitle}
               </p>
             </div>
           </div>
+            </>
+          )}
 
           {(() => {
-            const currentTrack = PART3_ACADEMIC_TRACKS[activeSubPage];
+            const currentTrack = PART3_ACADEMIC_TRACKS[part3TrackKey];
             const currentModule =
               currentTrack.modules[part3ModuleIdx] || currentTrack.modules[0];
             const currentChapter =
@@ -3143,11 +3321,12 @@ export default function App() {
 
             return (
               <div className="relative space-y-8">
-                {/* STEP 1: Course / Paper Selection Cards (10MS Style) */}
+                {/* Course / Paper Selection Cards (hidden on a course's own page) */}
+                {!isCourseView && (
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-extrabold uppercase tracking-wider text-teal-300">
-                      Step 1 — Select Course / Paper under {currentTrack.id}:
+                      Select Course / Paper under {currentTrack.id}:
                     </span>
                     <span className="text-xs text-amber-300 font-semibold">
                       ✓ 1st Lecture Free (Open) • Subsequent Lectures Unlock: ৳{currentTrack.unlockFee}
@@ -3214,13 +3393,14 @@ export default function App() {
                     })}
                   </div>
                 </div>
+                )}
 
                 {/* STEP 2: Chapter / Unit Selection Cards */}
                 <div className="space-y-3 pt-4 border-t border-slate-800/80">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h4 className="text-sm sm:text-base font-extrabold text-teal-300 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-amber-400" />
-                      Step 2 — {currentModule.name}: Select Chapter / Unit
+                      {currentModule.name}: Select Chapter / Unit
                     </h4>
                     <span className="text-xs text-slate-300 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
                       Selected:{' '}
@@ -3408,7 +3588,7 @@ export default function App() {
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-400/40 text-rose-300 text-xs font-bold">
                   <Microscope className="w-3.5 h-3.5 text-amber-400" />
-                  STEP 6 SUB-PAGE • THESIS CONSULTATION, COLLABORATION & PHD PORTFOLIO
+                  THESIS CONSULTATION, COLLABORATION & PHD PORTFOLIO
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-2">
                   Research, Paid Thesis Consultation & Publications Hub
@@ -3460,6 +3640,7 @@ export default function App() {
             </div>
 
             {/* Dynamic Detail Panel for the Selected Research Card */}
+            <div id="research-detail" className="scroll-mt-56" />
             {activeResearchCardId === 'thesis-consultation' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#071527] border-2 border-amber-400/50 rounded-3xl p-6">
                 <div className="lg:col-span-7 space-y-4">
@@ -4051,77 +4232,76 @@ export default function App() {
 
       {/* SPECIAL COURSE & FEATURED BOOK MODAL */}
       {selectedSpecialCourseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-xl w-full p-6 sm:p-7 border border-amber-400/50 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-              <div>
+        <div
+          onClick={() => setSelectedSpecialCourseModal(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-slate-900 text-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 border border-amber-400/40 shadow-2xl max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => setSelectedSpecialCourseModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start">
+              <div className="sm:col-span-5 group max-w-[240px] w-full mx-auto">
+                <BookCover book={courseBookToShop(selectedSpecialCourseModal)} large />
+              </div>
+              <div className="sm:col-span-7 space-y-3">
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  স্পেশাল টপিক কোর্স ও ফিচার্ড বই • {selectedSpecialCourseModal.badge}
+                  {selectedSpecialCourseModal.badge}
                 </span>
-                <h3 className="text-xl font-extrabold text-white mt-1.5">
-                  {selectedSpecialCourseModal.courseTitle} ({selectedSpecialCourseModal.courseEng})
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white leading-snug pr-8">
+                  {selectedSpecialCourseModal.bookTitle}
                 </h3>
-              </div>
-              <button
-                onClick={() => setSelectedSpecialCourseModal(null)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
-              <div className="text-teal-300 font-bold text-sm flex items-center gap-2">
-                <BookMarked className="w-4 h-4 text-amber-400" />
-                ফিচার্ড বই: {selectedSpecialCourseModal.bookTitle}
-              </div>
-              <p className="text-slate-300 leading-relaxed">
-                {selectedSpecialCourseModal.bookSub} — লেখক: <strong>{selectedSpecialCourseModal.author}</strong>।
-              </p>
-              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 space-y-1">
-                <div>
-                  <strong className="text-amber-300">অন্তর্ভুক্ত অধ্যায়সমূহ:</strong> {selectedSpecialCourseModal.chaptersIncluded}
+                <div className="text-sm text-slate-400">লেখক: {selectedSpecialCourseModal.author}</div>
+                <p className="text-sm text-slate-300 leading-relaxed">{selectedSpecialCourseModal.bookSub}</p>
+                <div className="text-3xl font-black text-amber-300">
+                  {selectedSpecialCourseModal.bookPriceBdt}
                 </div>
-                <div>
-                  <strong className="text-teal-300">কোর্স ও বইয়ের ফি:</strong> {selectedSpecialCourseModal.priceBdt}
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <a
+                    href={bookOrderHref(courseBookToShop(selectedSpecialCourseModal))}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
+                  >
+                    অর্ডার করুন
+                  </a>
+                  <button
+                    onClick={() => {
+                      const item = selectedSpecialCourseModal;
+                      setSelectedSpecialCourseModal(null);
+                      openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle });
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition"
+                  >
+                    <BookOpen className="w-4 h-4 text-teal-300" /> {selectedSpecialCourseModal.courseTitle} কোর্সে যান
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-              <button
-                onClick={() => {
-                  setHscBvPaperKey(selectedSpecialCourseModal.mappedPaper);
-                  setSelectedBvChapterId(selectedSpecialCourseModal.mappedChapter);
-                  setSelectedSpecialCourseModal(null);
-                }}
-                className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition"
-              >
-                <BookOpen className="w-4 h-4" /> এই কোর্সের অধ্যায় ও লেকচারগুলোতে যান
-              </button>
-              <button
-                onClick={() => setSelectedSpecialCourseModal(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition"
-              >
-                বন্ধ করুন
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* AUTHORED BOOKS MODAL */}
+      {/* AUTHORED BOOKS MODAL (shop style) */}
       {bookModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-700 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between">
+        <div
+          onClick={() => setBookModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 text-white rounded-3xl max-w-5xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-700 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-start justify-between gap-4">
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300">
-                  Published Books & International Monographs
+                  বইসমূহ
                 </span>
-                <h3 className="text-2xl font-extrabold text-white mt-1">
-                  Authored Books by Lecturer Emran Islam
-                </h3>
+                <h3 className="text-2xl font-extrabold text-white mt-1">Emran Islam-এর বই</h3>
               </div>
               <button
                 onClick={() => setBookModalOpen(false)}
@@ -4130,19 +4310,28 @@ export default function App() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            <div className="grid gap-3">
-              {CV_CREDENTIALS.books.map((b, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1"
-                >
-                  <span className="text-[11px] font-bold uppercase text-teal-400">{b.type}</span>
-                  <div className="text-base font-bold text-white">{b.title}</div>
-                  <div className="text-xs text-slate-400">{b.publisher}</div>
-                  <div className="text-xs font-mono text-amber-300 font-semibold">{b.isbn}</div>
-                </div>
-              ))}
+            <div className="space-y-3">
+              <div className="text-sm font-extrabold text-teal-300">The Fuel of Higher Math — HSC কোর্স-ভিত্তিক বই</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                  <BookShopCard
+                    key={`modal-book-${item.id}`}
+                    book={courseBookToShop(item)}
+                    onDetails={() => {
+                      setBookModalOpen(false);
+                      setSelectedSpecialCourseModal(item);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3 pt-2 border-t border-slate-800">
+              <div className="text-sm font-extrabold text-teal-300 pt-3">প্রকাশিত বই ও আন্তর্জাতিক মনোগ্রাফ</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
+                {CV_SHOP_BOOKS.map((book) => (
+                  <BookShopCard key={`modal-${book.key}`} book={book} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
