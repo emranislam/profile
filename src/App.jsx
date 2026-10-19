@@ -1453,13 +1453,6 @@ export default function App() {
 
             {/* 10 MINUTE SCHOOL INSPIRED 6 SQUARE TRACK CARDS */}
             <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  যেকোনো কার্ডে ক্লিক করলে সরাসরি সেই প্রোগ্রামের ডেডিকেটেড সাব-পেজ (Sub-page) ওপেন হবে:
-                </span>
-              </div>
-
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {[
                   {
@@ -1610,32 +1603,6 @@ export default function App() {
 
         {}
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-14 space-y-12">
-          {/* Quick Step Jump Strip */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-extrabold text-teal-300 flex items-center gap-2 px-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              AT A GLANCE SHOWCASE — নিচে স্ক্রল করে সব কার্ড এক নজরে দেখুন (যেকোনো কার্ডে ক্লিক করলেই তার সাব-পেজ ওপেন হবে):
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {[
-                { id: 'home-step-1', label: 'Step 1: HSC বাংলা (৮ কার্ড + ৬ বই)' },
-                { id: 'home-step-2', label: 'Step 2: HSC EV (৮ কার্ড)' },
-                { id: 'home-step-3', label: 'Step 3: O/A-Level (৬ কার্ড)' },
-                { id: 'home-step-4', label: 'Step 4: Admission (৪ কার্ড)' },
-                { id: 'home-step-5', label: 'Step 5: Honours (৬ কার্ড)' },
-                { id: 'home-step-6', label: 'Step 6: Research & Thesis (৬ কার্ড)' }
-              ].map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => scrollToHomeStep(s.id)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 text-[11px] font-bold text-slate-300 hover:text-amber-300 border border-slate-800 transition"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* STEP 1: HSC BANGLA VERSION SHOWCASE (8 CARDS + 6 BOOKS) */}
           <div
             id="home-step-1"
@@ -1644,10 +1611,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/40 text-sky-300 text-xs font-extrabold">
-                  STEP 1 • HSC বাংলা ভার্সন শোকেস (২টি পত্র + ৬টি স্পেশাল কোর্স = ৮টি কার্ড + ৬টি বই)
+                  STEP 1 • HSC বাংলা ভার্সন
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  HSC উচ্চতর গণিত বাংলা ভার্সন — যেকোনো কার্ডে ক্লিক করলে সরাসরি সেই সাব-পেজ ওপেন হবে
+                  HSC উচ্চতর গণিত বাংলা ভার্সন
                 </h3>
               </div>
               <button
@@ -1694,7 +1661,7 @@ export default function App() {
             {/* 6 Special Course Cards */}
             <div className="space-y-2.5">
               <div className="text-xs font-extrabold uppercase tracking-wider text-amber-300">
-                ৬টি স্পেশাল কোর্স কার্ড (ক্লিক করলেই কোর্সের ক্লাসরুম ও Progress Bar ওপেন হবে):
+                ৬টি স্পেশাল কোর্স
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                 {SPECIAL_COURSES_WITH_BOOKS.map((c) => (
@@ -1776,10 +1743,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/40 text-teal-300 text-xs font-extrabold">
-                  STEP 2 • HSC ENGLISH VERSION SHOWCASE (2 Papers + 6 EV Special Courses = 8 Cards)
+                  STEP 2 • HSC ENGLISH VERSION
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  HSC Higher Mathematics (English Version) — Click any card to open its Sub-page
+                  HSC Higher Mathematics (English Version)
                 </h3>
               </div>
               <button
@@ -1877,10 +1844,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/40 text-purple-300 text-xs font-extrabold">
-                  STEP 3 • O-LEVEL & A-LEVEL SHOWCASE (6 Cambridge CAIE & Edexcel Cards)
+                  STEP 3 • O-LEVEL & A-LEVEL
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1) — Click any card to open its Sub-page
+                  O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
                 </h3>
               </div>
               <button
@@ -1942,10 +1909,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-extrabold">
-                  STEP 4 • ADMISSION TEST SHOWCASE (Medi-Math, DU ‘Ka’, Engineering BUET/CKRUET & 20-Yr Bank)
+                  STEP 4 • ADMISSION TEST
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  University & Engineering Admission — যেকোনো কার্ডে ক্লিক করলে সরাসরি সেই সাব-পেজ ওপেন হবে
+                  University & Engineering Admission
                 </h3>
               </div>
               <button
@@ -2006,10 +1973,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold">
-                  STEP 5 • B.SC. (HONOURS) MATHEMATICS SHOWCASE (6 Core Undergraduate Courses)
+                  STEP 5 • B.SC. (HONOURS) MATHEMATICS
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  B.Sc. (Honours) in Mathematics — যেকোনো কোর্সে ক্লিক করলেই তার অধ্যায় ও লেকচার ওপেন হবে
+                  B.Sc. (Honours) in Mathematics
                 </h3>
               </div>
               <button
@@ -2068,10 +2035,10 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="px-3 py-1 rounded-full bg-rose-500/15 border border-rose-400/40 text-rose-300 text-xs font-extrabold">
-                  STEP 6 • RESEARCH, THESIS CONSULTATION & PUBLICATIONS SHOWCASE (6 Cards)
+                  STEP 6 • RESEARCH & PUBLICATIONS
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  Thesis Consultation, Ongoing Research & Publications — Click any card to open its Sub-page
+                  Thesis Consultation, Ongoing Research & Publications
                 </h3>
               </div>
               <button
