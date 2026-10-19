@@ -1608,6 +1608,529 @@ function AboutAuthorPage({ onBookDetails }) {
   );
 }
 
+// ---------------------------------------------------------------- Private batches & 1-to-1 sessions
+// Where booking requests go. Set `whatsapp` (e.g. '8801XXXXXXXXX') to send requests to WhatsApp
+// instead of email.
+const BOOKING_CONTACT = { email: CV_CREDENTIALS.email, whatsapp: '' };
+
+// Sample batches for the structure; replace with the real schedule.
+const PRIVATE_BATCHES = [
+  { id: 'pb-hsc-bv-online', title: 'HSC উচ্চতর গণিত (বাংলা ভার্সন)', level: 'HSC', mode: 'Online', days: 'শনি • সোম • বুধ', time: 'সন্ধ্যা ৭:০০ – ৮:৩০', seats: 15, seatsLeft: 6, fee: '৳ ২,৫০০ / মাস', icon: '🏆', grad: 'from-sky-400 via-blue-500 to-indigo-600' },
+  { id: 'pb-hsc-bv-offline', title: 'HSC উচ্চতর গণিত (বাংলা ভার্সন)', level: 'HSC', mode: 'Offline', days: 'রবি • মঙ্গল • বৃহস্পতি', time: 'বিকাল ৪:০০ – ৫:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 12, seatsLeft: 3, fee: '৳ ৩,০০০ / মাস', icon: '🏆', grad: 'from-sky-400 via-blue-500 to-indigo-600' },
+  { id: 'pb-hsc-ev-online', title: 'HSC Higher Math (English Version)', level: 'HSC', mode: 'Online', days: 'Sun • Tue • Thu', time: '8:30 – 10:00 PM', seats: 12, seatsLeft: 8, fee: '৳ 2,800 / month', icon: '🎯', grad: 'from-cyan-400 via-teal-500 to-emerald-600' },
+  { id: 'pb-oa-online', title: 'O-Level D-Math & Add-Math', level: 'O/A-Level', mode: 'Online', days: 'Fri • Sat', time: '10:00 – 11:30 AM', seats: 8, seatsLeft: 2, fee: '৳ 4,000 / month', icon: '📐', grad: 'from-violet-400 via-purple-500 to-indigo-700' },
+  { id: 'pb-adm-offline', title: 'Admission (BUET / DU Ka) Math', level: 'Admission', mode: 'Offline', days: 'প্রতিদিন (রবি – বৃহস্পতি)', time: 'সকাল ৮:০০ – ৯:৩০', place: 'গ্রিন রোড, ঢাকা', seats: 20, seatsLeft: 9, fee: '৳ ৩,৫০০ / মাস', icon: '🚀', grad: 'from-amber-400 via-orange-500 to-red-600' },
+  { id: 'pb-hons-online', title: 'B.Sc. Honours Math (1st Year)', level: 'Honours', mode: 'Online', days: 'Sat • Mon', time: '9:00 – 10:30 PM', seats: 10, seatsLeft: 5, fee: '৳ 3,000 / month', icon: '🎓', grad: 'from-emerald-400 via-green-500 to-teal-700' }
+];
+
+const PRIVATE_OPTIONS = [
+  {
+    key: 'group',
+    code: 'GROUP',
+    title: 'গ্রুপ প্রাইভেট ব্যাচ',
+    sub: 'চলমান Online ও Offline ব্যাচে সিট বুক করুন। ছোট ব্যাচ, নিয়মিত রুটিন, মাসিক টেস্ট।',
+    chips: ['Online', 'Offline', 'সীমিত সিট'],
+    icon: '👥',
+    grad: 'from-teal-400 via-cyan-500 to-sky-600',
+    cta: 'ব্যাচ দেখুন'
+  },
+  {
+    key: 'one',
+    code: '1-TO-1',
+    title: '১-টু-১ প্রাইভেট সেশন',
+    sub: 'শুধু আপনার জন্য সেশন: নিজের সময়, নিজের গতি, নিজের দুর্বল অধ্যায়।',
+    chips: ['যেকোনো লেভেল', 'নিজের সময়'],
+    icon: '🎯',
+    grad: 'from-amber-400 via-orange-500 to-rose-600',
+    cta: 'সেশন বুক করুন'
+  },
+  {
+    key: 'custom',
+    code: 'O / A-LEVEL',
+    title: 'কাস্টম O/A-Level ব্যাচ',
+    sub: 'বোর্ড, পেপার আর কতজন শিক্ষার্থী সেটা নিজেরা ঠিক করে বন্ধুদের নিয়ে আলাদা ব্যাচ বানান।',
+    chips: ['CAIE / Edexcel', '২–৮ জন'],
+    icon: '📐',
+    grad: 'from-violet-400 via-purple-500 to-fuchsia-600',
+    cta: 'ব্যাচ সাজান'
+  }
+];
+
+function ChoiceChips({ options, value, onChange, multi = false }) {
+  const isOn = (o) => (multi ? value.includes(o) : value === o);
+  const toggle = (o) => {
+    if (!multi) return onChange(o);
+    onChange(value.includes(o) ? value.filter((v) => v !== o) : [...value, o]);
+  };
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          onClick={() => toggle(o)}
+          className={`rounded-xl border px-3.5 py-2 text-xs font-bold transition ${
+            isOn(o)
+              ? 'border-amber-400 bg-amber-400 text-slate-950 shadow-[0_0_18px_rgba(251,191,36,0.35)]'
+              : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500'
+          }`}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function PrivateField({ label, hint, children }) {
+  return (
+    <div className="space-y-2.5">
+      <div>
+        <div className="text-sm font-extrabold text-white">{label}</div>
+        {hint && <div className="text-[11px] text-slate-400">{hint}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function PrivateHero({ badge, title, sub, grad, icon }) {
+  return (
+    <div className={`relative overflow-hidden rounded-[28px] bg-gradient-to-br ${grad} p-6 sm:p-9 text-white shadow-2xl`}>
+      <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:16px_16px]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+      <div className="absolute -right-4 -bottom-10 rotate-12 text-[150px] leading-none opacity-20">{icon}</div>
+      <div className="relative max-w-2xl space-y-2">
+        <span className="inline-block rounded-full bg-black/25 px-3 py-1 text-xs font-extrabold ring-1 ring-white/25 backdrop-blur-sm">
+          {badge}
+        </span>
+        <h2 className="text-2xl sm:text-4xl font-black tracking-tight drop-shadow">{title}</h2>
+        <p className="text-sm sm:text-base font-medium text-white/90 leading-relaxed">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+// Summary + "send request" bar used by the 1-to-1 and custom batch pages.
+function PrivateSummary({ lines, onRequest, disabled, note }) {
+  return (
+    <div className="rounded-3xl border border-amber-400/40 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:p-6 space-y-4 lg:sticky lg:top-48">
+      <div className="text-sm font-extrabold text-amber-300">আপনার রিকোয়েস্ট</div>
+      <dl className="space-y-2 text-sm">
+        {lines.map(([k, v]) => (
+          <div key={k} className="flex justify-between gap-4 border-b border-slate-800/80 pb-2">
+            <dt className="text-slate-400">{k}</dt>
+            <dd className="text-right font-semibold text-white">{v || '—'}</dd>
+          </div>
+        ))}
+      </dl>
+      {note && <p className="text-[11px] leading-relaxed text-slate-400">{note}</p>}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onRequest}
+        className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-3 text-sm font-extrabold text-slate-950 shadow-md transition hover:from-amber-300 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        বুকিং রিকোয়েস্ট পাঠান →
+      </button>
+    </div>
+  );
+}
+
+function PrivateBatchHub({ onOpenOption }) {
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      <PrivateHero
+        badge="প্রাইভেট ব্যাচ ও সেশন"
+        title="নিজের মতো করে পড়ুন — গ্রুপে, একা, বা বন্ধুদের নিয়ে"
+        sub="Online বা Offline প্রাইভেট ব্যাচে যোগ দিন, ১-টু-১ সেশন বুক করুন, অথবা O/A-Level এর জন্য নিজেদের কাস্টম ব্যাচ বানান।"
+        grad="from-teal-500 via-cyan-600 to-indigo-700"
+        icon="📅"
+      />
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {PRIVATE_OPTIONS.map((o) => (
+          <PremiumCard
+            key={o.key}
+            grad={o.grad}
+            icon={o.icon}
+            code={o.code}
+            title={o.title}
+            sub={o.sub}
+            chips={o.chips}
+            cta={o.cta}
+            onClick={() => onOpenOption(o.key)}
+          />
+        ))}
+      </div>
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 space-y-5">
+        <h3 className="text-lg font-extrabold text-white">কীভাবে বুক করবেন</h3>
+        <ol className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[
+            ['১', 'অপশন বেছে নিন', 'গ্রুপ ব্যাচ, ১-টু-১ সেশন বা কাস্টম ব্যাচ।'],
+            ['২', 'রিকোয়েস্ট পাঠান', 'নাম, ফোন নম্বর আর পছন্দের সময় দিয়ে রিকোয়েস্ট পাঠান।'],
+            ['৩', 'কনফার্মেশন', 'সময় ও ফি নিশ্চিত করে আপনার সাথে যোগাযোগ করা হবে।']
+          ].map(([n, t, d]) => (
+            <li key={n} className="flex gap-4 rounded-2xl bg-slate-950/70 p-4 border border-slate-800">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 text-lg font-black text-slate-950">{n}</span>
+              <div>
+                <div className="font-bold text-white">{t}</div>
+                <div className="text-xs leading-relaxed text-slate-400 mt-0.5">{d}</div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </main>
+  );
+}
+
+function PrivateGroupPage({ onRequest }) {
+  const [mode, setMode] = useState('সব');
+  const [level, setLevel] = useState('সব');
+  const levels = ['সব', ...Array.from(new Set(PRIVATE_BATCHES.map((b) => b.level)))];
+  const shown = PRIVATE_BATCHES.filter(
+    (b) => (mode === 'সব' || b.mode === mode) && (level === 'সব' || b.level === level)
+  );
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PrivateHero
+        badge="GROUP • ONLINE / OFFLINE"
+        title="গ্রুপ প্রাইভেট ব্যাচ"
+        sub="ছোট ব্যাচে নিয়মিত ক্লাস। নিচে চলমান ব্যাচগুলো দেখুন আর পছন্দের ব্যাচে সিট বুক করুন।"
+        grad="from-teal-400 via-cyan-500 to-sky-600"
+        icon="👥"
+      />
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <ChoiceChips options={['সব', 'Online', 'Offline']} value={mode} onChange={setMode} />
+        <ChoiceChips options={levels} value={level} onChange={setLevel} />
+      </div>
+      {shown.length === 0 ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
+          এই ফিল্টারে এখন কোনো ব্যাচ নেই। ১-টু-১ সেশন বা কাস্টম ব্যাচের রিকোয়েস্ট পাঠাতে পারেন।
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((b) => {
+            const filled = Math.round(((b.seats - b.seatsLeft) / b.seats) * 100);
+            const full = b.seatsLeft <= 0;
+            return (
+              <div key={b.id} className="flex flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#0a1222]">
+                <div className={`relative bg-gradient-to-br ${b.grad} p-4`}>
+                  <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:14px_14px]" />
+                  <div className="relative flex items-start justify-between">
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ring-1 ring-white/25 ${b.mode === 'Online' ? 'bg-emerald-950/40 text-emerald-100' : 'bg-black/30 text-white'}`}>
+                      {b.mode === 'Online' ? '● Online' : '📍 Offline'}
+                    </span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-xl ring-1 ring-white/30">{b.icon}</span>
+                  </div>
+                  <div className="relative mt-3 text-[11px] font-bold text-white/85">{b.level}</div>
+                  <h4 className="relative text-base font-extrabold leading-snug text-white">{b.title}</h4>
+                </div>
+                <div className="flex flex-1 flex-col gap-3 p-4 text-sm">
+                  <div className="flex justify-between gap-3"><span className="text-slate-400">দিন</span><span className="text-right font-semibold text-white">{b.days}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-slate-400">সময়</span><span className="text-right font-semibold text-white">{b.time}</span></div>
+                  {b.place && <div className="flex justify-between gap-3"><span className="text-slate-400">স্থান</span><span className="text-right font-semibold text-white">{b.place}</span></div>}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400">সিট</span>
+                      <span className={`font-bold ${b.seatsLeft <= 3 ? 'text-rose-300' : 'text-emerald-300'}`}>
+                        {full ? 'সিট পূর্ণ' : `${b.seatsLeft} / ${b.seats} খালি`}
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                      <div className={`h-full rounded-full bg-gradient-to-r ${b.grad}`} style={{ width: `${filled}%` }} />
+                    </div>
+                  </div>
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+                    <span className="whitespace-nowrap text-base font-black text-amber-300">{b.fee}</span>
+                    <button
+                      type="button"
+                      disabled={full}
+                      onClick={() =>
+                        onRequest('গ্রুপ প্রাইভেট ব্যাচ', [
+                          ['ব্যাচ', b.title],
+                          ['ধরন', b.mode],
+                          ['দিন', b.days],
+                          ['সময়', b.time],
+                          ...(b.place ? [['স্থান', b.place]] : []),
+                          ['ফি', b.fee]
+                        ])
+                      }
+                      className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400 disabled:opacity-40"
+                    >
+                      {full ? 'ওয়েটিং লিস্ট' : 'সিট বুক করুন'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  );
+}
+
+const PRIVATE_DAYS = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'];
+const PRIVATE_TIMES = ['সকাল', 'দুপুর', 'বিকাল', 'সন্ধ্যা', 'রাত'];
+
+function PrivateOneToOnePage({ onRequest }) {
+  const [level, setLevel] = useState('HSC (বাংলা ভার্সন)');
+  const [mode, setMode] = useState('Online');
+  const [duration, setDuration] = useState('৯০ মিনিট');
+  const [perWeek, setPerWeek] = useState('সপ্তাহে ২ দিন');
+  const [days, setDays] = useState([]);
+  const [time, setTime] = useState('সন্ধ্যা');
+  const [topic, setTopic] = useState('');
+  const lines = [
+    ['লেভেল', level],
+    ['ধরন', mode],
+    ['সেশনের দৈর্ঘ্য', duration],
+    ['কত দিন', perWeek],
+    ['পছন্দের দিন', days.join(', ')],
+    ['পছন্দের সময়', time],
+    ['যে বিষয়/অধ্যায়', topic]
+  ];
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PrivateHero
+        badge="1-TO-1 • PERSONAL"
+        title="১-টু-১ প্রাইভেট সেশন"
+        sub="শুধু একজন শিক্ষার্থীর জন্য সেশন। নিজের সময় আর দুর্বল অধ্যায় বেছে নিন, বাকিটা আমরা সাজিয়ে দেব।"
+        grad="from-amber-400 via-orange-500 to-rose-600"
+        icon="🎯"
+      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8 space-y-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-5 sm:p-7">
+          <PrivateField label="লেভেল">
+            <ChoiceChips options={['HSC (বাংলা ভার্সন)', 'HSC (English Version)', 'O-Level', 'A-Level', 'Admission', 'B.Sc. Honours']} value={level} onChange={setLevel} />
+          </PrivateField>
+          <PrivateField label="ধরন">
+            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={setMode} />
+          </PrivateField>
+          <PrivateField label="প্রতিটি সেশনের দৈর্ঘ্য">
+            <ChoiceChips options={['৬০ মিনিট', '৯০ মিনিট', '১২০ মিনিট']} value={duration} onChange={setDuration} />
+          </PrivateField>
+          <PrivateField label="সপ্তাহে কত দিন">
+            <ChoiceChips options={['শুধু একটি সেশন', 'সপ্তাহে ১ দিন', 'সপ্তাহে ২ দিন', 'সপ্তাহে ৩ দিন']} value={perWeek} onChange={setPerWeek} />
+          </PrivateField>
+          <PrivateField label="পছন্দের দিন" hint="একাধিক বেছে নিতে পারেন">
+            <ChoiceChips options={PRIVATE_DAYS} value={days} onChange={setDays} multi />
+          </PrivateField>
+          <PrivateField label="পছন্দের সময়">
+            <ChoiceChips options={PRIVATE_TIMES} value={time} onChange={setTime} />
+          </PrivateField>
+          <PrivateField label="কোন বিষয় বা অধ্যায়ে সাহায্য দরকার?" hint="ঐচ্ছিক">
+            <textarea
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              rows={3}
+              placeholder="যেমন: ক্যালকুলাসের যোগজীকরণ, বোর্ড প্রশ্নের CQ…"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none"
+            />
+          </PrivateField>
+        </div>
+        <div className="lg:col-span-4">
+          <PrivateSummary
+            lines={lines}
+            disabled={days.length === 0}
+            note={days.length === 0 ? 'অন্তত একটি পছন্দের দিন বেছে নিন।' : 'ফি সেশনের দৈর্ঘ্য ও লেভেল অনুযায়ী কনফার্মেশনের সময় জানানো হবে।'}
+            onRequest={() => onRequest('১-টু-১ প্রাইভেট সেশন', lines)}
+          />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+const OA_PAPERS = {
+  'O-Level / IGCSE': ['D-Math (4024)', 'Add-Math (4037)', 'IGCSE Maths (0580)', 'IGCSE Add-Maths (0606)'],
+  'AS Level': ['Pure 1 (P1)', 'Mechanics (M1)', 'Statistics (S1)'],
+  'A2 Level': ['Pure 3 (P3)', 'Pure 4 (P4)', 'Further Maths']
+};
+
+function PrivateCustomOAPage({ onRequest }) {
+  const [board, setBoard] = useState('Cambridge (CAIE)');
+  const [stage, setStage] = useState('O-Level / IGCSE');
+  const [papers, setPapers] = useState([]);
+  const [size, setSize] = useState(4);
+  const [mode, setMode] = useState('Online');
+  const [days, setDays] = useState([]);
+  const [time, setTime] = useState('বিকাল');
+  const changeStage = (st) => {
+    setStage(st);
+    setPapers([]);
+  };
+  const lines = [
+    ['বোর্ড', board],
+    ['লেভেল', stage],
+    ['পেপার', papers.join(', ')],
+    ['শিক্ষার্থী সংখ্যা', `${size} জন (নির্দিষ্ট)`],
+    ['ধরন', mode],
+    ['পছন্দের দিন', days.join(', ')],
+    ['পছন্দের সময়', time]
+  ];
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PrivateHero
+        badge="O / A-LEVEL • CUSTOM BATCH"
+        title="কাস্টম O/A-Level প্রাইভেট ব্যাচ"
+        sub="বন্ধুদের নিয়ে নিজেদের ব্যাচ বানান। বোর্ড, পেপার আর কতজন শিক্ষার্থী থাকবে সেটা আপনারাই ঠিক করবেন। ব্যাচে এর বেশি কেউ যোগ হবে না।"
+        grad="from-violet-400 via-purple-500 to-fuchsia-600"
+        icon="📐"
+      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8 space-y-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-5 sm:p-7">
+          <PrivateField label="বোর্ড">
+            <ChoiceChips options={['Cambridge (CAIE)', 'Pearson Edexcel']} value={board} onChange={setBoard} />
+          </PrivateField>
+          <PrivateField label="লেভেল">
+            <ChoiceChips options={Object.keys(OA_PAPERS)} value={stage} onChange={changeStage} />
+          </PrivateField>
+          <PrivateField label="পেপার" hint="একাধিক বেছে নিতে পারেন">
+            <ChoiceChips options={OA_PAPERS[stage]} value={papers} onChange={setPapers} multi />
+          </PrivateField>
+          <PrivateField label="ব্যাচে কতজন শিক্ষার্থী" hint="২ থেকে ৮ জন। এই সংখ্যা নির্দিষ্ট থাকবে।">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setSize((n) => Math.max(2, n - 1))}
+                className="h-11 w-11 rounded-xl border border-slate-700 bg-slate-950 text-xl font-black text-white hover:border-slate-500"
+                aria-label="কমান"
+              >
+                −
+              </button>
+              <div className="min-w-[96px] text-center">
+                <div className="text-4xl font-black text-amber-300">{size}</div>
+                <div className="text-[11px] text-slate-400">জন শিক্ষার্থী</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSize((n) => Math.min(8, n + 1))}
+                className="h-11 w-11 rounded-xl border border-slate-700 bg-slate-950 text-xl font-black text-white hover:border-slate-500"
+                aria-label="বাড়ান"
+              >
+                +
+              </button>
+              <div className="flex flex-1 flex-wrap gap-1.5">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <span key={i} className={`h-7 w-7 rounded-full text-center text-sm leading-7 ${i < size ? 'bg-purple-400/90 text-slate-950' : 'bg-slate-800 text-slate-600'}`}>
+                    👤
+                  </span>
+                ))}
+              </div>
+            </div>
+          </PrivateField>
+          <PrivateField label="ধরন">
+            <ChoiceChips options={['Online', 'Offline']} value={mode} onChange={setMode} />
+          </PrivateField>
+          <PrivateField label="পছন্দের দিন" hint="একাধিক বেছে নিতে পারেন">
+            <ChoiceChips options={PRIVATE_DAYS} value={days} onChange={setDays} multi />
+          </PrivateField>
+          <PrivateField label="পছন্দের সময়">
+            <ChoiceChips options={PRIVATE_TIMES} value={time} onChange={setTime} />
+          </PrivateField>
+        </div>
+        <div className="lg:col-span-4">
+          <PrivateSummary
+            lines={lines}
+            disabled={papers.length === 0 || days.length === 0}
+            note={
+              papers.length === 0 || days.length === 0
+                ? 'অন্তত একটি পেপার আর একটি পছন্দের দিন বেছে নিন।'
+                : 'জনপ্রতি ফি ব্যাচের আকার ও পেপার অনুযায়ী কনফার্মেশনের সময় জানানো হবে।'
+            }
+            onRequest={() => onRequest('কাস্টম O/A-Level ব্যাচ', lines)}
+          />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+// Contact form shown for every booking request; sends via WhatsApp if configured, else email.
+function BookingRequestModal({ request, onClose }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [institution, setInstitution] = useState('');
+  const [note, setNote] = useState('');
+  const [sent, setSent] = useState(false);
+  const valid = name.trim() && /^[0-9+\-\s]{8,}$/.test(phone.trim());
+  const send = () => {
+    const body = [
+      `রিকোয়েস্ট: ${request.type}`,
+      ...request.lines.map(([k, v]) => `${k}: ${v || '—'}`),
+      '',
+      `নাম: ${name}`,
+      `ফোন: ${phone}`,
+      institution && `প্রতিষ্ঠান/ক্লাস: ${institution}`,
+      note && `নোট: ${note}`
+    ]
+      .filter((x) => x !== false && x !== '')
+      .join('\n');
+    const href = BOOKING_CONTACT.whatsapp
+      ? `https://wa.me/${BOOKING_CONTACT.whatsapp}?text=${encodeURIComponent(body)}`
+      : `mailto:${BOOKING_CONTACT.email}?subject=${encodeURIComponent(`প্রাইভেট বুকিং: ${request.type}`)}&body=${encodeURIComponent(body)}`;
+    // WhatsApp opens in a new tab; a mailto link opens the mail app without leaving a blank tab.
+    if (BOOKING_CONTACT.whatsapp) window.open(href, '_blank');
+    else window.location.href = href;
+    setSent(true);
+  };
+  const input =
+    'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
+  return (
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl border border-amber-400/40 bg-slate-900 p-6 text-white shadow-2xl sm:p-7"
+      >
+        <button onClick={onClose} className="absolute right-4 top-4 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700">
+          <X className="h-4 w-4" />
+        </button>
+        <div>
+          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">বুকিং রিকোয়েস্ট</span>
+          <h3 className="mt-1.5 pr-8 text-xl font-extrabold">{request.type}</h3>
+        </div>
+        <dl className="space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-xs">
+          {request.lines.map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-4">
+              <dt className="text-slate-400">{k}</dt>
+              <dd className="text-right font-semibold">{v || '—'}</dd>
+            </div>
+          ))}
+        </dl>
+        {sent ? (
+          <div className="space-y-4 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-sm">
+            <div className="font-bold text-emerald-300">✓ রিকোয়েস্ট তৈরি হয়েছে</div>
+            <p className="leading-relaxed text-slate-300">
+              {BOOKING_CONTACT.whatsapp ? 'WhatsApp' : 'ইমেইল'} খুলেছে, সেখান থেকে মেসেজটি পাঠিয়ে দিন। কনফার্মেশনের জন্য
+              আপনার দেওয়া ফোন নম্বরে যোগাযোগ করা হবে।
+            </p>
+            <button onClick={onClose} className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold hover:bg-slate-700">
+              বন্ধ করুন
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <input className={input} placeholder="শিক্ষার্থীর নাম *" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className={input} placeholder="ফোন নম্বর (শিক্ষার্থী বা অভিভাবক) *" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input className={input} placeholder="স্কুল/কলেজ ও ক্লাস (ঐচ্ছিক)" value={institution} onChange={(e) => setInstitution(e.target.value)} />
+            <textarea className={input} rows={2} placeholder="অন্য কিছু জানাতে চাইলে (ঐচ্ছিক)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <button
+              type="button"
+              disabled={!valid}
+              onClick={send}
+              className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-3 text-sm font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {BOOKING_CONTACT.whatsapp ? 'WhatsApp এ পাঠান' : 'ইমেইলে পাঠান'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState('assets/emran-avatar.jpg');
@@ -1638,6 +2161,7 @@ export default function App() {
   const [activeLectureResourceModal, setActiveLectureResourceModal] = useState(null);
   const [selectedSpecialCourseModal, setSelectedSpecialCourseModal] = useState(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
+  const [bookingRequest, setBookingRequest] = useState(null);
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [selfTestAnswers, setSelfTestAnswers] = useState({});
   const [selfTestSubmitted, setSelfTestSubmitted] = useState(false);
@@ -1848,8 +2372,8 @@ export default function App() {
     if (course.kind === 'bv') {
       setActiveSpecialCourseId(course.id);
       setSelectedCourseChapterIdx(0);
-    } else if (course.kind === 'about') {
-      // About Me role pages need no extra state.
+    } else if (course.kind === 'about' || course.kind === 'private') {
+      // About Me and private-batch option pages need no extra state.
     } else if (course.kind === 'bvChapter') {
       setHscBvPaperKey(course.paperKey);
       setSelectedBvChapterId(course.chapterId);
@@ -2111,6 +2635,16 @@ export default function App() {
             >
               👤 About Me
             </button>
+            <button
+              onClick={() => openSubPage('Private Batch')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
+                navActive === 'Private Batch'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm'
+                  : 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 hover:from-amber-500/25 hover:to-orange-500/25 text-amber-300 border border-amber-400/40'
+              }`}
+            >
+              📅 প্রাইভেট ব্যাচ
+            </button>
           </div>
         </div>
       </header>
@@ -2157,7 +2691,8 @@ export default function App() {
                 { id: 'Admission Test (BUET/DU)', label: 'Admission' },
                 { id: 'B.Sc. Honours Math', label: 'Honours' },
                 { id: 'Research & Papers', label: 'Research' },
-                { id: 'About Me', label: 'About Me' }
+                { id: 'About Me', label: 'About Me' },
+                { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' }
               ]
                 .filter((t) => t.id !== navActive)
                 .map((t) => (
@@ -2274,6 +2809,32 @@ export default function App() {
                     onClick={() => openSubPage(card.id)}
                   />
                 ))}
+              </div>
+            </div>
+
+            {/* PRIVATE BATCH / 1-TO-1 BANNER */}
+            <div className="relative overflow-hidden rounded-[26px] border border-amber-400/30 bg-gradient-to-r from-[#1b1408] via-[#0f1626] to-[#0b1222] p-5 sm:p-6">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/20 blur-3xl" />
+              <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-2xl shadow-lg">📅</span>
+                  <div>
+                    <div className="text-base sm:text-lg font-extrabold text-white">প্রাইভেট ব্যাচ ও ১-টু-১ সেশন</div>
+                    <div className="text-xs sm:text-sm text-slate-300">Online / Offline ব্যাচে যোগ দিন, একা পড়ুন, বা O/A-Level এর কাস্টম ব্যাচ বানান।</div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {PRIVATE_OPTIONS.map((o) => (
+                    <button
+                      key={o.key}
+                      type="button"
+                      onClick={() => openCourse({ kind: 'private', option: o.key, parent: 'Private Batch', title: o.title })}
+                      className="rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2 text-xs font-bold text-white transition hover:border-amber-400/60 hover:bg-amber-400/15"
+                    >
+                      {o.icon} {o.title}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -2557,6 +3118,24 @@ export default function App() {
           </div>
         </div>
       </section>
+      )}
+
+      {/* VIEW: PRIVATE BATCH HUB + OPTION PAGES */}
+      {activeSubPage === 'Private Batch' && (
+        <PrivateBatchHub
+          onOpenOption={(key) =>
+            openCourse({ kind: 'private', option: key, parent: 'Private Batch', title: PRIVATE_OPTIONS.find((o) => o.key === key).title })
+          }
+        />
+      )}
+      {isCourseView && activeCourse.kind === 'private' && activeCourse.option === 'group' && (
+        <PrivateGroupPage onRequest={(type, lines) => setBookingRequest({ type, lines })} />
+      )}
+      {isCourseView && activeCourse.kind === 'private' && activeCourse.option === 'one' && (
+        <PrivateOneToOnePage onRequest={(type, lines) => setBookingRequest({ type, lines })} />
+      )}
+      {isCourseView && activeCourse.kind === 'private' && activeCourse.option === 'custom' && (
+        <PrivateCustomOAPage onRequest={(type, lines) => setBookingRequest({ type, lines })} />
       )}
 
       {/* VIEW: ABOUT ME */}
@@ -4226,6 +4805,10 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {bookingRequest && (
+        <BookingRequestModal key={bookingRequest.type + bookingRequest.lines.length} request={bookingRequest} onClose={() => setBookingRequest(null)} />
       )}
 
       {/* AUTHORED BOOKS MODAL (shop style) */}
