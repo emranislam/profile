@@ -1632,7 +1632,7 @@ const SITE_LINKS = {
   facebook: 'https://www.facebook.com/share/1Mz2tgnjDX/',
   email: CV_CREDENTIALS.email,
   liveClass: '', // default Zoom / Google Meet link for live classes
-  contentApi: '', // Apps Script web app URL for the admin panel (see docs/ADMIN.md)
+  contentApi: 'https://script.google.com/macros/s/AKfycbwze1cSDh1p0TYdlATTGosYhn9b8qRn6jiG9tUW1ioofV4c0dQHVizIrhRVneK5mKdd1Q/exec', // admin panel backend (docs/ADMIN.md)
   slotSheetCsv: '', // published Google Sheet CSV for private slots (used only without contentApi)
   googleScholar: '',
   orcid: '',
@@ -3165,9 +3165,17 @@ function AdminPage() {
   const [tab, setTab] = useState('lectures');
   // The public feed only has free lectures; the admin loads every lecture's links after logging in.
   const [allLectures, setAllLectures] = useState(null);
+  const [scriptOutdated, setScriptOutdated] = useState(false);
   const refreshLectures = (pw = password) =>
     adminPost(pw, { action: 'getAll' }).then((r) => {
-      if (r.ok) setAllLectures(r.lectures || {});
+      if (r.ok) {
+        setScriptOutdated(false);
+        setAllLectures(r.lectures || {});
+      } else {
+        // An older deployed script doesn't know getAll; fall back to the public lectures.
+        setScriptOutdated(r.error === 'unknown-action');
+        setAllLectures((contentCache && contentCache.lectures) || {});
+      }
     });
   const [courseId, setCourseId] = useState(catalog[0].id);
   const [chapterId, setChapterId] = useState(catalog[0].chapters[0].id);
@@ -3284,6 +3292,13 @@ function AdminPage() {
       {content.error && (
         <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs text-rose-200">
           Sheet থেকে তথ্য পড়া যায়নি। পেজ রিলোড করে দেখুন।
+        </div>
+      )}
+      {scriptOutdated && (
+        <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-100">
+          আপনার Apps Script এর ভার্সন পুরনো। এই অবস্থায় পেইড লেকচারের সংরক্ষিত লিংক এখানে দেখা যাবে না আর সাইটের পাবলিক তথ্যে
+          সব লিংক চলে যাবে। Apps Script এ নতুন <code>admin-apps-script.gs</code> পেস্ট করে <b>Deploy → Manage deployments → ✏️ →
+          New version → Deploy</b> করুন।
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
