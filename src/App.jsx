@@ -1632,7 +1632,8 @@ const SITE_LINKS = {
   facebook: '', // e.g. 'https://facebook.com/yourpage'
   email: CV_CREDENTIALS.email,
   liveClass: '', // default Zoom / Google Meet link for live classes
-  slotSheetCsv: '', // published Google Sheet CSV for private slots (see docs/SLOTS.md)
+  contentApi: '', // Apps Script web app URL for the admin panel (see docs/ADMIN.md)
+  slotSheetCsv: '', // published Google Sheet CSV for private slots (used only without contentApi)
   googleScholar: '',
   orcid: '',
   researchGate: ''
@@ -2255,8 +2256,10 @@ const SAMPLE_QUIZ = [
 const toBnDigits = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
 function QuizPanel({ quizKey }) {
-  const questions = QUIZ_BANK[quizKey] || SAMPLE_QUIZ;
-  const isSample = !QUIZ_BANK[quizKey];
+  const content = useContent();
+  const bank = quizFor(content, quizKey);
+  const questions = bank || SAMPLE_QUIZ;
+  const isSample = !bank;
   const total = questions.length * 60;
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -2640,6 +2643,7 @@ function slotsFromCsv(text) {
 }
 
 function useSlots() {
+  const content = useContent();
   const [state, setState] = useState({ slots: SITE_LINKS.slotSheetCsv ? null : SAMPLE_SLOTS, error: false });
   useEffect(() => {
     if (!SITE_LINKS.slotSheetCsv) return undefined;
@@ -2652,6 +2656,9 @@ function useSlots() {
       cancelled = true;
     };
   }, []);
+  if (SITE_LINKS.contentApi) {
+    return content ? { slots: content.slots || [], error: !!content.error } : { slots: null, error: false };
+  }
   return state;
 }
 
@@ -2760,7 +2767,8 @@ const PAGE_SLUGS = {
   'Research & Papers': 'research',
   'About Me': 'about',
   'Private Batch': 'private',
-  'Class Routine': 'routine'
+  'Class Routine': 'routine',
+  Admin: 'admin'
 };
 const SLUG_PAGES = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([page, slug]) => [slug, page]));
 
@@ -2839,6 +2847,487 @@ const hashToNavState = (hash) => {
   return { page };
 };
 
+// ---------------------------------------------------------------- Content from the admin Google Sheet
+// With SITE_LINKS.contentApi set (the Apps Script web app URL, see docs/ADMIN.md), lecture links,
+// quizzes and private slots come from the sheet and can be edited on the #/admin page.
+let contentCache = null;
+const contentListeners = new Set();
+
+const loadContent = () => {
+  if (!SITE_LINKS.contentApi) return Promise.resolve(null);
+  return fetch(`${SITE_LINKS.contentApi}?t=${Date.now()}`)
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .catch(() => ({ error: true }))
+    .then((data) => {
+      contentCache = { lectures: {}, quiz: {}, slots: [], ...data };
+      contentListeners.forEach((fn) => fn(contentCache));
+      return contentCache;
+    });
+};
+
+function useContent() {
+  const [content, setContent] = useState(contentCache);
+  useEffect(() => {
+    contentListeners.add(setContent);
+    if (!contentCache) loadContent();
+    return () => contentListeners.delete(setContent);
+  }, []);
+  return content;
+}
+
+const lectureResource = (content, key) => ({
+  ...(LECTURE_RESOURCES[key] || {}),
+  ...((content && content.lectures && content.lectures[key]) || {})
+});
+
+const quizFor = (content, key) => {
+  const fromSheet = content && content.quiz && content.quiz[key];
+  return fromSheet && fromSheet.length ? fromSheet : QUIZ_BANK[key];
+};
+
+// Accepts a full YouTube link (watch, youtu.be, shorts, embed) or a bare video id.
+const youtubeId = (v = '') => {
+  const m = /(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/.exec(v);
+  return m ? m[1] : /^[\w-]{11}$/.test(v.trim()) ? v.trim() : '';
+};
+
+// Google Drive "view" links are turned into embeddable "preview" links.
+const pdfEmbedUrl = (v = '') => {
+  const m = /drive\.google\.com\/file\/d\/([\w-]+)/.exec(v);
+  return m ? `https://drive.google.com/file/d/${m[1]}/preview` : v;
+};
+
+// Every course → chapter → lecture key the site uses, for the admin page.
+const adminCatalog = () => {
+  const list = [];
+  Object.values(HSC_BV_PAPERS).forEach((p) =>
+    list.push({
+      id: `bv-${p.id}`,
+      label: `HSC বাংলা — ${p.title}`,
+      chapters: p.chapters.map((ch) => ({
+        id: ch.id,
+        label: `${ch.num}: ${ch.title}`,
+        quizKey: ch.id,
+        lectures: Array.from({ length: 10 }, (_, i) => ({ key: `${ch.id}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
+      }))
+    })
+  );
+  SPECIAL_COURSES_WITH_BOOKS.forEach((c) =>
+    list.push({
+      id: c.id,
+      label: `স্পেশাল কোর্স — ${c.courseTitle}`,
+      chapters: c.syllabusChapters.map((ch) => ({
+        id: ch.chId,
+        label: `${ch.paper} ${ch.num}: ${ch.title}`,
+        quizKey: ch.chId,
+        lectures: Array.from({ length: 8 }, (_, i) => ({ key: `${c.id}-${ch.chId}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
+      }))
+    })
+  );
+  Object.values(PART3_ACADEMIC_TRACKS).forEach((t) =>
+    t.modules.forEach((m) =>
+      list.push({
+        id: `p3-${m.id}`,
+        label: `${t.id} — ${m.name}`,
+        chapters: m.chapters.map((ch) => ({
+          id: ch.id,
+          label: `${ch.num} — ${ch.title}`,
+          quizKey: ch.id,
+          lectures: m.lectureBlueprint.map((topic, i) => ({ key: `p3-${m.id}-${ch.id}-lec-${i + 1}`, label: `Lecture ${i + 1} — ${topic}` }))
+        }))
+      })
+    )
+  );
+  return list;
+};
+
+const adminPost = (password, payload) =>
+  fetch(SITE_LINKS.contentApi, { method: 'POST', body: JSON.stringify({ password, ...payload }) })
+    .then((r) => r.json())
+    .catch(() => ({ ok: false, error: 'network' }));
+
+const adminInput =
+  'w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
+
+function AdminSaveButton({ state, onClick, label = 'Save' }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={state === 'saving'}
+      className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-extrabold transition disabled:opacity-60 ${
+        state === 'saved'
+          ? 'bg-emerald-500 text-slate-950'
+          : state === 'error'
+          ? 'bg-rose-500 text-white'
+          : 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+      }`}
+    >
+      {state === 'saving' ? 'Saving…' : state === 'saved' ? '✓ Saved' : state === 'error' ? 'আবার চেষ্টা করুন' : label}
+    </button>
+  );
+}
+
+function AdminLectureRow({ lecture, saved, password }) {
+  const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
+  const [state, setState] = useState('idle');
+  const set = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+    setState('idle');
+  };
+  const badYoutube = form.youtube.trim() && !youtubeId(form.youtube);
+  const save = () => {
+    setState('saving');
+    adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) loadContent();
+    });
+  };
+  return (
+    <div className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm font-bold text-white">{lecture.label}</div>
+        <div className="flex gap-1.5 text-[10px] font-bold">
+          <span className={`rounded px-1.5 py-0.5 ${saved.youtube ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>ভিডিও</span>
+          <span className={`rounded px-1.5 py-0.5 ${saved.pdf ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>PDF</span>
+          <span className={`rounded px-1.5 py-0.5 ${saved.live ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>Live</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+        <div>
+          <input className={adminInput} placeholder="YouTube লিংক" value={form.youtube} onChange={set('youtube')} />
+          {badYoutube && <div className="mt-1 text-[11px] text-rose-300">এটা YouTube ভিডিওর লিংক মনে হচ্ছে না</div>}
+        </div>
+        <input className={adminInput} placeholder="PDF লিংক (Google Drive)" value={form.pdf} onChange={set('pdf')} />
+        <input className={adminInput} placeholder="লাইভ ক্লাস লিংক (ঐচ্ছিক)" value={form.live} onChange={set('live')} />
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-mono text-[10px] text-slate-500">{lecture.key}</span>
+        <AdminSaveButton state={state} onClick={save} />
+      </div>
+    </div>
+  );
+}
+
+const emptyQuestion = () => ({ q: '', options: ['', '', '', ''], answer: 0, explain: '' });
+
+function AdminQuizEditor({ quizKey, saved, password }) {
+  const [questions, setQuestions] = useState(saved.length ? saved : [emptyQuestion()]);
+  const [state, setState] = useState('idle');
+  const update = (i, patch) => {
+    setQuestions((qs) => qs.map((q, j) => (j === i ? { ...q, ...patch } : q)));
+    setState('idle');
+  };
+  const complete = questions.filter((q) => q.q.trim() && q.options.every((o) => o.trim()));
+  const save = () => {
+    setState('saving');
+    adminPost(password, { action: 'saveQuiz', chapter: quizKey, questions: complete }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) loadContent();
+    });
+  };
+  return (
+    <div className="space-y-4">
+      {questions.map((q, i) => (
+        <div key={i} className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-white">প্রশ্ন {toBnDigits(i + 1)}</span>
+            <button
+              type="button"
+              onClick={() => setQuestions((qs) => qs.filter((_, j) => j !== i))}
+              className="text-xs font-bold text-rose-300 hover:underline"
+            >
+              মুছুন
+            </button>
+          </div>
+          <input className={adminInput} placeholder="প্রশ্ন" value={q.q} onChange={(e) => update(i, { q: e.target.value })} />
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {q.options.map((o, oi) => (
+              <label key={oi} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`ans-${quizKey}-${i}`}
+                  checked={q.answer === oi}
+                  onChange={() => update(i, { answer: oi })}
+                  className="h-4 w-4 accent-emerald-400"
+                />
+                <input
+                  className={adminInput}
+                  placeholder={`অপশন ${['ক', 'খ', 'গ', 'ঘ'][oi]}`}
+                  value={o}
+                  onChange={(e) => update(i, { options: q.options.map((x, xi) => (xi === oi ? e.target.value : x)) })}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="text-[11px] text-slate-400">সঠিক উত্তরের পাশের গোল বাটনটা বেছে নিন।</div>
+          <input className={adminInput} placeholder="ব্যাখ্যা (ঐচ্ছিক)" value={q.explain} onChange={(e) => update(i, { explain: e.target.value })} />
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setQuestions((qs) => [...qs, emptyQuestion()])}
+          className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:border-slate-500"
+        >
+          + নতুন প্রশ্ন
+        </button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-400">সম্পূর্ণ প্রশ্ন: {toBnDigits(complete.length)}</span>
+          <AdminSaveButton state={state} onClick={save} label="কুইজ Save করুন" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminSlotsEditor({ saved, password }) {
+  const [slots, setSlots] = useState(saved.map((s) => ({ ...s })));
+  const [state, setState] = useState('idle');
+  const update = (i, patch) => {
+    setSlots((all) => all.map((s, j) => (j === i ? { ...s, ...patch } : s)));
+    setState('idle');
+  };
+  const save = () => {
+    setState('saving');
+    adminPost(password, { action: 'saveSlots', slots: slots.filter((s) => s.day && s.time.trim()) }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) loadContent();
+    });
+  };
+  const select = (value, options, onChange) => (
+    <select value={value} onChange={(e) => onChange(e.target.value)} className={adminInput}>
+      {options.map(([v, l]) => (
+        <option key={v} value={v}>
+          {l}
+        </option>
+      ))}
+    </select>
+  );
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-slate-400">
+        শুধু খালি (available) স্লট শিক্ষার্থীরা বেছে নিতে পারবে। বুকিং কনফার্ম হলে স্ট্যাটাস "বুকড" করে Save করুন।
+      </p>
+      {slots.map((s, i) => (
+        <div key={i} className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 lg:grid-cols-[1fr_2fr_1.4fr_1fr_auto_auto]">
+          {select(s.day, ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'].map((d) => [d, d]), (v) => update(i, { day: v }))}
+          <input className={adminInput} placeholder="সময়, যেমন বিকাল ৪:০০ – ৫:৩০" value={s.time} onChange={(e) => update(i, { time: e.target.value })} />
+          {select(s.for, [['all', '১-টু-১ ও কাস্টম'], ['one', 'শুধু ১-টু-১'], ['custom', 'শুধু কাস্টম ব্যাচ']], (v) => update(i, { for: v }))}
+          {select(s.mode, [['Both', 'Online ও Offline'], ['Online', 'Online'], ['Offline', 'Offline']], (v) => update(i, { mode: v }))}
+          <button
+            type="button"
+            onClick={() => update(i, { status: s.status === 'booked' ? 'available' : 'booked' })}
+            className={`rounded-xl px-3 py-2.5 text-xs font-extrabold ${
+              s.status === 'booked' ? 'bg-slate-700 text-slate-200' : 'bg-emerald-500 text-slate-950'
+            }`}
+          >
+            {s.status === 'booked' ? '🔒 বুকড' : '✓ খালি'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSlots((all) => all.filter((_, j) => j !== i))}
+            className="rounded-xl bg-slate-800 px-3 py-2.5 text-xs font-bold text-rose-300 hover:bg-slate-700"
+          >
+            মুছুন
+          </button>
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setSlots((all) => [...all, { day: 'শনি', time: '', for: 'all', mode: 'Both', status: 'available' }])}
+          className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:border-slate-500"
+        >
+          + নতুন স্লট
+        </button>
+        <AdminSaveButton state={state} onClick={save} label="সব স্লট Save করুন" />
+      </div>
+    </div>
+  );
+}
+
+function AdminPage() {
+  const content = useContent();
+  const catalog = useMemo(adminCatalog, []);
+  const [password, setPassword] = useState(() => {
+    try {
+      return sessionStorage.getItem('adminPassword') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [loginState, setLoginState] = useState('idle');
+  const [tab, setTab] = useState('lectures');
+  const [courseId, setCourseId] = useState(catalog[0].id);
+  const [chapterId, setChapterId] = useState(catalog[0].chapters[0].id);
+  const course = catalog.find((c) => c.id === courseId) || catalog[0];
+  const chapter = course.chapters.find((c) => c.id === chapterId) || course.chapters[0];
+
+  const login = (pw) => {
+    setLoginState('saving');
+    adminPost(pw, { action: 'check' }).then((r) => {
+      if (r.ok) {
+        setLoggedIn(true);
+        try {
+          sessionStorage.setItem('adminPassword', pw);
+        } catch {
+          // Session storage unavailable; the password just won't be remembered.
+        }
+      }
+      setLoginState(r.ok ? 'idle' : r.error === 'network' ? 'network' : 'wrong');
+    });
+  };
+  useEffect(() => {
+    if (SITE_LINKS.contentApi && password) login(password);
+  }, []);
+
+  const shell = (children) => (
+    <main className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-2xl">⚙️</span>
+        <div>
+          <h2 className="text-2xl font-black text-white">কন্ট্রোল প্যানেল</h2>
+          <p className="text-xs text-slate-400">লেকচারের ভিডিও/PDF, MCQ কুইজ আর প্রাইভেট স্লট</p>
+        </div>
+      </div>
+      {children}
+    </main>
+  );
+
+  if (!SITE_LINKS.contentApi) {
+    return shell(
+      <div className="space-y-3 rounded-3xl border border-amber-400/40 bg-slate-900/80 p-6 text-sm leading-relaxed text-slate-300">
+        <div className="text-base font-extrabold text-amber-300">প্রথমবার সেটআপ বাকি</div>
+        <p>
+          কন্ট্রোল প্যানেল আপনার Google Sheet এ তথ্য রাখে। একবার সেটআপ করে Apps Script এর লিংকটা{' '}
+          <code className="rounded bg-slate-800 px-1.5 py-0.5 text-amber-200">SITE_LINKS.contentApi</code> এ বসালেই এই পেজ চালু হবে।
+        </p>
+        <a
+          href="https://github.com/emranislam/profile/blob/main/docs/ADMIN.md"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300"
+        >
+          সেটআপ গাইড দেখুন <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
+    );
+  }
+
+  if (!loggedIn) {
+    return shell(
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          login(password);
+        }}
+        className="max-w-sm space-y-3 rounded-3xl border border-slate-800 bg-slate-900/80 p-6"
+      >
+        <label className="block text-sm font-bold text-white">পাসওয়ার্ড</label>
+        <input type="password" className={adminInput} value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+        {loginState === 'wrong' && <div className="text-xs text-rose-300">পাসওয়ার্ড মেলেনি।</div>}
+        {loginState === 'network' && <div className="text-xs text-rose-300">সংযোগ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।</div>}
+        <button
+          type="submit"
+          disabled={!password || loginState === 'saving'}
+          className="w-full rounded-xl bg-amber-400 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-300 disabled:opacity-50"
+        >
+          {loginState === 'saving' ? 'যাচাই হচ্ছে…' : 'লগইন'}
+        </button>
+      </form>
+    );
+  }
+
+  if (!content) return shell(<div className="text-sm text-slate-400">তথ্য লোড হচ্ছে…</div>);
+
+  const pickers = (
+    <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-2">
+      <select
+        className={adminInput}
+        value={course.id}
+        onChange={(e) => {
+          const next = catalog.find((c) => c.id === e.target.value);
+          setCourseId(next.id);
+          setChapterId(next.chapters[0].id);
+        }}
+      >
+        {catalog.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+      <select className={adminInput} value={chapter.id} onChange={(e) => setChapterId(e.target.value)}>
+        {course.chapters.map((ch) => (
+          <option key={ch.id} value={ch.id}>
+            {ch.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  return shell(
+    <>
+      {content.error && (
+        <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs text-rose-200">
+          Sheet থেকে তথ্য পড়া যায়নি। পেজ রিলোড করে দেখুন।
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <ChoiceChips
+          options={['🎥 লেকচার', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট']}
+          value={{ lectures: '🎥 লেকচার', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots' }[v])}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            setLoggedIn(false);
+            setPassword('');
+            try {
+              sessionStorage.removeItem('adminPassword');
+            } catch {
+              // ignore
+            }
+          }}
+          className="text-xs font-bold text-slate-400 hover:text-white"
+        >
+          লগআউট
+        </button>
+      </div>
+
+      {tab === 'lectures' && (
+        <div className="space-y-4">
+          {pickers}
+          <p className="text-xs text-slate-400">
+            YouTube এর পুরো লিংক পেস্ট করুন। PDF Google Drive এ রেখে "Anyone with the link" করে শেয়ার লিংক দিন। ঘর খালি করে Save করলে লিংক মুছে যাবে।
+          </p>
+          {chapter.lectures.map((l) => (
+            <AdminLectureRow
+              key={l.key}
+              lecture={l}
+              saved={(content.lectures && content.lectures[l.key]) || {}}
+              password={password}
+            />
+          ))}
+        </div>
+      )}
+
+      {tab === 'quiz' && (
+        <div className="space-y-4">
+          {pickers}
+          <AdminQuizEditor key={chapter.quizKey} quizKey={chapter.quizKey} saved={(content.quiz && content.quiz[chapter.quizKey]) || []} password={password} />
+        </div>
+      )}
+
+      {tab === 'slots' && <AdminSlotsEditor saved={content.slots || []} password={password} />}
+    </>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState('assets/emran-avatar.jpg');
@@ -2879,6 +3368,7 @@ export default function App() {
   const [selectedSpecialCourseModal, setSelectedSpecialCourseModal] = useState(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [bookingRequest, setBookingRequest] = useState(null);
+  const siteContent = useContent();
   const askQuestion = (lines = []) => setBookingRequest({ kind: 'question', type: 'প্রশ্ন', lines });
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [selfTestAnswers, setSelfTestAnswers] = useState({});
@@ -3846,6 +4336,9 @@ export default function App() {
       )}
 
       {/* VIEW: CLASS ROUTINE */}
+      {/* VIEW: ADMIN PANEL (#/admin, not in the menu) */}
+      {activeSubPage === 'Admin' && <AdminPage />}
+
       {activeSubPage === 'Class Routine' && <ClassRoutinePage onAsk={() => askQuestion([['বিষয়', 'ক্লাস রুটিন']])} />}
 
       {/* VIEW: PRIVATE BATCH HUB + OPTION PAGES */}
@@ -5124,7 +5617,8 @@ export default function App() {
       {/* LECTURE RESOURCE MODAL (PDF / VIDEO / LIVE / SELF TEST) */}
       {activeLectureResourceModal && (() => {
         const m = activeLectureResourceModal;
-        const res = LECTURE_RESOURCES[m.lec.lecKey || m.lec.progressKey] || {};
+        const res = lectureResource(siteContent, m.lec.lecKey || m.lec.progressKey);
+        const ytId = youtubeId(res.youtube);
         const liveUrl = res.live || SITE_LINKS.liveClass;
         const close = () => setActiveLectureResourceModal(null);
         return (
@@ -5148,7 +5642,7 @@ export default function App() {
               {m.type === 'pdf' &&
                 (res.pdf ? (
                   <div className="space-y-3">
-                    <iframe title="Lecture note" src={res.pdf} className="h-[60vh] w-full rounded-2xl border border-slate-800 bg-white" />
+                    <iframe title="Lecture note" src={pdfEmbedUrl(res.pdf)} className="h-[60vh] w-full rounded-2xl border border-slate-800 bg-white" />
                     <a
                       href={res.pdf}
                       target="_blank"
@@ -5163,11 +5657,11 @@ export default function App() {
                 ))}
 
               {m.type === 'video' &&
-                (res.youtube ? (
+                (ytId ? (
                   <div className="aspect-video overflow-hidden rounded-2xl border border-slate-800 bg-black">
                     <iframe
                       title="Video lecture"
-                      src={`https://www.youtube-nocookie.com/embed/${res.youtube}?rel=0`}
+                      src={`https://www.youtube-nocookie.com/embed/${ytId}?rel=0`}
                       className="h-full w-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -5436,7 +5930,12 @@ export default function App() {
           </div>
           <div className="flex flex-col items-center gap-2 sm:items-end">
             <ContactIcons />
-            <div>Dhaka, Bangladesh • {CV_CREDENTIALS.email}</div>
+            <div>
+              Dhaka, Bangladesh • {CV_CREDENTIALS.email} •{' '}
+              <button onClick={() => openSubPage('Admin')} className="text-slate-500 hover:text-white">
+                Admin
+              </button>
+            </div>
           </div>
         </div>
       </footer>

@@ -18,11 +18,11 @@ npm run build
 |------|-------|
 | WhatsApp, Telegram, Facebook, live-class link, Google Scholar / ORCID / ResearchGate | `SITE_LINKS` |
 | Send Money numbers | `PAYMENT_NUMBERS` |
-| Lecture videos (YouTube id) and PDF notes | `LECTURE_RESOURCES` |
-| MCQ questions per chapter | `QUIZ_BANK` |
+| Lecture videos and PDF notes | Admin panel (`#/admin`, see [docs/ADMIN.md](docs/ADMIN.md)), or `LECTURE_RESOURCES` |
+| MCQ questions per chapter | Admin panel, or `QUIZ_BANK` |
 | Weekly live class routine | `CLASS_ROUTINE` |
 | Group private batches | `PRIVATE_BATCHES` |
-| 1-to-1 / custom batch slots | Google Sheet, see [docs/SLOTS.md](docs/SLOTS.md) |
+| 1-to-1 / custom batch slots | Admin panel (or a published sheet, see [docs/SLOTS.md](docs/SLOTS.md)) |
 | Student reviews and results (hidden while empty) | `TESTIMONIALS`, `RESULT_STATS` |
 | FAQ | `FAQ_ITEMS` |
 
