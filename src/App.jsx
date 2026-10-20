@@ -1627,9 +1627,9 @@ function AboutAuthorPage({ onBookDetails }) {
 // Empty links stay hidden on the site. With `whatsapp` set (country code, no +, e.g. '8801XXXXXXXXX'),
 // booking, payment and question requests go to WhatsApp instead of email.
 const SITE_LINKS = {
-  whatsapp: '',
+  whatsapp: '8801966631211',
   telegram: '', // e.g. 'https://t.me/yourchannel'
-  facebook: '', // e.g. 'https://facebook.com/yourpage'
+  facebook: 'https://www.facebook.com/share/1Mz2tgnjDX/',
   email: CV_CREDENTIALS.email,
   liveClass: '', // default Zoom / Google Meet link for live classes
   contentApi: '', // Apps Script web app URL for the admin panel (see docs/ADMIN.md)
