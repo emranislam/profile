@@ -9,7 +9,7 @@
  *   quiz     – chapter, question, a, b, c, d, answer (1-4), explain
  *   slots    – day, time, for, mode, status
  *
- * GET  → everything as JSON (public: the site reads it).
+ * GET  → public content as JSON (only the free first lecture of each chapter, see isPublicLecture_).
  * POST → changes; every request must carry the admin password.
  */
 
@@ -44,11 +44,27 @@ function safe_(v) {
   return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
-function doGet() {
-  const out = { lectures: {}, quiz: {}, slots: [] };
+// Until payments are automated, only the free first lecture of each chapter is public.
+// Paid lectures' links stay in the sheet and are only returned to the admin (action 'getAll').
+// Once payments verify access on a server, set the script property RELEASE_ALL_LECTURES to 'yes'
+// (or remove this check) to publish every lecture's links again.
+function isPublicLecture_(key) {
+  if (PropertiesService.getScriptProperties().getProperty('RELEASE_ALL_LECTURES') === 'yes') return true;
+  return /-lec-1$/.test(String(key));
+}
+
+function lectures_(onlyPublic) {
+  const out = {};
   rows_('lectures').forEach((r) => {
-    if (r[0]) out.lectures[r[0]] = { youtube: String(r[1] || ''), pdf: String(r[2] || ''), live: String(r[3] || '') };
+    if (r[0] && (!onlyPublic || isPublicLecture_(r[0]))) {
+      out[r[0]] = { youtube: String(r[1] || ''), pdf: String(r[2] || ''), live: String(r[3] || '') };
+    }
   });
+  return out;
+}
+
+function doGet() {
+  const out = { lectures: lectures_(true), quiz: {}, slots: [] };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -81,6 +97,7 @@ function doPost(e) {
   lock.waitLock(15000);
   try {
     if (body.action === 'check') return json_({ ok: true });
+    if (body.action === 'getAll') return json_({ ok: true, lectures: lectures_(false) });
 
     if (body.action === 'saveLecture') {
       const sh = sheet_('lectures');
