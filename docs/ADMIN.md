@@ -1,0 +1,53 @@
+# কন্ট্রোল প্যানেল (Admin) সেটআপ
+
+কন্ট্রোল প্যানেল থেকে লেকচারের YouTube ও PDF লিংক, অধ্যায়ের MCQ কুইজ আর প্রাইভেট স্লট
+বদলানো যায়, কোড বা GitHub ছাড়াই। তথ্য থাকে আপনার নিজের Google Sheet এ। একবার নিচের
+সেটআপ করতে হবে (৫–১০ মিনিট)।
+
+## ১. Google Sheet বানান
+1. https://sheets.new খুলে একটা নতুন Sheet বানান, নাম দিন যেমন `10takaschool content`।
+
+## ২. স্ক্রিপ্ট বসান
+1. Sheet এর মেনু থেকে **Extensions → Apps Script** খুলুন।
+2. সেখানে যা লেখা আছে সব মুছে এই রিপোজিটরির
+   [`docs/admin-apps-script.gs`](admin-apps-script.gs) ফাইলের পুরো লেখা পেস্ট করুন।
+3. উপরের 💾 (Save) চাপুন।
+
+## ৩. পাসওয়ার্ড ঠিক করুন
+1. Apps Script এর বাম পাশে ⚙️ **Project Settings** এ যান।
+2. নিচে **Script Properties → Add script property**:
+   - Property: `ADMIN_PASSWORD`
+   - Value: আপনার পছন্দের শক্ত পাসওয়ার্ড
+3. **Save script properties** চাপুন।
+
+পাসওয়ার্ড শুধু Google এর সার্ভারে থাকে, সাইটের কোডে থাকে না।
+
+## ৪. Web app হিসেবে চালু করুন
+1. উপরে ডানে **Deploy → New deployment**।
+2. ⚙️ থেকে টাইপ **Web app** বেছে নিন।
+3. **Execute as: Me**, **Who has access: Anyone**।
+4. **Deploy** চাপুন। Google অনুমতি চাইলে আপনার অ্যাকাউন্ট বেছে
+   **Advanced → Go to … (unsafe) → Allow** দিন (স্ক্রিপ্টটা আপনার নিজের, তাই এই সতর্কবার্তা আসে)।
+5. যে **Web app URL** দেখাবে (`https://script.google.com/macros/s/…/exec`) সেটা কপি করুন।
+
+## ৫. লিংকটা সাইটে বসান
+URL টা `src/App.jsx` এর `SITE_LINKS.contentApi` তে বসিয়ে `npm run build` করে commit করতে হবে।
+এটা একবারের কাজ; লিংকটা পাঠালে আমিই বসিয়ে দিতে পারি।
+
+## ব্যবহার
+- সাইটের ফুটারে **Admin** লিংক, অথবা সরাসরি `10takaschool.com/#/admin`।
+- পাসওয়ার্ড দিয়ে লগইন করুন।
+- **🎥 লেকচার:** কোর্স আর অধ্যায় বেছে প্রতিটা লেকচারে লিংক বসিয়ে **Save**।
+  - YouTube: ভিডিওর সাধারণ লিংক (youtube.com/watch?v=… বা youtu.be/…)। ভিডিও "Unlisted" রাখলে
+    শুধু সাইট থেকেই দেখা যাবে, YouTube সার্চে আসবে না।
+  - PDF: Google Drive এ আপলোড করে **Share → Anyone with the link** দিয়ে লিংক কপি করুন।
+  - ঘর খালি করে Save করলে লিংক মুছে যায়।
+- **📝 MCQ কুইজ:** অধ্যায় বেছে প্রশ্ন, চারটা অপশন আর সঠিক উত্তর দিয়ে **কুইজ Save করুন**।
+- **📅 প্রাইভেট স্লট:** খালি সময় যোগ করুন। বুকিং কনফার্ম হলে "খালি" চেপে "🔒 বুকড" করে Save করুন।
+
+Save করার সাথে সাথে Sheet এ জমা হয় আর সাইটে দেখায়, নতুন করে build লাগে না।
+Sheet এ সরাসরি লিখেও বদলানো যায় (`lectures`, `quiz`, `slots` ট্যাব)।
+
+## স্ক্রিপ্ট পরে বদলালে
+Apps Script এ কোড বদলালে **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**
+করতে হয়, তাহলে URL একই থাকে।
