@@ -1056,8 +1056,21 @@ function BookShopCard({ book, onDetails, light = false }) {
   );
 }
 
-// Shared premium course card. `wide` puts the art panel beside the text on larger screens.
-function PremiumCard({ grad, icon, code, bigTag, title, sub, chips = [], price, cta, onClick, wide = false, selected = false }) {
+// Short poster label from a module code, e.g. 'COURSE 03 • LINEAR ALGEBRA' -> 'LINEAR ALGEBRA'.
+const shortTag = (code = '') => {
+  const parts = code.split(' • ');
+  return /^COURSE \d+$/.test(parts[0]) && parts[1] ? parts[1] : parts[0];
+};
+
+// Poster-style course card (like a course thumbnail): a big artwork panel with a bold label and
+// Emran's photo (person) or a large emoji, then just a title and one short line underneath.
+function PremiumCard({ grad, icon, code, bigTag, poster, title, sub, chips = [], price, onClick, selected = false, person = false }) {
+  const posterText = poster || bigTag;
+  // Shrink long labels so Bangla words never break mid-word.
+  const posterLen = posterText ? posterText.length : 0;
+  const posterSize =
+    posterLen <= 6 ? 'text-xl sm:text-3xl' : posterLen <= 11 ? 'text-base sm:text-2xl' : 'text-sm sm:text-lg';
+  const meta = [price, ...chips].filter(Boolean).join(' • ') || sub;
   return (
     <div
       role="button"
@@ -1069,82 +1082,81 @@ function PremiumCard({ grad, icon, code, bigTag, title, sub, chips = [], price, 
           onClick && onClick();
         }
       }}
-      className="group relative isolate h-full cursor-pointer select-none rounded-[22px] p-px transition-transform duration-300 hover:-translate-y-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+      className="group relative h-full cursor-pointer select-none rounded-[24px] p-[1.5px] transition-transform duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
     >
-      <div className="absolute inset-0 rounded-[22px] bg-gradient-to-b from-white/[0.16] to-white/[0.03]" />
       <div
-        className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${grad} transition-opacity duration-300 ${
-          selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        className={`absolute inset-0 rounded-[24px] bg-gradient-to-b transition-colors duration-300 ${
+          selected
+            ? 'from-amber-300 via-orange-500 to-rose-600'
+            : 'from-white/20 via-white/[0.06] to-white/15 group-hover:from-amber-300 group-hover:via-orange-500/80 group-hover:to-rose-600'
         }`}
       />
-      <div
-        className={`pointer-events-none absolute -inset-2 -z-10 rounded-[30px] bg-gradient-to-br ${grad} blur-2xl transition-opacity duration-300 ${
-          selected ? 'opacity-30' : 'opacity-0 group-hover:opacity-35'
-        }`}
-      />
-      <div
-        className={`relative flex h-full overflow-hidden rounded-[21px] bg-[#0a1222] ${
-          wide ? 'flex-col sm:flex-row' : 'flex-col'
-        }`}
-      >
-        <div
-          className={`relative shrink-0 overflow-hidden bg-gradient-to-br ${grad} ${
-            wide ? 'h-28 sm:h-auto sm:w-44' : 'h-28 sm:h-32'
-          }`}
-        >
-          <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:14px_14px]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-white/10" />
-          <div className="absolute -bottom-7 -right-3 rotate-12 text-[92px] leading-none opacity-25 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
-            {icon}
-          </div>
-          <div className="absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-white/25 blur-md transition-all duration-700 ease-out group-hover:left-[130%]" />
-          <div className="relative flex h-full flex-col justify-between gap-3 p-3.5">
-            <div className="flex items-start justify-between gap-2">
-              {code ? (
-                <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25 backdrop-blur-sm">
-                  {code}
-                </span>
-              ) : (
-                <span />
-              )}
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-xl shadow-lg ring-1 ring-white/30 backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
-                {icon}
-              </span>
-            </div>
-            {bigTag && (
-              <span className="text-2xl font-black tracking-tight text-white drop-shadow-md sm:text-3xl">
-                {bigTag}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col p-4">
-          <h4 className="text-sm font-extrabold leading-snug text-white line-clamp-2 sm:text-[15px]">{title}</h4>
-          {sub && <p className="mt-1 text-xs leading-relaxed text-slate-400 line-clamp-2">{sub}</p>}
-          {chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {chips.map((c) => (
-                <span
-                  key={c}
-                  className="rounded-md bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-slate-300 ring-1 ring-white/10"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-            {price ? <span className="whitespace-nowrap text-base font-black text-amber-300">{price}</span> : <span />}
-            <span className="inline-flex items-center gap-2 whitespace-nowrap text-xs font-bold text-slate-300 transition group-hover:text-white">
-              <span className={price ? 'hidden sm:inline' : ''}>{cta}</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 transition-all duration-300 group-hover:bg-white group-hover:text-slate-950">
-                <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </span>
+      <div className="relative flex h-full flex-col rounded-[23px] bg-[#0d1018] p-2 shadow-[inset_0_-14px_26px_-14px_rgba(249,115,22,0.22)] sm:p-2.5">
+        <div className={`relative aspect-[4/3] overflow-hidden rounded-[17px] bg-gradient-to-br ${grad}`}>
+          <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />
+          <div className="absolute -left-6 -bottom-8 h-24 w-24 rounded-full bg-black/10" />
+          <div className="absolute -right-5 -top-7 h-24 w-24 rounded-full bg-white/15" />
+          {person ? (
+            <img
+              src={ABOUT_PORTRAIT}
+              alt=""
+              loading="lazy"
+              className="absolute -right-3 bottom-0 h-[94%] w-auto max-w-none origin-bottom drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)] transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <span className="absolute bottom-1 right-2 text-5xl drop-shadow-[0_8px_10px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 sm:text-6xl">
+              {icon}
             </span>
-          </div>
+          )}
+          {code && (
+            <span className="absolute left-2 top-2 max-w-[70%] truncate rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25 sm:text-[10px]">
+              {code}
+            </span>
+          )}
+          {posterText && (
+            <span
+              className={`absolute bottom-2 left-2.5 ${person ? 'max-w-[60%]' : 'max-w-[70%]'} ${posterSize} line-clamp-3 font-black uppercase leading-[1.1] tracking-tight text-white [text-shadow:0_2px_0_rgba(0,0,0,0.28),0_6px_14px_rgba(0,0,0,0.25)]`}
+            >
+              {posterText}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center px-1 pb-1 pt-2.5 text-center">
+          <h4 className="text-[13px] font-extrabold leading-snug text-white line-clamp-2 sm:text-[15px]">{title}</h4>
+          {meta && <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-1 sm:text-xs">{meta}</p>}
         </div>
       </div>
     </div>
+  );
+}
+
+// App-icon style program tile for the six main programs.
+function ProgramTile({ grad, icon, top, big, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative rounded-[24px] p-[1.5px] text-center transition-transform duration-300 hover:-translate-y-1"
+    >
+      <span className="absolute inset-0 rounded-[24px] bg-gradient-to-b from-amber-300/70 via-orange-500/40 to-rose-600 opacity-70 transition-opacity group-hover:opacity-100" />
+      <span className="relative flex flex-col rounded-[23px] bg-[#0d1018] p-1.5 shadow-[inset_0_-16px_28px_-14px_rgba(249,115,22,0.35)] sm:p-2.5">
+        <span className={`relative block aspect-[4/3] overflow-hidden rounded-[17px] bg-gradient-to-br ${grad}`}>
+          <span className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" />
+          <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+            <span className="text-[11px] font-black uppercase tracking-wider text-white/95 [text-shadow:0_2px_0_rgba(0,0,0,0.25)] sm:text-base">
+              {top}
+            </span>
+            <span className="mt-0.5 text-[28px] font-black tracking-tight text-white [text-shadow:0_3px_0_rgba(0,0,0,0.3),0_8px_16px_rgba(0,0,0,0.25)] sm:text-5xl">
+              {big}
+            </span>
+          </span>
+          <span className="absolute -bottom-1 -right-1 text-3xl drop-shadow-[0_6px_8px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 sm:text-5xl">
+            {icon}
+          </span>
+        </span>
+        <span className="block px-0.5 pb-1 pt-2 text-[11px] font-extrabold leading-tight text-white sm:text-sm">{label}</span>
+      </span>
+    </button>
   );
 }
 
@@ -1657,8 +1669,7 @@ const PRIVATE_OPTIONS = [
     sub: 'চলমান ব্যাচে সিট বুক করুন — Online বা Offline, যেভাবে সুবিধা। ছোট ব্যাচ, নিয়মিত রুটিন, মাসিক টেস্ট।',
     chips: ['Online + Offline', 'সীমিত সিট'],
     icon: '👥',
-    grad: 'from-teal-400 via-cyan-500 to-sky-600',
-    cta: 'ব্যাচ দেখুন'
+    grad: 'from-teal-400 via-cyan-500 to-sky-600'
   },
   {
     key: 'one',
@@ -1667,8 +1678,7 @@ const PRIVATE_OPTIONS = [
     sub: 'শুধু আপনার জন্য সেশন: নিজের সময়, নিজের গতি, নিজের দুর্বল অধ্যায়।',
     chips: ['Online + Offline', 'নিজের সময়'],
     icon: '🎯',
-    grad: 'from-amber-400 via-orange-500 to-rose-600',
-    cta: 'সেশন বুক করুন'
+    grad: 'from-amber-400 via-orange-500 to-rose-600'
   },
   {
     key: 'custom',
@@ -1677,8 +1687,7 @@ const PRIVATE_OPTIONS = [
     sub: 'বোর্ড, পেপার আর কতজন শিক্ষার্থী সেটা নিজেরা ঠিক করে বন্ধুদের নিয়ে আলাদা ব্যাচ বানান।',
     chips: ['Online + Offline', 'CAIE / Edexcel', '২–৮ জন'],
     icon: '📐',
-    grad: 'from-violet-400 via-purple-500 to-fuchsia-600',
-    cta: 'ব্যাচ সাজান'
+    grad: 'from-violet-400 via-purple-500 to-fuchsia-600'
   }
 ];
 
@@ -1773,17 +1782,17 @@ function PrivateBatchHub({ onOpenOption }) {
         grad="from-teal-500 via-cyan-600 to-indigo-700"
         icon="📅"
       />
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
         {PRIVATE_OPTIONS.map((o) => (
           <PremiumCard
             key={o.key}
+            person
+            poster={o.code}
             grad={o.grad}
             icon={o.icon}
-            code={o.code}
             title={o.title}
             sub={o.sub}
             chips={o.chips}
-            cta={o.cta}
             onClick={() => onOpenOption(o.key)}
           />
         ))}
@@ -3467,7 +3476,7 @@ export default function App() {
 
             {/* SIX PROGRAM CARDS */}
             <div className="space-y-3 pt-1">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-5 max-w-3xl mx-auto">
                 {[
                   {
                     id: 'HSC Bangla Version',
@@ -3524,15 +3533,13 @@ export default function App() {
                     tileGrad: 'from-rose-400 via-pink-500 to-purple-700',
                   }
                 ].map((card) => (
-                  <PremiumCard
+                  <ProgramTile
                     key={card.id}
                     grad={card.tileGrad}
                     icon={card.icon}
-                    code={card.code}
-                    bigTag={card.bigTag}
-                    title={card.title}
-                    sub={card.sub}
-                    cta="দেখুন"
+                    top={card.code}
+                    big={card.bigTag}
+                    label={card.title}
                     onClick={() => openSubPage(card.id)}
                   />
                 ))}
@@ -3574,20 +3581,18 @@ export default function App() {
             id="home-step-1"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-sky-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  HSC উচ্চতর গণিত বাংলা ভার্সন
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-200 leading-snug pb-1">
+                HSC উচ্চতর গণিত বাংলা ভার্সন
+              </h3>
             </div>
 
             {/* 2 Paper Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto w-full">
               {Object.values(HSC_BV_PAPERS).map((paper) => (
                 <PremiumCard
                   key={paper.id}
-                  wide
+                  person
                   grad={paper.tileGrad}
                   icon={paper.icon}
                   code={paper.code}
@@ -3595,7 +3600,6 @@ export default function App() {
                   title={paper.title}
                   sub={paper.sub}
                   chips={['১০টি অধ্যায়', 'প্রতি অধ্যায়ে ১০টি লেকচার']}
-                  cta="সাব-পেজ"
                   onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
                 />
               ))}
@@ -3606,10 +3610,12 @@ export default function App() {
               <div className="text-xs font-extrabold uppercase tracking-wider text-amber-300">
                 ৬টি স্পেশাল কোর্স
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {SPECIAL_COURSES_WITH_BOOKS.map((c) => (
                   <PremiumCard
                     key={c.id}
+                    person
+                    poster={c.courseTitle}
                     grad={c.grad}
                     icon={c.icon}
                     code={c.courseNum}
@@ -3617,7 +3623,6 @@ export default function App() {
                     sub={c.chaptersIncluded}
                     chips={[`${c.syllabusChapters.length}টি অধ্যায়`]}
                     price={c.priceBdt}
-                    cta="ক্লাসরুম"
                     onClick={() =>
                       openCourse({ kind: 'bv', id: c.id, parent: 'HSC Bangla Version', title: c.courseTitle })
                     }
@@ -3656,27 +3661,25 @@ export default function App() {
             id="home-step-2"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-teal-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  HSC Higher Mathematics (English Version)
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-emerald-200 to-lime-200 leading-snug pb-1">
+                HSC Higher Mathematics (English Version)
+              </h3>
             </div>
 
             {/* 2 EV Paper Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto w-full">
               {PART3_ACADEMIC_TRACKS['HSC English Version'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
-                  wide
+                  person
+                  poster={mod.name.replace(/Higher Math | \(EV\)/g, '')}
                   grad={mod.grad}
                   icon={mod.icon}
                   code={mod.code}
                   title={mod.name}
                   sub={mod.sub}
                   chips={['NCTB English Version', '10 Chapters']}
-                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
@@ -3685,10 +3688,12 @@ export default function App() {
             </div>
 
             {/* 6 EV Special Course Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {EV_SPECIAL_COURSES.map((evc) => (
                 <PremiumCard
                   key={evc.id}
+                  person
+                  poster={evc.courseTitle.replace(' (EV)', '').split(/,| &/)[0]}
                   grad={evc.grad}
                   icon={evc.icon}
                   code={evc.courseNum}
@@ -3696,7 +3701,6 @@ export default function App() {
                   sub={evc.sub}
                   chips={['EV Batch']}
                   price={evc.priceBdt}
-                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: evc.moduleIdx, chapterIdx: evc.chapterIdx, title: evc.courseTitle, sub: evc.sub, icon: evc.icon, grad: evc.grad })
                   }
@@ -3710,18 +3714,17 @@ export default function App() {
             id="home-step-3"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-purple-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 leading-snug pb-1">
+                O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {OA_LEVEL_SHOWCASE_CARDS.map((oa) => (
                 <PremiumCard
                   key={oa.id}
+                  person
                   grad={oa.grad}
                   icon={oa.icon}
                   code={oa.code}
@@ -3729,7 +3732,6 @@ export default function App() {
                   title={oa.title}
                   sub={oa.sub}
                   chips={['Topical Past Papers']}
-                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: oa.moduleIdx, chapterIdx: oa.chapterIdx, title: oa.title, sub: oa.sub, icon: oa.icon, grad: oa.grad })
                   }
@@ -3743,25 +3745,23 @@ export default function App() {
             id="home-step-4"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-amber-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  University & Engineering Admission
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 leading-snug pb-1">
+                University & Engineering Admission
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
+                  person
+                  poster={shortTag(mod.code)}
                   grad={mod.grad}
                   icon={mod.icon}
-                  code={mod.code}
                   title={mod.name}
                   sub={mod.sub}
                   chips={[mIdx === 0 ? 'Medical + DU Ka' : `${mod.chapters.length} Modules`, '1st Lec Free']}
-                  cta="প্রবেশ করুন"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'Admission Test (BUET/DU)', parent: 'Admission Test (BUET/DU)', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
@@ -3775,25 +3775,23 @@ export default function App() {
             id="home-step-5"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-emerald-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  B.Sc. (Honours) in Mathematics
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 leading-snug pb-1">
+                B.Sc. (Honours) in Mathematics
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {PART3_ACADEMIC_TRACKS['B.Sc. Honours Math'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
+                  person
+                  poster={shortTag(mod.code)}
                   grad={mod.grad}
                   icon={mod.icon}
-                  code={mod.code}
                   title={mod.name}
                   sub={mod.sub}
                   chips={[`${mod.chapters.length} Core Units`, 'Theorem Proofs + PDF']}
-                  cta="Open"
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'B.Sc. Honours Math', parent: 'B.Sc. Honours Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
@@ -3807,15 +3805,13 @@ export default function App() {
             id="home-step-6"
             className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-rose-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  Thesis Consultation, Ongoing Research & Publications
-                </h3>
-              </div>
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-300 to-amber-200 leading-snug pb-1">
+                Thesis Consultation, Ongoing Research & Publications
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {RESEARCH_SHOWCASE_CARDS.map((rc) => (
                 <PremiumCard
                   key={rc.id}
@@ -3826,7 +3822,6 @@ export default function App() {
                   title={rc.title}
                   sub={rc.sub}
                   chips={[rc.badge]}
-                  cta="বিস্তারিত"
                   onClick={() => openSubPage('Research & Papers', { researchCardId: rc.id, anchorId: 'research-detail' })}
                 />
               ))}
@@ -3921,10 +3916,11 @@ export default function App() {
             </div>
 
             {/* 2 Paper Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto pt-1">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto pt-1">
               {Object.values(HSC_BV_PAPERS).map((paper) => (
                 <PremiumCard
                   key={paper.id}
+                  person
                   grad={paper.tileGrad}
                   icon={paper.icon}
                   code={paper.code}
@@ -3932,7 +3928,6 @@ export default function App() {
                   title={paper.title}
                   sub={paper.sub}
                   chips={['ধারাবাহিক ১০টি অধ্যায়']}
-                  cta={hscBvPaperKey === paper.id ? 'নির্বাচিত' : 'দেখুন'}
                   selected={hscBvPaperKey === paper.id}
                   onClick={() => {
                     setHscBvPaperKey(paper.id);
@@ -3963,7 +3958,6 @@ export default function App() {
                   title={ch.title}
                   sub={ch.eng}
                   chips={['১০টি লেকচার']}
-                  cta="লেকচার"
                   onClick={() => openBvChapter(currentBvPaper, ch)}
                 />
               ))}
@@ -3984,10 +3978,12 @@ export default function App() {
             </div>
 
             {/* 6 Special Courses in 1 Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
                 <PremiumCard
                   key={item.id}
+                  person
+                  poster={item.courseTitle}
                   grad={item.grad}
                   icon={item.icon}
                   code={item.courseNum}
@@ -3998,7 +3994,6 @@ export default function App() {
                     ...(enrolledCourses[item.id] ? ['✓ Enrolled'] : [])
                   ]}
                   price={item.priceBdt}
-                  cta="ক্লাসরুম"
                   onClick={() =>
                     openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
                   }
@@ -4626,7 +4621,7 @@ export default function App() {
                   </div>
 
                   <div
-                    className={`grid grid-cols-1 sm:grid-cols-2 ${
+                    className={`grid grid-cols-2 gap-3 sm:gap-4 ${
                       currentTrack.modules.length >= 4
                         ? 'lg:grid-cols-4'
                         : currentTrack.modules.length === 3
@@ -4637,13 +4632,13 @@ export default function App() {
                     {currentTrack.modules.map((mod, mIdx) => (
                       <PremiumCard
                         key={mod.id}
+                        person
+                        poster={shortTag(mod.code)}
                         grad={mod.grad}
                         icon={mod.icon}
-                        code={mod.code}
                         title={mod.name}
                         sub={mod.sub}
                         chips={[`${mod.chapters.length} Units`]}
-                        cta="Open"
                         selected={currentModule.id === mod.id}
                         onClick={() =>
                           openCourse({ kind: 'track', trackId: currentTrack.id, parent: currentTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
@@ -4670,11 +4665,10 @@ export default function App() {
                         key={ch.id}
                         grad={currentModule.grad}
                         icon={ch.icon}
-                        code={ch.num}
+                        poster={ch.num}
                         title={ch.title}
                         sub={ch.eng}
                         chips={[`${currentModule.lectureBlueprint.length} Lectures`]}
-                        cta="Lectures"
                         onClick={() =>
                           openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
                         }
@@ -4878,7 +4872,7 @@ export default function App() {
             </div>
 
             {/* 6 Research & Thesis Selector Cards inside Sub-page */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
               {RESEARCH_SHOWCASE_CARDS.map((rc) => {
                 const isSelected = activeResearchCardId === rc.id;
                 return (
