@@ -120,7 +120,9 @@ function doGet() {
 
 // ---------------------------------------------------------------- bKash SMS
 
-// Reads a bKash "received" SMS. Returns null for anything else (sent money, OTPs, balance...),
+// Reads a bKash "received" SMS, checked against a real one:
+//   You have received Tk 1,500.00 from 01XXXXXXXXX. Fee Tk 0.00. Balance Tk X,XXX.XX. TrxID XXXXXXXXXX at 13/10/2026 17:59
+// Returns null for anything else (sent money, OTPs, balance...),
 // so unrelated messages are never stored. Missing fields come back empty and the message is
 // kept for review instead of being guessed.
 function parseSms_(text) {
