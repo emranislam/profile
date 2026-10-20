@@ -2968,7 +2968,7 @@ function AdminSaveButton({ state, onClick, label = 'Save' }) {
   );
 }
 
-function AdminLectureRow({ lecture, saved, password }) {
+function AdminLectureRow({ lecture, saved, password, onSaved }) {
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
   const [state, setState] = useState('idle');
   const set = (k) => (e) => {
@@ -2980,7 +2980,10 @@ function AdminLectureRow({ lecture, saved, password }) {
     setState('saving');
     adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }).then((r) => {
       setState(r.ok ? 'saved' : 'error');
-      if (r.ok) loadContent();
+      if (r.ok) {
+        loadContent();
+        onSaved();
+      }
     });
   };
   return (
@@ -3160,6 +3163,12 @@ function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginState, setLoginState] = useState('idle');
   const [tab, setTab] = useState('lectures');
+  // The public feed only has free lectures; the admin loads every lecture's links after logging in.
+  const [allLectures, setAllLectures] = useState(null);
+  const refreshLectures = (pw = password) =>
+    adminPost(pw, { action: 'getAll' }).then((r) => {
+      if (r.ok) setAllLectures(r.lectures || {});
+    });
   const [courseId, setCourseId] = useState(catalog[0].id);
   const [chapterId, setChapterId] = useState(catalog[0].chapters[0].id);
   const course = catalog.find((c) => c.id === courseId) || catalog[0];
@@ -3170,6 +3179,7 @@ function AdminPage() {
     adminPost(pw, { action: 'check' }).then((r) => {
       if (r.ok) {
         setLoggedIn(true);
+        refreshLectures(pw);
         try {
           sessionStorage.setItem('adminPassword', pw);
         } catch {
@@ -3240,7 +3250,7 @@ function AdminPage() {
     );
   }
 
-  if (!content) return shell(<div className="text-sm text-slate-400">তথ্য লোড হচ্ছে…</div>);
+  if (!content || !allLectures) return shell(<div className="text-sm text-slate-400">তথ্য লোড হচ্ছে…</div>);
 
   const pickers = (
     <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-2">
@@ -3309,8 +3319,9 @@ function AdminPage() {
             <AdminLectureRow
               key={l.key}
               lecture={l}
-              saved={(content.lectures && content.lectures[l.key]) || {}}
+              saved={allLectures[l.key] || {}}
               password={password}
+              onSaved={() => refreshLectures()}
             />
           ))}
         </div>
