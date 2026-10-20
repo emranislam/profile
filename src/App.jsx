@@ -2877,7 +2877,9 @@ function useContent() {
 
 const lectureResource = (content, key) => ({
   ...(LECTURE_RESOURCES[key] || {}),
-  ...((content && content.lectures && content.lectures[key]) || {})
+  ...((content && content.lectures && content.lectures[key]) || {}),
+  // Links of lectures this student has paid for (from the verified unlock).
+  ...(accessState.links[key] || {})
 });
 
 const quizFor = (content, key) => {
@@ -3188,6 +3190,8 @@ function AdminPage() {
       if (r.ok) {
         setLoggedIn(true);
         refreshLectures(pw);
+        // Keep the script's price list in step with the site (used to check payments).
+        adminPost(pw, { action: 'savePrices', rules: priceRules() });
         try {
           sessionStorage.setItem('adminPassword', pw);
         } catch {
@@ -3303,9 +3307,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট']}
-          value={{ lectures: '🎥 লেকচার', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots' }[v])}
+          options={['🎥 লেকচার', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
+          value={{ lectures: '🎥 লেকচার', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
         />
         <button
           type="button"
@@ -3350,7 +3354,344 @@ function AdminPage() {
       )}
 
       {tab === 'slots' && <AdminSlotsEditor saved={content.slots || []} password={password} />}
+
+      {tab === 'payments' && <AdminPaymentsTab password={password} />}
     </>
+  );
+}
+
+// ---------------------------------------------------------------- Paid unlocks (verified by the Apps Script)
+// A student pays by Send Money, then enters the Transaction ID and the number they paid from. The
+// script checks it against the bKash SMS received on the owner's phone and, only then, returns the
+// lecture links. The unlock is remembered in this browser (just the Transaction ID and number).
+const GRANTS_KEY = 'unlockGrants';
+
+const readGrants = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(GRANTS_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeGrants = (list) => {
+  try {
+    localStorage.setItem(GRANTS_KEY, JSON.stringify(list));
+  } catch {
+    // Storage unavailable; the student can restore the unlock with the same Transaction ID.
+  }
+};
+
+// What is unlocked on this device and the links that came with it.
+let accessState = { lectures: {}, courses: {}, links: {}, ready: false };
+const accessListeners = new Set();
+const setAccess = (next) => {
+  accessState = next;
+  accessListeners.forEach((fn) => fn(next));
+};
+
+const applyGrants = (grants, links) => {
+  const lectures = {};
+  const courses = {};
+  grants.forEach((g) => {
+    if (g.scope === 'course') courses[g.key] = true;
+    else lectures[g.key] = true;
+  });
+  setAccess({ lectures, courses, links: links || {}, ready: true });
+};
+
+const postPublic = (payload) =>
+  fetch(SITE_LINKS.contentApi, { method: 'POST', body: JSON.stringify(payload) })
+    .then((r) => r.json())
+    .catch(() => ({ ok: false, error: 'network' }));
+
+const loadAccess = () => {
+  const saved = readGrants();
+  if (!SITE_LINKS.contentApi || saved.length === 0) {
+    setAccess({ ...accessState, ready: true });
+    return Promise.resolve();
+  }
+  return postPublic({ action: 'access', grants: saved }).then((r) => {
+    if (r.ok) {
+      // Forget saved unlocks the server no longer honours (payment voided).
+      const alive = new Set((r.grants || []).map((g) => g.trx));
+      writeGrants(saved.filter((g) => alive.has(String(g.trx).toUpperCase().replace(/[^A-Z0-9]/g, ''))));
+      applyGrants(r.grants || [], r.links);
+    } else {
+      setAccess({ ...accessState, ready: true });
+    }
+  });
+};
+
+function useAccess() {
+  const [state, setState] = useState(accessState);
+  useEffect(() => {
+    accessListeners.add(setState);
+    if (!accessState.ready) loadAccess();
+    return () => accessListeners.delete(setState);
+  }, []);
+  return state;
+}
+
+// '৳ ৫৫০' / '৳ 650' / 30 -> 550 / 650 / 30
+const priceNumber = (v) => Number(asciiDigitsClient(String(v)).replace(/[^\d.]/g, '')) || 0;
+const asciiDigitsClient = (s) => s.replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+
+// Prices the script checks payments against; the admin page syncs these after each login.
+const priceRules = () => ({
+  lecture: [
+    { prefix: 'p1-', price: 30 },
+    { prefix: 'p2-', price: 30 },
+    ...Object.values(PART3_ACADEMIC_TRACKS).flatMap((t) => t.modules.map((m) => ({ prefix: `p3-${m.id}-`, price: priceNumber(t.unlockFee) })))
+  ],
+  course: Object.fromEntries(SPECIAL_COURSES_WITH_BOOKS.map((c) => [c.id, priceNumber(c.priceBdt)]))
+});
+
+const UNLOCK_ERRORS = {
+  'bad-input': 'Transaction ID আর যে নম্বর থেকে টাকা পাঠিয়েছেন সেটা ঠিকঠাক লিখুন।',
+  'not-found':
+    'এই Transaction ID এর পেমেন্ট এখনো পাওয়া যায়নি। ID ঠিক আছে কিনা দেখুন। পেমেন্টের মেসেজ আসতে কয়েক মিনিট লাগতে পারে, একটু পরে আবার চেষ্টা করুন।',
+  'phone-mismatch': 'এই Transaction ID এর সাথে আপনার দেওয়া নম্বর মেলেনি। যে নম্বর থেকে টাকা পাঠিয়েছেন সেটাই লিখুন।',
+  'amount-low': 'পাঠানো টাকা কম। এই আনলকের দাম পুরোটা পাঠাতে হবে।',
+  used: 'এই Transaction ID আগেই ব্যবহার হয়ে গেছে।',
+  void: 'এই পেমেন্টটি বাতিল করা হয়েছে। WhatsApp এ যোগাযোগ করুন।',
+  review: 'পেমেন্টটি যাচাই হচ্ছে। একটু অপেক্ষা করুন বা WhatsApp এ জানান।',
+  'no-price': 'এই আইটেমের দাম এখনো ঠিক করা হয়নি। WhatsApp এ যোগাযোগ করুন।',
+  'too-many': 'অনেকবার ভুল চেষ্টা হয়েছে। এক ঘণ্টা পরে আবার চেষ্টা করুন বা WhatsApp এ জানান।',
+  network: 'সংযোগে সমস্যা হচ্ছে। ইন্টারনেট দেখে আবার চেষ্টা করুন।'
+};
+
+// item: { scope: 'lecture' | 'course', key, title, amount (number) }
+function UnlockModal({ item, onClose, onWhatsApp }) {
+  const [method, setMethod] = useState('bKash');
+  const [phone, setPhone] = useState('');
+  const [trxId, setTrxId] = useState('');
+  const [state, setState] = useState('idle'); // idle | busy | done
+  const [error, setError] = useState('');
+  const connected = !!SITE_LINKS.contentApi;
+  const input =
+    'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
+  const trxClean = trxId.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const valid = trxClean.length >= 6 && phone.replace(/\D/g, '').length >= 10;
+
+  const submit = () => {
+    setState('busy');
+    setError('');
+    postPublic({ action: 'unlock', scope: item.scope, key: item.key, trxId: trxClean, phone }).then((r) => {
+      if (!r.ok) {
+        setState('idle');
+        setError(UNLOCK_ERRORS[r.error] || 'আনলক করা যায়নি। WhatsApp এ যোগাযোগ করুন।');
+        return;
+      }
+      const saved = readGrants().filter((g) => !(g.trx === trxClean && g.phone === phone.replace(/\D/g, '').slice(-10)));
+      writeGrants([...saved, { trx: trxClean, phone: phone.replace(/\D/g, '').slice(-10) }]);
+      // Merge with what is already unlocked on this device.
+      const lectures = { ...accessState.lectures };
+      const courses = { ...accessState.courses };
+      (r.grants || []).forEach((g) => {
+        if (g.scope === 'course') courses[g.key] = true;
+        else lectures[g.key] = true;
+      });
+      setAccess({ lectures, courses, links: { ...accessState.links, ...(r.links || {}) }, ready: true });
+      setState('done');
+    });
+  };
+
+  return (
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl border border-amber-400/40 bg-slate-900 p-6 text-white shadow-2xl sm:p-7"
+      >
+        <button onClick={onClose} className="absolute right-4 top-4 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700">
+          <X className="h-4 w-4" />
+        </button>
+        <div>
+          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
+            {item.scope === 'course' ? 'কোর্সে ভর্তি' : 'লেকচার আনলক'}
+          </span>
+          <h3 className="mt-1.5 pr-8 text-xl font-extrabold">{item.title}</h3>
+          <p className="mt-1 text-sm text-slate-300">ফি: <b className="text-amber-300">৳{toBnDigits(item.amount)}</b></p>
+        </div>
+
+        {state === 'done' ? (
+          <div className="space-y-4 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5">
+            <div className="text-lg font-extrabold text-emerald-300">✓ আনলক হয়েছে!</div>
+            <p className="text-sm leading-relaxed text-slate-200">
+              {item.scope === 'course' ? 'কোর্সের সব লেকচার' : 'লেকচারটি'} এখন খোলা। এই ফোন বা কম্পিউটারে পরেও খোলা থাকবে।
+              অন্য ডিভাইসে একই Transaction ID আর নম্বর দিলে আবার পাবেন।
+            </p>
+            <button onClick={onClose} className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-emerald-300">
+              শুরু করুন
+            </button>
+          </div>
+        ) : !connected ? (
+          <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-300">
+            স্বয়ংক্রিয় আনলক এখনো চালু হয়নি। পেমেন্ট করে WhatsApp এ জানান।
+            <button onClick={onWhatsApp} className="block rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+              WhatsApp এ জানান
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <ol className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm">
+              <li className="space-y-2">
+                <div className="font-bold text-white">১. নিচের নম্বরে ৳{toBnDigits(item.amount)} Send Money করুন</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.keys(PAYMENT_NUMBERS).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setMethod(m)}
+                      className={`rounded-xl border py-2 text-xs font-extrabold transition ${
+                        method === m ? 'border-amber-300 bg-amber-400 text-slate-950' : 'border-slate-700 bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center font-mono text-lg font-black text-amber-300">{PAYMENT_NUMBERS[method]}</div>
+              </li>
+              <li className="font-bold text-white">২. নিচে Transaction ID আর আপনার নম্বর লিখে আনলক চাপুন</li>
+            </ol>
+            <input
+              className={`${input} font-mono tracking-wider`}
+              placeholder="Transaction ID (যেমন 9K4M2P7XQA)"
+              value={trxId}
+              onChange={(e) => setTrxId(e.target.value)}
+              autoCapitalize="characters"
+            />
+            <input
+              className={input}
+              placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            {error && (
+              <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-100">{error}</div>
+            )}
+            <button
+              type="button"
+              disabled={!valid || state === 'busy'}
+              onClick={submit}
+              className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-3 text-sm font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {state === 'busy' ? 'যাচাই হচ্ছে…' : '🔓 আনলক করুন'}
+            </button>
+            <button type="button" onClick={onWhatsApp} className="w-full text-center text-xs font-bold text-slate-400 hover:text-white">
+              পেমেন্ট করেছি কিন্তু আনলক হচ্ছে না? WhatsApp এ জানান
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Admin: payments tab
+function AdminPaymentsTab({ password }) {
+  const [data, setData] = useState(null);
+  const [form, setForm] = useState({ trxId: '', amount: '', sender: '' });
+  const [msg, setMsg] = useState('');
+  const refresh = () =>
+    adminPost(password, { action: 'listPayments' }).then((r) => {
+      if (r.ok) setData(r);
+    });
+  useEffect(() => {
+    refresh();
+  }, []);
+  const act = (payload, okMsg) =>
+    adminPost(password, payload).then((r) => {
+      setMsg(r.ok ? okMsg : r.error === 'duplicate' ? 'এই Transaction ID আগেই আছে।' : 'হয়নি, তথ্য আবার দেখুন।');
+      if (r.ok) refresh();
+      return r;
+    });
+  const label = { unused: 'অব্যবহৃত', used: 'আনলক হয়েছে', void: 'বাতিল', review: 'যাচাই দরকার' };
+  const tone = {
+    unused: 'bg-sky-500/20 text-sky-200',
+    used: 'bg-emerald-500/20 text-emerald-200',
+    void: 'bg-slate-700 text-slate-300',
+    review: 'bg-amber-500/20 text-amber-200'
+  };
+  if (!data) return <div className="text-sm text-slate-400">লোড হচ্ছে…</div>;
+  return (
+    <div className="space-y-5">
+      {!data.pricesSynced && (
+        <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-100">
+          দাম এখনো সিঙ্ক হয়নি। পেজ রিলোড করে আবার লগইন করুন।
+        </div>
+      )}
+      <p className="text-xs leading-relaxed text-slate-400">
+        ফোনের bKash এসএমএস থেকে আসা সব পেমেন্ট এখানে দেখাবে। শিক্ষার্থী Transaction ID আর নম্বর দিলে "অব্যবহৃত" পেমেন্ট মিললে নিজে থেকে
+        আনলক হয়। এসএমএস না এলে নিচে হাতে পেমেন্ট যোগ করলেই শিক্ষার্থী আনলক করতে পারবে।
+      </p>
+
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="text-sm font-bold text-white">হাতে পেমেন্ট যোগ করুন</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+          <input className={adminInput} placeholder="Transaction ID" value={form.trxId} onChange={(e) => setForm({ ...form, trxId: e.target.value })} />
+          <input className={adminInput} placeholder="টাকা" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+          <input className={adminInput} placeholder="প্রেরকের নম্বর" inputMode="tel" value={form.sender} onChange={(e) => setForm({ ...form, sender: e.target.value })} />
+          <button
+            type="button"
+            onClick={() => act({ action: 'addPayment', ...form }, 'যোগ হয়েছে।').then((r) => r.ok && setForm({ trxId: '', amount: '', sender: '' }))}
+            className="rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300"
+          >
+            যোগ করুন
+          </button>
+        </div>
+        {msg && <div className="text-xs text-slate-300">{msg}</div>}
+      </div>
+
+      <div className="space-y-2">
+        {data.payments.length === 0 && <div className="text-sm text-slate-500">এখনো কোনো পেমেন্ট আসেনি।</div>}
+        {data.payments.map((p) => (
+          <AdminPaymentRow key={p.row + p.trxId} p={p} tone={tone} label={label} act={act} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminPaymentRow({ p, tone, label, act }) {
+  const [fix, setFix] = useState({ trxId: p.trxId, amount: p.amount, sender: p.sender });
+  const forText = p.usedFor ? p.usedFor.replace('lecture|', 'লেকচার ').replace('course|', 'কোর্স ') : '';
+  return (
+    <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-3.5 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`rounded px-2 py-0.5 text-[11px] font-bold ${tone[p.status] || tone.void}`}>{label[p.status] || p.status}</span>
+          <span className="font-mono text-xs text-white">{p.trxId || '—'}</span>
+          <span className="font-bold text-amber-300">{p.amount === '' ? '' : `৳${p.amount}`}</span>
+          <span className="text-xs text-slate-400">{p.sender}</span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+          {p.received && <span>{new Date(p.received).toLocaleString('bn-BD')}</span>}
+          {p.status !== 'void' && p.trxId && (
+            <button type="button" onClick={() => window.confirm('এই পেমেন্ট বাতিল করবেন? আনলকও বন্ধ হয়ে যাবে।') && act({ action: 'voidPayment', trxId: p.trxId }, 'বাতিল হয়েছে।')} className="font-bold text-rose-300 hover:underline">
+              বাতিল
+            </button>
+          )}
+        </div>
+      </div>
+      {p.status === 'used' && <div className="text-xs text-emerald-200">আনলক: {forText} • {p.usedBy}</div>}
+      {p.status === 'review' && (
+        <div className="space-y-2">
+          <div className="rounded-lg bg-slate-950 p-2 font-mono text-[11px] text-slate-400">{p.raw}</div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+            <input className={adminInput} placeholder="Transaction ID" value={fix.trxId} onChange={(e) => setFix({ ...fix, trxId: e.target.value })} />
+            <input className={adminInput} placeholder="টাকা" value={fix.amount} onChange={(e) => setFix({ ...fix, amount: e.target.value })} />
+            <input className={adminInput} placeholder="প্রেরকের নম্বর" value={fix.sender} onChange={(e) => setFix({ ...fix, sender: e.target.value })} />
+            <button type="button" onClick={() => act({ action: 'fixPayment', row: p.row, ...fix }, 'ঠিক করা হয়েছে।')} className="rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+              ঠিক করুন
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -3364,14 +3705,15 @@ export default function App() {
   // HSC Bangla Version states
   const [hscBvPaperKey, setHscBvPaperKey] = useState('paper1');
   const [selectedBvChapterId, setSelectedBvChapterId] = useState('p1-ch1');
-  // Lectures unlock after payment is verified; until there is a login, nothing is unlocked here.
-  const [unlockedLectures] = useState({});
+  // Paid lectures and courses unlock when the script verifies the student's payment (UnlockModal).
+  const access = useAccess();
+  const unlockedLectures = access.lectures;
   const [unlockModalLecture, setUnlockModalLecture] = useState(null);
 
   // Special Courses Inside Classroom states (Course 1 to Course 6)
   const [activeSpecialCourseId, setActiveSpecialCourseId] = useState('course-calculus');
   const [selectedCourseChapterIdx, setSelectedCourseChapterIdx] = useState(0);
-  const [enrolledCourses] = useState({});
+  const enrolledCourses = access.courses;
   // Completed lectures are remembered on this device.
   const [completedCourseLectures, setCompletedCourseLectures] = useState(() => {
     try {
@@ -5608,35 +5950,47 @@ export default function App() {
       )}
       </div>
 
-      {/* PAYMENT REQUESTS (course enrollment / single lecture unlock) */}
+      {/* UNLOCK (course enrollment / single lecture) */}
       {courseEnrollModal && (
-        <RequestModal
-          request={{
-            kind: 'payment',
-            type: `কোর্সে ভর্তি: ${courseEnrollModal.courseTitle}`,
-            amount: courseEnrollModal.priceBdt,
-            lines: [
-              ['কোর্স', `${courseEnrollModal.courseNum}: ${courseEnrollModal.courseTitle}`],
-              ['অধ্যায়', courseEnrollModal.chaptersIncluded],
-              ['ফি', courseEnrollModal.priceBdt]
-            ]
+        <UnlockModal
+          item={{
+            scope: 'course',
+            key: courseEnrollModal.id,
+            title: `${courseEnrollModal.courseNum}: ${courseEnrollModal.courseTitle}`,
+            amount: priceNumber(courseEnrollModal.priceBdt)
           }}
           onClose={() => setCourseEnrollModal(null)}
+          onWhatsApp={() => {
+            const c = courseEnrollModal;
+            setCourseEnrollModal(null);
+            setBookingRequest({
+              kind: 'payment',
+              type: `কোর্সে ভর্তি: ${c.courseTitle}`,
+              amount: c.priceBdt,
+              lines: [['কোর্স', `${c.courseNum}: ${c.courseTitle}`], ['অধ্যায়', c.chaptersIncluded], ['ফি', c.priceBdt]]
+            });
+          }}
         />
       )}
       {unlockModalLecture && (
-        <RequestModal
-          request={{
-            kind: 'payment',
-            type: `লেকচার আনলক: ${unlockModalLecture.titleBn}`,
-            amount: `৳${unlockModalLecture.priceBdt}`,
-            lines: [
-              ['লেকচার', unlockModalLecture.titleBn],
-              ['বিষয়', unlockModalLecture.topic],
-              ['ফি', `৳${unlockModalLecture.priceBdt}`]
-            ]
+        <UnlockModal
+          item={{
+            scope: 'lecture',
+            key: unlockModalLecture.lecKey,
+            title: `${unlockModalLecture.titleBn}: ${unlockModalLecture.topic}`,
+            amount: priceNumber(unlockModalLecture.priceBdt)
           }}
           onClose={() => setUnlockModalLecture(null)}
+          onWhatsApp={() => {
+            const l = unlockModalLecture;
+            setUnlockModalLecture(null);
+            setBookingRequest({
+              kind: 'payment',
+              type: `লেকচার আনলক: ${l.titleBn}`,
+              amount: `৳${l.priceBdt}`,
+              lines: [['লেকচার', l.lecKey], ['বিষয়', l.topic], ['ফি', `৳${l.priceBdt}`]]
+            });
+          }}
         />
       )}
 

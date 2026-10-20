@@ -18,6 +18,7 @@ npm run build
 |------|-------|
 | WhatsApp, Telegram, Facebook, live-class link, Google Scholar / ORCID / ResearchGate | `SITE_LINKS` |
 | Send Money numbers | `PAYMENT_NUMBERS` |
+| Automatic unlock by bKash SMS (script properties, SMS app, Telegram) | [docs/PAYMENTS.md](docs/PAYMENTS.md) |
 | Lecture videos and PDF notes | Admin panel (`#/admin`, see [docs/ADMIN.md](docs/ADMIN.md)), or `LECTURE_RESOURCES` |
 | MCQ questions per chapter | Admin panel, or `QUIZ_BANK` |
 | Weekly live class routine | `CLASS_ROUTINE` |
