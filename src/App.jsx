@@ -2859,7 +2859,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, ...data };
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
     });
@@ -2874,6 +2874,15 @@ function useContent() {
   }, []);
   return content;
 }
+
+// Lecture slots per chapter: the admin page can change them (sheet 'counts'); otherwise the site default.
+const lectureCountFor = (content, prefix, fallback) => {
+  const n = Math.floor(Number(content && content.counts && content.counts[prefix]));
+  return n >= 1 && n <= 30 ? n : fallback;
+};
+const BV_LECTURES = 10;
+const COURSE_LECTURES = 8;
+const EXTRA_TOPIC = 'অতিরিক্ত অনুশীলন ও সমস্যা সমাধান';
 
 const lectureResource = (content, key) => ({
   ...(LECTURE_RESOURCES[key] || {}),
@@ -2900,7 +2909,7 @@ const pdfEmbedUrl = (v = '') => {
 };
 
 // Every course → chapter → lecture key the site uses, for the admin page.
-const adminCatalog = () => {
+const adminCatalog = (content) => {
   const list = [];
   Object.values(HSC_BV_PAPERS).forEach((p) =>
     list.push({
@@ -2910,7 +2919,9 @@ const adminCatalog = () => {
         id: ch.id,
         label: `${ch.num}: ${ch.title}`,
         quizKey: ch.id,
-        lectures: Array.from({ length: 10 }, (_, i) => ({ key: `${ch.id}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
+        countKey: ch.id,
+        count: lectureCountFor(content, ch.id, BV_LECTURES),
+        lectures: Array.from({ length: lectureCountFor(content, ch.id, BV_LECTURES) }, (_, i) => ({ key: `${ch.id}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
       }))
     })
   );
@@ -2922,7 +2933,9 @@ const adminCatalog = () => {
         id: ch.chId,
         label: `${ch.paper} ${ch.num}: ${ch.title}`,
         quizKey: ch.chId,
-        lectures: Array.from({ length: 8 }, (_, i) => ({ key: `${c.id}-${ch.chId}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
+        countKey: `${c.id}-${ch.chId}`,
+        count: lectureCountFor(content, `${c.id}-${ch.chId}`, COURSE_LECTURES),
+        lectures: Array.from({ length: lectureCountFor(content, `${c.id}-${ch.chId}`, COURSE_LECTURES) }, (_, i) => ({ key: `${c.id}-${ch.chId}-lec-${i + 1}`, label: `লেকচার ${i + 1}` }))
       }))
     })
   );
@@ -2935,7 +2948,12 @@ const adminCatalog = () => {
           id: ch.id,
           label: `${ch.num} — ${ch.title}`,
           quizKey: ch.id,
-          lectures: m.lectureBlueprint.map((topic, i) => ({ key: `p3-${m.id}-${ch.id}-lec-${i + 1}`, label: `Lecture ${i + 1} — ${topic}` }))
+          countKey: `p3-${m.id}-${ch.id}`,
+          count: lectureCountFor(content, `p3-${m.id}-${ch.id}`, m.lectureBlueprint.length),
+          lectures: Array.from({ length: lectureCountFor(content, `p3-${m.id}-${ch.id}`, m.lectureBlueprint.length) }, (_, i) => ({
+            key: `p3-${m.id}-${ch.id}-lec-${i + 1}`,
+            label: `Lecture ${i + 1} — ${m.lectureBlueprint[i] || EXTRA_TOPIC}`
+          }))
         }))
       })
     )
@@ -3086,6 +3104,56 @@ function AdminQuizEditor({ quizKey, saved, password }) {
   );
 }
 
+// How many lecture slots a chapter shows; the other lectures' links stay saved if the number is lowered.
+function AdminCountEditor({ chapter, content, password }) {
+  const [n, setN] = useState(chapter.count);
+  const [state, setState] = useState('idle');
+  useEffect(() => {
+    setN(chapter.count);
+    setState('idle');
+  }, [chapter.countKey, chapter.count]);
+  const save = () => {
+    setState('saving');
+    const counts = { ...((content && content.counts) || {}), [chapter.countKey]: n };
+    adminPost(password, { action: 'saveCounts', counts }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) loadContent();
+    });
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
+      <span className="text-xs font-bold text-slate-300">এই অধ্যায়ে লেকচার স্লট</span>
+      <button
+        type="button"
+        onClick={() => {
+          setN(Math.max(1, n - 1));
+          setState('idle');
+        }}
+        className="h-9 w-9 rounded-xl bg-slate-800 text-lg font-black text-white hover:bg-slate-700"
+        aria-label="কমান"
+      >
+        −
+      </button>
+      <span className="w-8 text-center text-lg font-black text-white">{n}</span>
+      <button
+        type="button"
+        onClick={() => {
+          setN(Math.min(30, n + 1));
+          setState('idle');
+        }}
+        className="h-9 w-9 rounded-xl bg-slate-800 text-lg font-black text-white hover:bg-slate-700"
+        aria-label="বাড়ান"
+      >
+        +
+      </button>
+      {n !== chapter.count && <span className="text-[11px] text-amber-300">Save না করা পর্যন্ত সাইটে বদলাবে না</span>}
+      <div className="ml-auto">
+        <AdminSaveButton state={state} onClick={save} label="সংখ্যা Save করুন" />
+      </div>
+    </div>
+  );
+}
+
 function AdminSlotsEditor({ saved, password }) {
   const [slots, setSlots] = useState(saved.map((s) => ({ ...s })));
   const [state, setState] = useState('idle');
@@ -3154,7 +3222,7 @@ function AdminSlotsEditor({ saved, password }) {
 
 function AdminPage() {
   const content = useContent();
-  const catalog = useMemo(adminCatalog, []);
+  const catalog = useMemo(() => adminCatalog(content), [content]);
   const [password, setPassword] = useState(() => {
     try {
       return sessionStorage.getItem('adminPassword') || '';
@@ -3334,6 +3402,7 @@ function AdminPage() {
           <p className="text-xs text-slate-400">
             YouTube এর পুরো লিংক পেস্ট করুন। PDF Google Drive এ রেখে "Anyone with the link" করে শেয়ার লিংক দিন। ঘর খালি করে Save করলে লিংক মুছে যাবে।
           </p>
+          <AdminCountEditor chapter={chapter} content={content} password={password} />
           {chapter.lectures.map((l) => (
             <AdminLectureRow
               key={l.key}
@@ -3758,7 +3827,9 @@ export default function App() {
   const activePart3Lectures = useMemo(() => {
     if (!activePart3Track || !activePart3Module || !activePart3Chapter) return [];
     const blueprint = activePart3Module.lectureBlueprint;
-    return blueprint.map((topicDesc, idx) => {
+    const total = lectureCountFor(siteContent, `p3-${activePart3Module.id}-${activePart3Chapter.id}`, blueprint.length);
+    return Array.from({ length: total }, (_, idx) => {
+      const topicDesc = blueprint[idx] || EXTRA_TOPIC;
       const lecNum = idx + 1;
       const lecKey = `p3-${activePart3Module.id}-${activePart3Chapter.id}-lec-${lecNum}`;
       const isFree = lecNum === 1;
@@ -3775,7 +3846,7 @@ export default function App() {
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-${activePart3Chapter.id}-L${lecNum}/viewform`
       };
     });
-  }, [activePart3Track, activePart3Module, activePart3Chapter, unlockedLectures]);
+  }, [activePart3Track, activePart3Module, activePart3Chapter, unlockedLectures, siteContent]);
 
   const currentBvPaper = HSC_BV_PAPERS[hscBvPaperKey];
   const currentBvChapter =
@@ -3812,30 +3883,30 @@ export default function App() {
       '৩ নভেম্বর, রাত ৮:৩০ PM',
       '৫ নভেম্বর, রাত ৮:৩০ PM'
     ];
-    return Array.from({ length: 8 }, (_, idx) => {
+    return Array.from({ length: lectureCountFor(siteContent, `${activeSpecialCourse.id}-${activeCourseChapter.chId}`, COURSE_LECTURES) }, (_, idx) => {
       const lecNum = idx + 1;
       const progressKey = `${activeSpecialCourse.id}-${activeCourseChapter.chId}-lec-${lecNum}`;
       return {
         lecNum,
         progressKey,
         titleBn: `লেকচার ${lecNum}`,
-        topic: `${activeCourseChapter.title} — ${lectureTopics[idx]}`,
+        topic: `${activeCourseChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`,
         duration: `${45 + (idx % 3) * 10} মিনিট`,
-        liveDate: liveDates[idx],
+        liveDate: liveDates[idx] || 'সময় শিগগিরই জানানো হবে',
         livePlatform: 'Zoom Live + Interactive Whiteboard',
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-course-${activeSpecialCourse.id}-${activeCourseChapter.chId}-L${lecNum}/viewform`
       };
     });
-  }, [activeSpecialCourse, activeCourseChapter]);
+  }, [activeSpecialCourse, activeCourseChapter, siteContent]);
 
   // Calculate overall Course Progress Bar for the active special course
   const courseProgressStats = useMemo(() => {
-    const totalChapters = activeSpecialCourse.syllabusChapters.length;
-    const lecturesPerChapter = 8;
-    const totalLectures = totalChapters * lecturesPerChapter;
+    let totalLectures = 0;
     let completedCount = 0;
 
     activeSpecialCourse.syllabusChapters.forEach((ch) => {
+      const lecturesPerChapter = lectureCountFor(siteContent, `${activeSpecialCourse.id}-${ch.chId}`, COURSE_LECTURES);
+      totalLectures += lecturesPerChapter;
       for (let i = 1; i <= lecturesPerChapter; i++) {
         const key = `${activeSpecialCourse.id}-${ch.chId}-lec-${i}`;
         if (completedCourseLectures[key]) {
@@ -3846,7 +3917,7 @@ export default function App() {
 
     const percent = totalLectures > 0 ? Math.round((completedCount / totalLectures) * 100) : 0;
     return { totalLectures, completedCount, percent };
-  }, [activeSpecialCourse, completedCourseLectures]);
+  }, [activeSpecialCourse, completedCourseLectures, siteContent]);
 
   const toggleCourseLectureCompletion = (progressKey) => {
     setCompletedCourseLectures((prev) => ({
@@ -3869,7 +3940,7 @@ export default function App() {
       'মাস্টার সামারি, ডাউট সলভিং ও পূর্ণাঙ্গ অধ্যায় মূল্যায়ন'
     ];
 
-    return Array.from({ length: 10 }, (_, idx) => {
+    return Array.from({ length: lectureCountFor(siteContent, currentBvChapter.id, BV_LECTURES) }, (_, idx) => {
       const lecNum = idx + 1;
       const lecKey = `${currentBvChapter.id}-lec-${lecNum}`;
       const isFree = lecNum === 1;
@@ -3879,7 +3950,7 @@ export default function App() {
         lecNum,
         lecKey,
         titleBn: `লেকচার ${lecNum}`,
-        topic: `${currentBvChapter.title} — ${lectureTopics[idx]}`,
+        topic: `${currentBvChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`,
         duration: `${40 + (idx % 4) * 5} মিনিট`,
         isFree,
         isUnlocked,
@@ -3887,7 +3958,7 @@ export default function App() {
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-bv-${currentBvChapter.id}-L${lecNum}/viewform`
       };
     });
-  }, [currentBvChapter, unlockedLectures]);
+  }, [currentBvChapter, unlockedLectures, siteContent]);
 
   const handleCustomPhotoUpload = (e) => {
     const file = e.target.files?.[0];
@@ -4818,7 +4889,7 @@ export default function App() {
                   bigTag={`CH-${String(idx + 1).padStart(2, '0')}`}
                   title={ch.title}
                   sub={ch.eng}
-                  chips={['১০টি লেকচার']}
+                  chips={[`${toBnDigits(lectureCountFor(siteContent, ch.id, BV_LECTURES))}টি লেকচার`]}
                   onClick={() => openBvChapter(currentBvPaper, ch)}
                 />
               ))}
@@ -4908,7 +4979,7 @@ export default function App() {
                 <h2 className="text-2xl sm:text-4xl font-black tracking-tight drop-shadow">{currentBvChapter.title}</h2>
                 <p className="text-sm sm:text-base font-semibold text-white/85">{currentBvChapter.eng}</p>
                 <div className="flex flex-wrap gap-2 pt-2 text-xs font-bold">
-                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">১০টি লেকচার</span>
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">{toBnDigits(lectureCountFor(siteContent, currentBvChapter.id, BV_LECTURES))}টি লেকচার</span>
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">✓ ১ম লেকচার ফ্রি</span>
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">পরের লেকচার ৳৩০</span>
                   <button
@@ -5213,7 +5284,7 @@ export default function App() {
                         </div>
                         <div className="text-right shrink-0">
                           <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-bold text-cyan-300">
-                            ৮টি লেকচার
+                            {toBnDigits(lectureCountFor(siteContent, `${activeSpecialCourse.id}-${ch.chId}`, COURSE_LECTURES))}টি লেকচার
                           </span>
                         </div>
                       </button>
@@ -5449,7 +5520,10 @@ export default function App() {
               currentTrack.modules[part3ModuleIdx] || currentTrack.modules[0];
             const currentChapter =
               currentModule.chapters[part3ChapterIdx] || currentModule.chapters[0];
-            const lectures = currentModule.lectureBlueprint.map((topicDesc, idx) => {
+            const lectures = Array.from(
+              { length: lectureCountFor(siteContent, `p3-${currentModule.id}-${currentChapter.id}`, currentModule.lectureBlueprint.length) },
+              (_, idx) => {
+              const topicDesc = currentModule.lectureBlueprint[idx] || EXTRA_TOPIC;
               const lecNum = idx + 1;
               const lecKey = `p3-${currentModule.id}-${currentChapter.id}-lec-${lecNum}`;
               const isFree = lecNum === 1;
@@ -5465,7 +5539,8 @@ export default function App() {
                 priceBdt: currentTrack.unlockFee,
                 googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-${currentChapter.id}-L${lecNum}/viewform`
               };
-            });
+              }
+            );
 
             return (
               <div className="relative space-y-8">
@@ -5529,7 +5604,7 @@ export default function App() {
                         poster={ch.num}
                         title={ch.title}
                         sub={ch.eng}
-                        chips={[`${currentModule.lectureBlueprint.length} Lectures`]}
+                        chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
                         onClick={() =>
                           openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
                         }
