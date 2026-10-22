@@ -2859,7 +2859,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, ...data };
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
     });
@@ -2880,6 +2880,8 @@ const lectureCountFor = (content, prefix, fallback) => {
   const n = Math.floor(Number(content && content.counts && content.counts[prefix]));
   return n >= 1 && n <= 30 ? n : fallback;
 };
+// A lecture's heading from the admin page, else the built-in topic.
+const lectureTitleFor = (content, key, fallback) => (content && content.titles && content.titles[key]) || fallback;
 const BV_LECTURES = 10;
 const COURSE_LECTURES = 8;
 const EXTRA_TOPIC = 'অতিরিক্ত অনুশীলন ও সমস্যা সমাধান';
@@ -2988,8 +2990,9 @@ function AdminSaveButton({ state, onClick, label = 'Save' }) {
   );
 }
 
-function AdminLectureRow({ lecture, saved, password, onSaved }) {
+function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
+  const [heading, setHeading] = useState(title || '');
   const [state, setState] = useState('idle');
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -2998,7 +3001,11 @@ function AdminLectureRow({ lecture, saved, password, onSaved }) {
   const badYoutube = form.youtube.trim() && !youtubeId(form.youtube);
   const save = () => {
     setState('saving');
-    adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }).then((r) => {
+    Promise.all([
+      adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }),
+      adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading })
+    ]).then(([r, t]) => {
+      r = { ok: r.ok && t.ok };
       setState(r.ok ? 'saved' : 'error');
       if (r.ok) {
         loadContent();
@@ -3016,6 +3023,16 @@ function AdminLectureRow({ lecture, saved, password, onSaved }) {
           <span className={`rounded px-1.5 py-0.5 ${saved.live ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>Live</span>
         </div>
       </div>
+      <input
+        className={adminInput}
+        placeholder="লেকচারের হেডিং (ঐচ্ছিক), যেমন: সংজ্ঞা ও মৌলিক সূত্র"
+        value={heading}
+        maxLength={200}
+        onChange={(e) => {
+          setHeading(e.target.value);
+          setState('idle');
+        }}
+      />
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div>
           <input className={adminInput} placeholder="YouTube লিংক" value={form.youtube} onChange={set('youtube')} />
@@ -3408,6 +3425,7 @@ function AdminPage() {
               key={l.key}
               lecture={l}
               saved={allLectures[l.key] || {}}
+              title={(content.titles && content.titles[l.key]) || ''}
               password={password}
               onSaved={() => refreshLectures()}
             />
@@ -3838,7 +3856,7 @@ export default function App() {
         lecNum,
         lecKey,
         titleBn: `Lecture ${lecNum}`,
-        topic: `${activePart3Chapter.title} — ${topicDesc}`,
+        topic: lectureTitleFor(siteContent, lecKey, `${activePart3Chapter.title} — ${topicDesc}`),
         duration: `${45 + (idx % 3) * 10} Mins`,
         isFree,
         isUnlocked,
@@ -3890,7 +3908,7 @@ export default function App() {
         lecNum,
         progressKey,
         titleBn: `লেকচার ${lecNum}`,
-        topic: `${activeCourseChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`,
+        topic: lectureTitleFor(siteContent, progressKey, `${activeCourseChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
         duration: `${45 + (idx % 3) * 10} মিনিট`,
         liveDate: liveDates[idx] || 'সময় শিগগিরই জানানো হবে',
         livePlatform: 'Zoom Live + Interactive Whiteboard',
@@ -3950,7 +3968,7 @@ export default function App() {
         lecNum,
         lecKey,
         titleBn: `লেকচার ${lecNum}`,
-        topic: `${currentBvChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`,
+        topic: lectureTitleFor(siteContent, lecKey, `${currentBvChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
         duration: `${40 + (idx % 4) * 5} মিনিট`,
         isFree,
         isUnlocked,
@@ -5532,7 +5550,7 @@ export default function App() {
                 lecNum,
                 lecKey,
                 titleBn: `Lecture ${lecNum}`,
-                topic: `${currentChapter.title} — ${topicDesc}`,
+                topic: lectureTitleFor(siteContent, lecKey, `${currentChapter.title} — ${topicDesc}`),
                 duration: `${45 + (idx % 3) * 10} Mins`,
                 isFree,
                 isUnlocked,

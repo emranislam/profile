@@ -29,6 +29,7 @@ const SHEETS = {
   quiz: ['chapter', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
   slots: ['day', 'time', 'for', 'mode', 'status'],
   counts: ['chapter', 'lectures'],
+  titles: ['key', 'title'],
   payments: ['trxId', 'amount', 'sender', 'received', 'status', 'usedBy', 'usedFor', 'usedAt', 'raw']
 };
 
@@ -109,8 +110,17 @@ function counts_() {
   return out;
 }
 
+// Lecture headings written on the admin page (public, shown above each lecture).
+function titles_() {
+  const out = {};
+  rows_('titles').forEach((r) => {
+    if (r[0] && r[1]) out[String(r[0])] = String(r[1]);
+  });
+  return out;
+}
+
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -349,6 +359,20 @@ function adminAction_(body) {
       Number(q.answer) + 1, safe_(q.explain)
     ]);
     if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    return { ok: true };
+  }
+
+  if (body.action === 'saveTitle') {
+    const sh = sheet_('titles');
+    const values = sh.getDataRange().getValues();
+    const title = safe_(String(body.title || '').trim().slice(0, 200));
+    const i = values.findIndex((r, ix) => ix > 0 && r[0] === body.key);
+    if (i > 0) {
+      if (!title) sh.deleteRow(i + 1);
+      else sh.getRange(i + 1, 2).setValue(title);
+    } else if (title) {
+      sh.appendRow([safe_(body.key), title]);
+    }
     return { ok: true };
   }
 
