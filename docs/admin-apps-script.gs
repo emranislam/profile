@@ -30,6 +30,7 @@ const SHEETS = {
   slots: ['day', 'time', 'for', 'mode', 'status'],
   counts: ['chapter', 'lectures'],
   titles: ['key', 'title'],
+  outline: ['group', 'id', 'num', 'title', 'eng'],
   payments: ['trxId', 'amount', 'sender', 'received', 'status', 'usedBy', 'usedFor', 'usedAt', 'raw']
 };
 
@@ -119,8 +120,19 @@ function titles_() {
   return out;
 }
 
+// The chapter list of a paper / course / module as arranged on the admin page (public).
+// Groups not listed here use the chapters built into the site.
+function outline_() {
+  const out = {};
+  rows_('outline').forEach((r) => {
+    if (!r[0] || !r[1]) return;
+    (out[String(r[0])] = out[String(r[0])] || []).push({ id: String(r[1]), num: String(r[2] || ''), title: String(r[3] || ''), eng: String(r[4] || '') });
+  });
+  return out;
+}
+
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), outline: outline_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -359,6 +371,21 @@ function adminAction_(body) {
       Number(q.answer) + 1, safe_(q.explain)
     ]);
     if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    return { ok: true };
+  }
+
+  if (body.action === 'saveOutline') {
+    const group = String(body.group || '');
+    if (!group) return { ok: false, error: 'no-group' };
+    const sh = sheet_('outline');
+    const values = sh.getDataRange().getValues();
+    for (let i = values.length - 1; i >= 1; i--) if (values[i][0] === group) sh.deleteRow(i + 1);
+    const seen = {};
+    const rows = (body.chapters || [])
+      .filter((c) => c && c.id && String(c.title || '').trim() && !seen[c.id] && (seen[c.id] = true))
+      .slice(0, 60)
+      .map((c) => [safe_(group), safe_(String(c.id)), safe_(c.num), safe_(c.title), safe_(c.eng)]);
+    if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setValues(rows);
     return { ok: true };
   }
 
