@@ -4253,7 +4253,7 @@ export default function App() {
   // Browser tab title follows the page.
   useEffect(() => {
     const label = isCourseView ? `${activeCourse.title} • ${activeCourse.parent}` : activeSubPage === 'HOME' ? '' : activeSubPage;
-    document.title = label ? `${label} | Emran Islam` : 'Emran Islam | Lecturer in Mathematics';
+    document.title = label ? `${label} | Emran Islam` : 'Emran Islam (ইমরান ইসলাম) | HSC Higher Math, Admission & Honours Math Teacher, Dhaka';
   }, [activeSubPage, activeCourse, isCourseView]);
 
   const openBvChapter = (paper, ch, replace = false) =>
