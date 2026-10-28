@@ -2851,6 +2851,35 @@ const hashToNavState = (hash) => {
 // With SITE_LINKS.contentApi set (the Apps Script web app URL, see docs/ADMIN.md), lecture links,
 // quizzes and private slots come from the sheet and can be edited on the #/admin page.
 let contentCache = null;
+
+// Chapter lists the admin page can rearrange: group id -> the site's own chapter array.
+// The arrays are rewritten in place when content loads; the built-in lists are kept to fall back on.
+const outlineTargets = () => {
+  const t = {};
+  Object.values(HSC_BV_PAPERS).forEach((p) => (t[`bv-${p.id}`] = { list: p.chapters, key: 'id' }));
+  SPECIAL_COURSES_WITH_BOOKS.forEach((c) => (t[c.id] = { list: c.syllabusChapters, key: 'chId' }));
+  Object.values(PART3_ACADEMIC_TRACKS).forEach((tr) => tr.modules.forEach((m) => (t[`p3-${m.id}`] = { list: m.chapters, key: 'id' })));
+  return t;
+};
+const outlineDefaults = {};
+function applyOutline(outline = {}) {
+  const targets = outlineTargets();
+  Object.keys(targets).forEach((group) => {
+    const { list, key } = targets[group];
+    if (!outlineDefaults[group]) outlineDefaults[group] = list.map((c) => ({ ...c }));
+    const base = outlineDefaults[group];
+    const rows = outline[group];
+    const next = rows && rows.length
+      ? rows.map((r) => ({ ...(base.find((c) => c[key] === r.id) || base[0]), [key]: r.id, num: r.num, title: r.title, eng: r.eng }))
+      : base.map((c) => ({ ...c }));
+    list.splice(0, list.length, ...next);
+  });
+}
+// The chapters of a group as the admin page edits them.
+const currentOutline = (group) => {
+  const t = outlineTargets()[group];
+  return t ? t.list.map((c) => ({ id: c[t.key], num: c.num, title: c.title, eng: c.eng })) : [];
+};
 const contentListeners = new Set();
 
 const loadContent = () => {
@@ -2859,7 +2888,8 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, outline: {}, ...data };
+      applyOutline(contentCache.outline);
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
     });
@@ -3116,6 +3146,96 @@ function AdminQuizEditor({ quizKey, saved, password }) {
           <span className="text-xs text-slate-400">সম্পূর্ণ প্রশ্ন: {toBnDigits(complete.length)}</span>
           <AdminSaveButton state={state} onClick={save} label="কুইজ Save করুন" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Add, remove, rename and reorder the chapters of a paper / course / module.
+function AdminOutlineEditor({ group, label, password }) {
+  const [rows, setRows] = useState(() => currentOutline(group));
+  const [state, setState] = useState('idle');
+  useEffect(() => {
+    setRows(currentOutline(group));
+    setState('idle');
+  }, [group]);
+  const update = (i, patch) => {
+    setRows((all) => all.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+    setState('idle');
+  };
+  const move = (i, d) => {
+    setRows((all) => {
+      const next = all.slice();
+      const j = i + d;
+      if (j < 0 || j >= next.length) return all;
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+    setState('idle');
+  };
+  const add = () => {
+    const last = rows[rows.length - 1];
+    const num = last ? last.num.replace(/[\d০-৯]+/, (m) => {
+      const n = parseInt(m.replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d)), 10) + 1;
+      return /[০-৯]/.test(m) ? toBnDigits(n) : String(n).padStart(m.length, '0');
+    }) : '';
+    const prefix = rows.length ? String(rows[0].id).split('-')[0] : group;
+    setRows([...rows, { id: `${prefix}-n${Date.now().toString(36)}`, num, title: '', eng: '' }]);
+    setState('idle');
+  };
+  const save = (list) => {
+    setState('saving');
+    adminPost(password, { action: 'saveOutline', group, chapters: list }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) loadContent();
+    });
+  };
+  const resetToDefault = () => {
+    if (!window.confirm('এই তালিকা সাইটের মূল (ডিফল্ট) অধ্যায়ে ফিরে যাবে। নিশ্চিত?')) return;
+    save([]);
+    const d = outlineDefaults[group];
+    if (d) setRows(d.map((c) => ({ id: c.id || c.chId, num: c.num, title: c.title, eng: c.eng })));
+  };
+  return (
+    <div className="space-y-3">
+      <p className="text-xs leading-relaxed text-slate-400">
+        <b className="text-slate-200">{label}</b> এর অধ্যায়ের তালিকা। ↑ ↓ দিয়ে সাজান, ✕ দিয়ে বাদ দিন, নিচে নতুন অধ্যায় যোগ করুন।
+        অধ্যায় বাদ দিলেও তার লেকচারের লিংক ও কুইজ Sheet এ থেকে যায়। নাম বদলালে বা জায়গা পাল্টালে লিংক ঠিক থাকে।
+      </p>
+      {rows.map((r, i) => (
+        <div key={r.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 lg:grid-cols-[7rem_2fr_2fr_auto]">
+          <input className={adminInput} placeholder="নম্বর" value={r.num} onChange={(e) => update(i, { num: e.target.value })} />
+          <input className={adminInput} placeholder="অধ্যায়ের নাম" value={r.title} onChange={(e) => update(i, { title: e.target.value })} />
+          <input className={`${adminInput} col-span-2 lg:col-span-1`} placeholder="ইংরেজি নাম / সংক্ষিপ্ত বর্ণনা (ঐচ্ছিক)" value={r.eng} onChange={(e) => update(i, { eng: e.target.value })} />
+          <div className="col-span-3 flex justify-end gap-1.5 lg:col-span-1">
+            <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="h-9 w-9 rounded-xl bg-slate-800 font-black text-white disabled:opacity-30" aria-label="ওপরে">↑</button>
+            <button type="button" onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="h-9 w-9 rounded-xl bg-slate-800 font-black text-white disabled:opacity-30" aria-label="নিচে">↓</button>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`"${r.title || 'এই অধ্যায়'}" তালিকা থেকে বাদ দেবেন?`)) {
+                  setRows((all) => all.filter((_, j) => j !== i));
+                  setState('idle');
+                }
+              }}
+              className="h-9 w-9 rounded-xl bg-slate-800 font-black text-rose-300 hover:bg-slate-700"
+              aria-label="বাদ দিন"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <button type="button" onClick={add} className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:border-slate-500">
+            + নতুন অধ্যায়
+          </button>
+          <button type="button" onClick={resetToDefault} className="rounded-xl px-3 py-2.5 text-xs font-bold text-slate-400 hover:text-white">
+            ডিফল্টে ফেরান
+          </button>
+        </div>
+        <AdminSaveButton state={state} onClick={() => save(rows.filter((r) => r.title.trim()))} label="অধ্যায়ের তালিকা Save করুন" />
       </div>
     </div>
   );
@@ -3392,9 +3512,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
-          value={{ lectures: '🎥 লেকচার', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
         />
         <button
           type="button"
@@ -3430,6 +3550,19 @@ function AdminPage() {
               onSaved={() => refreshLectures()}
             />
           ))}
+        </div>
+      )}
+
+      {tab === 'outline' && (
+        <div className="space-y-4">
+          <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className={adminInput}>
+            {catalog.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <AdminOutlineEditor group={course.id} label={course.label} password={password} />
         </div>
       )}
 
@@ -4545,8 +4678,8 @@ export default function App() {
                   code={paper.code}
                   bigTag={paper.bigTag}
                   title={paper.title}
-                  sub={paper.sub}
-                  chips={['১০টি অধ্যায়', 'প্রতি অধ্যায়ে ১০টি লেকচার']}
+                  sub={paper.sub.replace('১০টি অধ্যায়', `${toBnDigits(paper.chapters.length)}টি অধ্যায়`)}
+                  chips={[`${toBnDigits(paper.chapters.length)}টি অধ্যায়`, 'প্রতি অধ্যায়ে ১০টি লেকচার']}
                   onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
                 />
               ))}
@@ -4876,8 +5009,8 @@ export default function App() {
                   code={paper.code}
                   bigTag={paper.bigTag}
                   title={paper.title}
-                  sub={paper.sub}
-                  chips={['ধারাবাহিক ১০টি অধ্যায়']}
+                  sub={paper.sub.replace('১০টি অধ্যায়', `${toBnDigits(paper.chapters.length)}টি অধ্যায়`)}
+                  chips={[`ধারাবাহিক ${toBnDigits(paper.chapters.length)}টি অধ্যায়`]}
                   selected={hscBvPaperKey === paper.id}
                   onClick={() => {
                     setHscBvPaperKey(paper.id);
@@ -4893,7 +5026,7 @@ export default function App() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-base sm:text-lg font-extrabold text-teal-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-amber-400" />
-                {currentBvPaper.title} — ধারাবাহিক ১০টি অধ্যায়
+                {currentBvPaper.title} — ধারাবাহিক {toBnDigits(currentBvPaper.chapters.length)}টি অধ্যায়
               </h4>
             </div>
 
