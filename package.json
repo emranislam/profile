@@ -5,7 +5,8 @@
   "scripts": {
     "build:css": "tailwindcss -i src/index.css -o assets/app.css --minify",
     "build:js": "esbuild src/main.jsx --bundle --minify --format=esm --jsx=automatic --loader:.css=empty --define:process.env.NODE_ENV=\\\"production\\\" --outfile=assets/app.js",
-    "build": "npm run build:css && npm run build:js"
+    "build": "npm run build:css && npm run build:js && npm run build:pages",
+    "build:pages": "node scripts/prerender.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.460.0",

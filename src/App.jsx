@@ -2756,8 +2756,10 @@ function ResearchProfileLinks() {
   );
 }
 
-// ---------------------------------------------------------------- Page addresses (#/...)
-// Every page has its own shareable address, e.g. #/hsc-bangla/paper2/p2-ch3.
+// ---------------------------------------------------------------- Page addresses (/hsc-bangla/paper1/p1-ch1/)
+// Every page has its own real address, e.g. /hsc-bangla/paper2/p2-ch3/. The build step
+// (scripts/prerender.mjs) writes an HTML page for each one so search engines can index it.
+// Older shared links of the form /#/hsc-bangla/... still work.
 const PAGE_SLUGS = {
   'HSC Bangla Version': 'hsc-bangla',
   'HSC English Version': 'hsc-english',
@@ -2773,30 +2775,34 @@ const PAGE_SLUGS = {
 };
 const SLUG_PAGES = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([page, slug]) => [slug, page]));
 
-const navStateToHash = (st) => {
-  if (!st || st.page === 'HOME') return '#/';
+const navStateToPath = (st) => {
+  if (!st || st.page === 'HOME') return '/';
   if (st.page === 'COURSE' && st.course) {
     const c = st.course;
-    const base = `#/${PAGE_SLUGS[c.parent] || ''}`;
-    if (c.kind === 'bv') return `${base}/course/${c.id}`;
-    if (c.kind === 'bvChapter') return `${base}/${c.paperKey}/${c.chapterId}`;
-    if (c.kind === 'track') return `${base}/m${c.moduleIdx}`;
-    if (c.kind === 'trackChapter') return `${base}/m${c.moduleIdx}/c${c.chapterIdx}`;
-    if (c.kind === 'about') return `${base}/${c.role}`;
-    if (c.kind === 'private') return `${base}/${c.option}`;
-    return base;
+    const base = `/${PAGE_SLUGS[c.parent] || ''}`;
+    if (c.kind === 'bv') return `${base}/course/${c.id}/`;
+    if (c.kind === 'bvChapter') return `${base}/${c.paperKey}/${c.chapterId}/`;
+    if (c.kind === 'track' || c.kind === 'trackChapter') {
+      const track = PART3_ACADEMIC_TRACKS[c.trackId];
+      const mod = track && track.modules[c.moduleIdx];
+      if (!mod) return `${base}/`;
+      const ch = c.kind === 'trackChapter' && mod.chapters[c.chapterIdx];
+      return ch ? `${base}/${mod.id}/${ch.id}/` : `${base}/${mod.id}/`;
+    }
+    if (c.kind === 'about') return `${base}/${c.role}/`;
+    if (c.kind === 'private') return `${base}/${c.option}/`;
+    return `${base}/`;
   }
   const slug = PAGE_SLUGS[st.page];
-  if (!slug) return '#/';
+  if (!slug) return '/';
   const o = st.options || {};
-  if (o.researchCardId) return `#/${slug}/${o.researchCardId}`;
-  if (o.bvPaperKey) return `#/${slug}/${o.bvPaperKey}`;
-  return `#/${slug}`;
+  if (o.researchCardId) return `/${slug}/${o.researchCardId}/`;
+  if (o.bvPaperKey) return `/${slug}/${o.bvPaperKey}/`;
+  return `/${slug}/`;
 };
 
 // Rebuilds the navigation state (same shape openSubPage / openCourse use) from an address.
-const hashToNavState = (hash) => {
-  const parts = (hash || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+const partsToNavState = (parts) => {
   const page = SLUG_PAGES[parts[0]];
   if (!page) return { page: 'HOME' };
   const [, a, b] = parts;
@@ -2816,16 +2822,24 @@ const hashToNavState = (hash) => {
 
   const track = PART3_ACADEMIC_TRACKS[page];
   if (track) {
-    const mm = /^m(\d+)$/.exec(a);
-    const mod = mm && track.modules[Number(mm[1])];
+    // Modules and chapters are addressed by id (/hsc-english/ev-p1/ev1-ch1/); the older m0 / c3 form still works.
+    let moduleIdx = track.modules.findIndex((m) => m.id === a);
+    if (moduleIdx < 0) {
+      const mm = /^m(\d+)$/.exec(a);
+      moduleIdx = mm ? Number(mm[1]) : -1;
+    }
+    const mod = track.modules[moduleIdx];
     if (!mod) return { page };
-    const moduleIdx = Number(mm[1]);
-    const cm = b && /^c(\d+)$/.exec(b);
-    const ch = cm && mod.chapters[Number(cm[1])];
+    let chapterIdx = b ? mod.chapters.findIndex((c) => c.id === b) : -1;
+    if (chapterIdx < 0 && b) {
+      const cm = /^c(\d+)$/.exec(b);
+      chapterIdx = cm && mod.chapters[Number(cm[1])] ? Number(cm[1]) : -1;
+    }
+    const ch = chapterIdx >= 0 && mod.chapters[chapterIdx];
     if (ch) {
       return {
         page: 'COURSE',
-        course: { kind: 'trackChapter', trackId: page, parent: page, moduleIdx, chapterIdx: Number(cm[1]), title: `${ch.num} — ${ch.title}`, sub: `${mod.name} • ${ch.eng}`, icon: ch.icon, grad: mod.grad }
+        course: { kind: 'trackChapter', trackId: page, parent: page, moduleIdx, chapterIdx, title: `${ch.num} — ${ch.title}`, sub: `${mod.name} • ${ch.eng}`, icon: ch.icon, grad: mod.grad }
       };
     }
     return {
@@ -2848,9 +2862,231 @@ const hashToNavState = (hash) => {
   return { page };
 };
 
+const pathToNavState = (pathname) =>
+  partsToNavState((pathname || '').split('/').filter(Boolean).map(decodeURIComponent));
+// Older links: /#/hsc-bangla/paper1
+const hashToNavState = (hash) =>
+  partsToNavState((hash || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent));
+
+// ---------------------------------------------------------------- Page titles, descriptions and links
+// One description of every page, used for the browser tab and share previews while browsing and by
+// scripts/prerender.mjs to write the static HTML that search engines read.
+const SITE_ORIGIN = 'https://10takaschool.com';
+const HOME_TITLE = 'Emran Islam (ইমরান ইসলাম) | HSC Higher Math, Admission & Honours Math Teacher, Dhaka';
+const HOME_DESCRIPTION =
+  'ইমরান ইসলাম, গণিতের প্রভাষক, হামদর্দ পাবলিক কলেজ, ঢাকা। HSC উচ্চতর গণিত (বাংলা ও ইংলিশ ভার্সন), O/A-Level, BUET ও ভার্সিটি ভর্তি এবং B.Sc. Honours Math এর লেকচার, নোট, মডেল টেস্ট ও প্রাইভেট ব্যাচ। Emran Islam, Lecturer in Mathematics, Hamdard Public College, Dhaka.';
+
+const oneLine = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+const clipText = (s, n = 158) => {
+  const t = oneLine(s);
+  return t.length <= n ? t : `${t.slice(0, n - 1).replace(/\s+\S*$/, '')}…`;
+};
+
+const paperKeyOfChapter = (chId) => {
+  const p = Object.values(HSC_BV_PAPERS).find((x) => x.chapters.some((c) => c.id === chId));
+  return p ? p.id : null;
+};
+
+// Returns { path, title, description, heading, summary, crumbs, children, index } for a navigation
+// state (the same shape openSubPage / openCourse use), or null for an unknown page.
+const routeInfo = (st) => {
+  const path = navStateToPath(st);
+  const home = { path: '/', label: 'হোম' };
+  const make = (o) => ({ path, index: true, children: [], crumbs: [home], ...o, description: clipText(o.description || o.summary) });
+  const suffix = ' | Emran Islam';
+  const link = (nav, label) => ({ path: navStateToPath(nav), label });
+  const pageLink = (page) => link({ page }, page === 'HSC Bangla Version' ? 'HSC উচ্চতর গণিত (বাংলা ভার্সন)' : PART3_ACADEMIC_TRACKS[page] ? PART3_ACADEMIC_TRACKS[page].title : page);
+
+  if (!st || st.page === 'HOME') return make({ title: HOME_TITLE, heading: 'ইমরান ইসলাম (Emran Islam) — গণিতের প্রভাষক, ঢাকা', summary: HOME_DESCRIPTION, crumbs: [] });
+
+  if (st.page === 'COURSE' && st.course) {
+    const c = st.course;
+    const parent = c.parent;
+    const parentLink = pageLink(parent);
+    if (c.kind === 'bv') {
+      const course = SPECIAL_COURSES_WITH_BOOKS.find((x) => x.id === c.id);
+      if (!course) return null;
+      return make({
+        title: `${course.courseTitle} মাস্টার কোর্স — HSC উচ্চতর গণিত${suffix}`,
+        heading: `${course.courseTitle} (${course.courseEng})`,
+        summary: `${course.courseEng} — ${course.chaptersIncluded}। ${course.liveSchedule}। কোর্স ফি ${course.priceBdt}। বই: ${course.bookTitle}।`,
+        crumbs: [home, parentLink],
+        children: course.syllabusChapters.map((ch) => {
+          const pk = paperKeyOfChapter(ch.chId);
+          return pk ? link({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: pk, chapterId: ch.chId, parent } }, `${ch.paper} ${ch.num}: ${ch.title}`) : null;
+        }).filter(Boolean)
+      });
+    }
+    if (c.kind === 'bvChapter') {
+      const paper = HSC_BV_PAPERS[c.paperKey];
+      const ch = paper && paper.chapters.find((x) => x.id === c.chapterId);
+      if (!ch) return null;
+      return make({
+        title: `${ch.title} (${ch.eng}) — ${paper.title} ${ch.num}${suffix}`,
+        heading: `${paper.title} — ${ch.num}: ${ch.title}`,
+        summary: `${paper.title}, ${ch.num} "${ch.title}" (${ch.eng}): ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি, পরের লেকচার মাত্র ৳৩০।`,
+        description: `${paper.title} ${ch.num}: ${ch.title} (${ch.eng}) — ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি।`,
+        crumbs: [home, parentLink, link({ page: parent, options: { bvPaperKey: paper.id } }, paper.title)]
+      });
+    }
+    if (c.kind === 'track' || c.kind === 'trackChapter') {
+      const track = PART3_ACADEMIC_TRACKS[c.trackId];
+      const mod = track && track.modules[c.moduleIdx];
+      if (!mod) return null;
+      const modLink = link({ page: 'COURSE', course: { kind: 'track', trackId: c.trackId, moduleIdx: c.moduleIdx, parent } }, mod.name);
+      if (c.kind === 'track') {
+        return make({
+          title: `${mod.name} — ${track.id}${suffix}`,
+          heading: mod.name,
+          summary: `${mod.name}: ${mod.sub}. অধ্যায়: ${mod.chapters.map((x) => x.title).join(', ')}।`,
+          crumbs: [home, parentLink],
+          children: mod.chapters.map((ch, i) => link({ page: 'COURSE', course: { kind: 'trackChapter', trackId: c.trackId, moduleIdx: c.moduleIdx, chapterIdx: i, parent } }, `${ch.num} — ${ch.title}`))
+        });
+      }
+      const ch = mod.chapters[c.chapterIdx];
+      if (!ch) return null;
+      return make({
+        title: `${ch.title} (${ch.eng}) — ${mod.name}${suffix}`,
+        heading: `${mod.name} — ${ch.num}: ${ch.title}`,
+        summary: `${ch.title}: ${ch.eng}. ${mod.name} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
+        description: `${ch.title} (${ch.eng}) — ${mod.name}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
+        crumbs: [home, parentLink, modLink]
+      });
+    }
+    if (c.kind === 'about') {
+      const r = ABOUT_ROLES.find((x) => x.key === c.role);
+      if (!r) return null;
+      return make({ title: `${r.title} — Emran Islam, Lecturer in Mathematics${suffix.replace(' | Emran Islam', '')}`, heading: `${r.title} — Emran Islam`, summary: r.text, crumbs: [home, link({ page: 'About Me' }, 'About Me')] });
+    }
+    if (c.kind === 'private') {
+      const o = PRIVATE_OPTIONS.find((x) => x.key === c.option);
+      if (!o) return null;
+      return make({ title: `${o.title} — Online ও Offline, ঢাকা${suffix}`, heading: o.title, summary: o.sub, crumbs: [home, link({ page: 'Private Batch' }, 'প্রাইভেট ব্যাচ')] });
+    }
+    return null;
+  }
+
+  const page = st.page;
+  const o = st.options || {};
+  if (page === 'HSC Bangla Version') {
+    if (o.bvPaperKey) {
+      const paper = HSC_BV_PAPERS[o.bvPaperKey];
+      if (!paper) return null;
+      return make({
+        title: `${paper.title} — সব অধ্যায়, লেকচার ও সেলফ টেস্ট${suffix}`,
+        heading: paper.title,
+        summary: `${paper.title}: ${paper.chapters.map((c) => c.title).join(', ')}। প্রতিটি অধ্যায়ে ধারাবাহিক লেকচার, সেলফ টেস্ট ও MCQ কুইজ।`,
+        crumbs: [home, pageLink(page)],
+        children: paper.chapters.map((ch) => link({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: paper.id, chapterId: ch.id, parent: page } }, `${ch.num}: ${ch.title}`))
+      });
+    }
+    return make({
+      title: `HSC উচ্চতর গণিত (বাংলা ভার্সন) — ১ম ও ২য় পত্র, স্পেশাল কোর্স${suffix}`,
+      heading: 'HSC উচ্চতর গণিত — বাংলা ভার্সন',
+      summary: `HSC উচ্চতর গণিত ১ম ও ২য় পত্রের সব অধ্যায় লেকচার, সেলফ টেস্ট ও MCQ কুইজসহ। স্পেশাল কোর্স: ${SPECIAL_COURSES_WITH_BOOKS.map((c) => c.courseTitle).join(', ')}। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি।`,
+      children: [
+        ...Object.values(HSC_BV_PAPERS).map((p) => link({ page, options: { bvPaperKey: p.id } }, p.title)),
+        ...SPECIAL_COURSES_WITH_BOOKS.map((c) => link({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page } }, `${c.courseTitle} মাস্টার কোর্স`))
+      ]
+    });
+  }
+  const track = PART3_ACADEMIC_TRACKS[page];
+  if (track) {
+    return make({
+      title: `${track.title}${suffix}`,
+      heading: track.title,
+      summary: `${track.subtitle} ${track.modules.map((m) => m.name).join('; ')}।`,
+      children: track.modules.map((m, i) => link({ page: 'COURSE', course: { kind: 'track', trackId: page, moduleIdx: i, parent: page } }, m.name))
+    });
+  }
+  if (page === 'Research & Papers') {
+    if (o.researchCardId) {
+      const card = RESEARCH_SHOWCASE_CARDS.find((x) => x.id === o.researchCardId);
+      if (!card) return null;
+      return make({ title: `${card.title} — Research${suffix}`, heading: card.title, summary: card.sub, crumbs: [home, link({ page }, 'Research & Papers')] });
+    }
+    return make({
+      title: `Research, Papers & Thesis Consultation — Emran Islam${suffix.replace(' | Emran Islam', '')}`,
+      heading: 'Research & Papers',
+      summary: 'Optimization, computational mathematics and scientific machine learning: research, papers, books, datasets and thesis consultation by Emran Islam.',
+      children: RESEARCH_SHOWCASE_CARDS.map((c) => link({ page, options: { researchCardId: c.id } }, c.title))
+    });
+  }
+  if (page === 'About Me') {
+    return make({
+      title: `About Emran Islam — Teacher, Researcher & Author${suffix.replace(' | Emran Islam', '')}`,
+      heading: 'About Emran Islam',
+      summary: 'ইমরান ইসলাম: গণিতের শিক্ষক, গবেষক ও লেখক। Lecturer in Mathematics, Hamdard Public College, Dhaka; M.Sc. and B.Sc. (Hons) from Jahangirnagar University.',
+      children: ABOUT_ROLES.map((r) => link({ page: 'COURSE', course: { kind: 'about', role: r.key, parent: page } }, r.title))
+    });
+  }
+  if (page === 'Private Batch') {
+    return make({
+      title: `প্রাইভেট ব্যাচ ও ১-টু-১ সেশন (Online / Offline), ঢাকা${suffix}`,
+      heading: 'প্রাইভেট ব্যাচ ও ১-টু-১ সেশন',
+      summary: PRIVATE_OPTIONS.map((x) => `${x.title}: ${x.sub}`).join(' '),
+      children: PRIVATE_OPTIONS.map((x) => link({ page: 'COURSE', course: { kind: 'private', option: x.key, parent: page } }, x.title))
+    });
+  }
+  if (page === 'Class Routine') {
+    return make({ title: `সাপ্তাহিক ক্লাস রুটিন${suffix}`, heading: 'সাপ্তাহিক ক্লাস রুটিন', summary: 'সব লাইভ ও অফলাইন ক্লাসের সাপ্তাহিক রুটিন এক জায়গায়। HSC, O/A-Level, ভর্তি প্রস্তুতি ও অনার্স গণিত।' });
+  }
+  if (page === 'Live Exam') {
+    return make({ title: `লাইভ এক্সাম — প্রতিটি মাত্র ৳১০${suffix}`, heading: 'লাইভ এক্সাম', summary: 'টাইমারসহ MCQ পরীক্ষা দিন, সাথে সাথে স্কোর, সঠিক উত্তর, ব্যাখ্যা ও র‍্যাঙ্কিং দেখুন। প্রতিটি পরীক্ষা মাত্র ৳১০।' });
+  }
+  if (page === 'Admin') {
+    return make({ title: `Admin${suffix}`, heading: 'Admin', summary: 'Control panel', index: false });
+  }
+  return null;
+}
+
+// Every page of the site, for the static pages and the sitemap.
+const listRoutes = () => {
+  const sts = [{ page: 'HOME' }];
+  Object.keys(PAGE_SLUGS).forEach((page) => sts.push({ page }));
+  Object.values(HSC_BV_PAPERS).forEach((p) => {
+    sts.push({ page: 'HSC Bangla Version', options: { bvPaperKey: p.id } });
+    p.chapters.forEach((ch) => sts.push({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: p.id, chapterId: ch.id, parent: 'HSC Bangla Version' } }));
+  });
+  SPECIAL_COURSES_WITH_BOOKS.forEach((c) => sts.push({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'HSC Bangla Version' } }));
+  Object.values(PART3_ACADEMIC_TRACKS).forEach((t) =>
+    t.modules.forEach((m, mi) => {
+      sts.push({ page: 'COURSE', course: { kind: 'track', trackId: t.id, moduleIdx: mi, parent: t.id } });
+      m.chapters.forEach((_, ci) => sts.push({ page: 'COURSE', course: { kind: 'trackChapter', trackId: t.id, moduleIdx: mi, chapterIdx: ci, parent: t.id } }));
+    })
+  );
+  ABOUT_ROLES.forEach((r) => sts.push({ page: 'COURSE', course: { kind: 'about', role: r.key, parent: 'About Me' } }));
+  PRIVATE_OPTIONS.forEach((o) => sts.push({ page: 'COURSE', course: { kind: 'private', option: o.key, parent: 'Private Batch' } }));
+  RESEARCH_SHOWCASE_CARDS.forEach((c) => sts.push({ page: 'Research & Papers', options: { researchCardId: c.id } }));
+  return sts.map(routeInfo).filter(Boolean);
+};
+
+// Keeps the tab title and the description / share tags in step with the open page.
+const setHeadTag = (selector, create, attr, value) => {
+  let el = document.head.querySelector(selector);
+  if (!el) {
+    el = document.createElement(create.tag);
+    Object.entries(create.attrs).forEach(([k, v]) => el.setAttribute(k, v));
+    document.head.appendChild(el);
+  }
+  el.setAttribute(attr, value);
+};
+const applyHeadMeta = (info) => {
+  if (!info) return;
+  document.title = info.title;
+  setHeadTag('meta[name="description"]', { tag: 'meta', attrs: { name: 'description' } }, 'content', info.description);
+  setHeadTag('link[rel="canonical"]', { tag: 'link', attrs: { rel: 'canonical' } }, 'href', SITE_ORIGIN + info.path);
+  setHeadTag('meta[property="og:title"]', { tag: 'meta', attrs: { property: 'og:title' } }, 'content', info.title);
+  setHeadTag('meta[property="og:description"]', { tag: 'meta', attrs: { property: 'og:description' } }, 'content', info.description);
+  setHeadTag('meta[property="og:url"]', { tag: 'meta', attrs: { property: 'og:url' } }, 'content', SITE_ORIGIN + info.path);
+  setHeadTag('meta[name="robots"]', { tag: 'meta', attrs: { name: 'robots' } }, 'content', info.index ? 'index, follow, max-image-preview:large' : 'noindex, nofollow');
+};
+
+export { routeInfo, listRoutes, SITE_ORIGIN };
+
 // ---------------------------------------------------------------- Content from the admin Google Sheet
 // With SITE_LINKS.contentApi set (the Apps Script web app URL, see docs/ADMIN.md), lecture links,
-// quizzes and private slots come from the sheet and can be edited on the #/admin page.
+// quizzes and private slots come from the sheet and can be edited on the /admin/ page.
 let contentCache = null;
 
 // Chapter lists the admin page can rearrange: group id -> the site's own chapter array.
@@ -4707,13 +4943,13 @@ export default function App() {
   // With `replace`, swap the current entry instead (used for previous/next chapter).
   const pushNavState = (navState, replace = false) => {
     const current = window.history.state || { page: 'HOME', depth: 0 };
-    const hash = navStateToHash(navState);
+    const path = navStateToPath(navState);
     if (replace) {
-      window.history.replaceState({ ...navState, depth: current.depth || 0 }, '', hash);
+      window.history.replaceState({ ...navState, depth: current.depth || 0 }, '', path);
       return;
     }
     window.history.replaceState({ ...current, scrollY: window.scrollY }, '');
-    window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '', hash);
+    window.history.pushState({ ...navState, depth: (current.depth || 0) + 1 }, '', path);
   };
 
   const openSubPage = (trackId, options = {}) => {
@@ -4740,9 +4976,11 @@ export default function App() {
 
   useEffect(() => {
     // Open the page named in the address (a shared link or a reload), else keep this entry's state.
-    const fromHash = hashToNavState(window.location.hash);
-    const initial = window.history.state && window.history.state.page ? window.history.state : { ...fromHash, depth: 0 };
-    window.history.replaceState(initial, '', navStateToHash(initial));
+    const legacy = /^#\//.test(window.location.hash);
+    const fromAddress = legacy ? hashToNavState(window.location.hash) : pathToNavState(window.location.pathname);
+    const initial = !legacy && window.history.state && window.history.state.page ? window.history.state : { ...fromAddress, depth: 0 };
+    // An old #/ link moves to its real address; a real address is left exactly as typed.
+    window.history.replaceState(initial, '', legacy ? navStateToPath(initial) : window.location.pathname + window.location.search);
     if (initial.page !== 'HOME') {
       applyNavState(initial);
       window.requestAnimationFrame(() =>
@@ -4754,7 +4992,7 @@ export default function App() {
     }
     const onPopState = (e) => {
       // A hand-edited address arrives without state; rebuild it from the hash.
-      const st = e.state || { ...hashToNavState(window.location.hash), depth: 0 };
+      const st = e.state || { ...pathToNavState(window.location.pathname), depth: 0 };
       if (!e.state) window.history.replaceState(st, '');
       applyNavState(st);
       const y = st.scrollY || 0;
@@ -4774,8 +5012,11 @@ export default function App() {
 
   // Browser tab title follows the page.
   useEffect(() => {
-    const label = isCourseView ? `${activeCourse.title} • ${activeCourse.parent}` : activeSubPage === 'HOME' ? '' : activeSubPage;
-    document.title = label ? `${label} | Emran Islam` : 'Emran Islam (ইমরান ইসলাম) | HSC Higher Math, Admission & Honours Math Teacher, Dhaka';
+    // Only a real page address gets the page's tags; any other address (a chapter added in the admin,
+    // a mistyped link) keeps the page it was served with and only gets a tab title.
+    const info = routeInfo(pathToNavState(window.location.pathname));
+    if (info && info.path === window.location.pathname) applyHeadMeta(info);
+    else document.title = activeSubPage === 'HOME' ? HOME_TITLE : `${isCourseView ? activeCourse.title : activeSubPage} | Emran Islam`;
   }, [activeSubPage, activeCourse, isCourseView]);
 
   const openBvChapter = (paper, ch, replace = false) =>
@@ -5455,7 +5696,7 @@ export default function App() {
       )}
 
       {/* VIEW: CLASS ROUTINE */}
-      {/* VIEW: ADMIN PANEL (#/admin, not in the menu) */}
+      {/* VIEW: ADMIN PANEL (/admin/, not in the menu) */}
       {activeSubPage === 'Admin' && <AdminPage />}
 
       {activeSubPage === 'Class Routine' && <ClassRoutinePage onAsk={() => askQuestion([['বিষয়', 'ক্লাস রুটিন']])} />}
