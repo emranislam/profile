@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   BookOpen,
   Video,
@@ -2768,6 +2768,7 @@ const PAGE_SLUGS = {
   'About Me': 'about',
   'Private Batch': 'private',
   'Class Routine': 'routine',
+  'Live Exam': 'exams',
   Admin: 'admin'
 };
 const SLUG_PAGES = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([page, slug]) => [slug, page]));
@@ -2888,7 +2889,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, outline: {}, ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, outline: {}, exams: [], ...data };
       applyOutline(contentCache.outline);
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
@@ -3512,9 +3513,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
         />
         <button
           type="button"
@@ -3572,6 +3573,8 @@ function AdminPage() {
           <AdminQuizEditor key={chapter.quizKey} quizKey={chapter.quizKey} saved={(content.quiz && content.quiz[chapter.quizKey]) || []} password={password} />
         </div>
       )}
+
+      {tab === 'exams' && <AdminExamsTab password={password} />}
 
       {tab === 'slots' && <AdminSlotsEditor saved={content.slots || []} password={password} />}
 
@@ -3681,6 +3684,525 @@ const UNLOCK_ERRORS = {
   'too-many': 'অনেকবার ভুল চেষ্টা হয়েছে। এক ঘণ্টা পরে আবার চেষ্টা করুন বা WhatsApp এ জানান।',
   network: 'সংযোগে সমস্যা হচ্ছে। ইন্টারনেট দেখে আবার চেষ্টা করুন।'
 };
+
+// ---------------------------------------------------------------- Live exams
+// Paid MCQ exams (৳ price set on the admin page). Questions come from the script only after the
+// payment is verified, and the script grades the answers, so nothing here can reveal the key early.
+const EXAM_GRANTS_KEY = 'examGrants';
+const readExamGrants = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(EXAM_GRANTS_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+};
+const saveExamGrant = (g) => {
+  try {
+    localStorage.setItem(EXAM_GRANTS_KEY, JSON.stringify([...readExamGrants().filter((x) => x.examId !== g.examId), g]));
+  } catch {
+    // Storage unavailable; the student can resume with the same Transaction ID and number.
+  }
+};
+const readExamAnswers = (examId, trx) => {
+  try {
+    const a = JSON.parse(localStorage.getItem(`examAns:${examId}:${trx}`) || '[]');
+    return Array.isArray(a) ? a : [];
+  } catch {
+    return [];
+  }
+};
+const writeExamAnswers = (examId, trx, answers) => {
+  try {
+    localStorage.setItem(`examAns:${examId}:${trx}`, JSON.stringify(answers));
+  } catch {
+    // Answers are still kept on screen.
+  }
+};
+const mmss = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+const EXAM_ERRORS = {
+  ...UNLOCK_ERRORS,
+  'no-exam': 'এই পরীক্ষাটি এখন পাওয়া যাচ্ছে না।',
+  'not-allowed': 'পেমেন্ট যাচাই করা যায়নি। Transaction ID আর নম্বর আবার দিয়ে শুরু করুন।',
+  'not-started': 'পরীক্ষা শুরু করা হয়নি।'
+};
+const examInput =
+  'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
+
+function ExamResultView({ result, onClose }) {
+  const pct = result.total ? Math.round((result.score / result.total) * 100) : 0;
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-center">
+        <div className="text-xs font-bold text-emerald-300">{result.title}</div>
+        <div className="mt-1 text-5xl font-black text-white">
+          {toBnDigits(result.score)}<span className="text-2xl text-slate-400"> / {toBnDigits(result.total)}</span>
+        </div>
+        <div className="mt-1 text-sm text-slate-300">{toBnDigits(pct)}% • সময় লেগেছে {mmss(result.seconds)}</div>
+        {result.board.rank ? (
+          <div className="mt-3 inline-block rounded-full bg-amber-400 px-4 py-1.5 text-sm font-extrabold text-slate-950">
+            আপনার অবস্থান: {toBnDigits(result.board.rank)} ({toBnDigits(result.board.count)} জনের মধ্যে)
+          </div>
+        ) : (
+          <div className="mt-3 text-xs text-amber-200">সময়ের পরে জমা দেওয়ায় এই ফল র‍্যাঙ্কিংয়ে ধরা হয়নি।</div>
+        )}
+      </div>
+
+      {result.board.top.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-extrabold text-white">🏆 র‍্যাঙ্কিং</h4>
+          <div className="overflow-hidden rounded-2xl border border-slate-800">
+            {result.board.top.map((x) => (
+              <div key={x.rank} className={`flex items-center gap-3 px-4 py-2.5 text-sm ${x.me ? 'bg-amber-400/15' : 'odd:bg-slate-900/60'}`}>
+                <span className="w-8 font-black text-amber-300">{toBnDigits(x.rank)}</span>
+                <span className="flex-1 truncate font-bold text-white">{x.name}{x.me ? ' (আপনি)' : ''}</span>
+                <span className="font-bold text-emerald-300">{toBnDigits(x.score)}/{toBnDigits(x.total)}</span>
+                <span className="w-14 text-right font-mono text-[11px] text-slate-400">{mmss(x.seconds)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-extrabold text-white">উত্তর ও ব্যাখ্যা</h4>
+        {result.review.map((q, i) => (
+          <div key={i} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <div className="text-sm font-bold text-white">{toBnDigits(i + 1)}. {q.q}</div>
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              {q.options.map((o, oi) => (
+                <div
+                  key={oi}
+                  className={`rounded-xl border px-3 py-2 text-xs ${
+                    oi === q.answer
+                      ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-200'
+                      : oi === q.yours
+                      ? 'border-rose-400/60 bg-rose-500/15 text-rose-200'
+                      : 'border-slate-800 text-slate-300'
+                  }`}
+                >
+                  {['ক', 'খ', 'গ', 'ঘ'][oi]}) {o}
+                  {oi === q.answer && ' ✓'}
+                  {oi === q.yours && oi !== q.answer && ' ✗ (আপনার উত্তর)'}
+                </div>
+              ))}
+            </div>
+            {q.yours === -1 && <div className="text-[11px] text-amber-300">উত্তর দেননি</div>}
+            {q.explain && <div className="rounded-xl bg-slate-950 p-3 text-xs leading-relaxed text-slate-300">💡 {q.explain}</div>}
+          </div>
+        ))}
+      </div>
+      <button onClick={onClose} className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-700">
+        বন্ধ করুন
+      </button>
+    </div>
+  );
+}
+
+function ExamRunner({ exam, run, creds, onDone }) {
+  const [answers, setAnswers] = useState(() => {
+    const a = readExamAnswers(exam.id, creds.trx);
+    return run.questions.map((_, i) => (Number.isInteger(a[i]) ? a[i] : -1));
+  });
+  const [cur, setCur] = useState(0);
+  const [left, setLeft] = useState(() => Math.max(0, Math.round((run.deadline - (Date.now() + run.offset)) / 1000)));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const answersRef = useRef(answers);
+  answersRef.current = answers;
+  const doneRef = useRef(false);
+
+  const submit = (auto = false) => {
+    if (doneRef.current) return;
+    const unanswered = answersRef.current.filter((a) => a < 0).length;
+    if (!auto && unanswered > 0 && !window.confirm(`${toBnDigits(unanswered)}টি প্রশ্নের উত্তর দেওয়া হয়নি। তবু জমা দেবেন?`)) return;
+    setBusy(true);
+    setError('');
+    postPublic({ action: 'examSubmit', examId: exam.id, trxId: creds.trx, phone: creds.phone, answers: answersRef.current }).then((r) => {
+      setBusy(false);
+      if (!r.ok) {
+        setError(EXAM_ERRORS[r.error] || 'জমা দেওয়া যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন, উত্তরগুলো সংরক্ষিত আছে।');
+        return;
+      }
+      doneRef.current = true;
+      onDone(r);
+    });
+  };
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLeft(Math.max(0, Math.round((run.deadline - (Date.now() + run.offset)) / 1000)));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [run]);
+  useEffect(() => {
+    if (left === 0 && !busy && !error) submit(true);
+  }, [left]);
+
+  const pick = (oi) => {
+    const next = answers.map((a, i) => (i === cur ? oi : a));
+    setAnswers(next);
+    writeExamAnswers(exam.id, creds.trx, next);
+  };
+  const q = run.questions[cur];
+  const answered = answers.filter((a) => a >= 0).length;
+  return (
+    <div className="space-y-5">
+      <div className="sticky top-0 z-10 -mx-1 flex items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-900/95 px-4 py-3 backdrop-blur">
+        <div className="min-w-0 truncate text-xs font-bold text-slate-300">{exam.title}</div>
+        <div className={`rounded-xl px-3 py-1.5 font-mono text-lg font-black ${left <= 60 ? 'bg-rose-500 text-white' : 'bg-slate-800 text-amber-300'}`}>
+          ⏱ {mmss(left)}
+        </div>
+      </div>
+      <div className="text-xs text-slate-400">
+        প্রশ্ন {toBnDigits(cur + 1)} / {toBnDigits(run.questions.length)} • উত্তর দেওয়া হয়েছে {toBnDigits(answered)}টি
+      </div>
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+        <div className="text-base font-bold leading-relaxed text-white">{q.q}</div>
+        <div className="space-y-2">
+          {q.options.map((o, oi) => (
+            <button
+              key={oi}
+              type="button"
+              onClick={() => pick(oi)}
+              className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
+                answers[cur] === oi ? 'border-amber-300 bg-amber-400/15 text-white' : 'border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500'
+              }`}
+            >
+              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${answers[cur] === oi ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+                {['ক', 'খ', 'গ', 'ঘ'][oi]}
+              </span>
+              <span>{o}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <button disabled={cur === 0} onClick={() => setCur(cur - 1)} className="rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-40">
+          ← আগের
+        </button>
+        {cur < run.questions.length - 1 ? (
+          <button onClick={() => setCur(cur + 1)} className="rounded-xl bg-slate-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-600">
+            পরের →
+          </button>
+        ) : (
+          <button onClick={() => submit(false)} disabled={busy} className="rounded-xl bg-emerald-400 px-5 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-emerald-300 disabled:opacity-60">
+            {busy ? 'জমা হচ্ছে…' : 'জমা দিন ✓'}
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {run.questions.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCur(i)}
+            aria-label={`প্রশ্ন ${i + 1}`}
+            className={`h-8 w-8 rounded-lg text-[11px] font-bold ${
+              i === cur ? 'bg-amber-400 text-slate-950' : answers[i] >= 0 ? 'bg-emerald-500/30 text-emerald-200' : 'bg-slate-800 text-slate-400'
+            }`}
+          >
+            {toBnDigits(i + 1)}
+          </button>
+        ))}
+      </div>
+      {error && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs text-rose-200">{error}</div>}
+      {cur < run.questions.length - 1 && (
+        <button onClick={() => submit(false)} disabled={busy} className="text-xs font-bold text-slate-400 hover:text-white">
+          এখনই জমা দিন
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ExamFlow({ exam, onClose }) {
+  const saved = readExamGrants().find((g) => g.examId === exam.id);
+  const [stage, setStage] = useState(saved ? 'loading' : 'pay'); // pay | loading | run | result
+  const [method, setMethod] = useState('bKash');
+  const [form, setForm] = useState({ trx: saved ? saved.trx : '', phone: saved ? saved.phone : '', name: saved ? saved.name : '' });
+  const [error, setError] = useState('');
+  const [run, setRun] = useState(null);
+  const [result, setResult] = useState(null);
+  const trxClean = form.trx.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const phone10 = form.phone.replace(/\D/g, '').slice(-10);
+  const valid = trxClean.length >= 6 && phone10.length >= 10 && form.name.trim().length >= 2;
+
+  const start = (c) => {
+    setStage('loading');
+    setError('');
+    postPublic({ action: 'examStart', examId: exam.id, trxId: c.trx, phone: c.phone, name: c.name }).then((r) => {
+      if (!r.ok) {
+        setStage('pay');
+        setError(EXAM_ERRORS[r.error] || 'পরীক্ষা শুরু করা যায়নি। WhatsApp এ যোগাযোগ করুন।');
+        return;
+      }
+      saveExamGrant({ examId: exam.id, trx: c.trx, phone: c.phone, name: c.name });
+      if (r.finished) {
+        setResult(r);
+        setStage('result');
+      } else {
+        setRun({ ...r, offset: r.now - Date.now() });
+        setStage('run');
+      }
+    });
+  };
+  useEffect(() => {
+    if (saved) start(saved);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 p-3 backdrop-blur-sm sm:p-6">
+      <div className="relative mx-auto w-full max-w-2xl space-y-5 rounded-3xl border border-amber-400/40 bg-slate-900 p-5 text-white shadow-2xl sm:p-7">
+        {stage !== 'run' && (
+          <button onClick={onClose} aria-label="বন্ধ করুন" className="absolute right-4 top-4 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+        {stage === 'pay' && (
+          <>
+            <div>
+              <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">লাইভ এক্সাম</span>
+              <h3 className="mt-1.5 pr-8 text-xl font-extrabold">{exam.title}</h3>
+              <p className="mt-1 text-sm text-slate-300">
+                {toBnDigits(exam.count)}টি MCQ • {toBnDigits(exam.minutes)} মিনিট • ফি: <b className="text-amber-300">৳{toBnDigits(exam.price)}</b>
+              </p>
+            </div>
+            <ol className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm">
+              <li className="space-y-2">
+                <div className="font-bold text-white">১. নিচের নম্বরে ৳{toBnDigits(exam.price)} Send Money করুন</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.keys(PAYMENT_NUMBERS).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setMethod(m)}
+                      className={`rounded-xl border py-2 text-xs font-extrabold transition ${method === m ? 'border-amber-300 bg-amber-400 text-slate-950' : 'border-slate-700 bg-slate-800 text-slate-300'}`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center font-mono text-lg font-black text-amber-300">{PAYMENT_NUMBERS[method]}</div>
+              </li>
+              <li className="font-bold text-white">২. নিচে নাম, Transaction ID আর আপনার নম্বর লিখে শুরু করুন</li>
+            </ol>
+            <input className={examInput} placeholder="আপনার নাম (র‍্যাঙ্কিংয়ে দেখাবে)" maxLength={30} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <input className={`${examInput} font-mono tracking-wider`} placeholder="Transaction ID (যেমন 9K4M2P7XQA)" value={form.trx} autoCapitalize="characters" onChange={(e) => setForm({ ...form, trx: e.target.value })} />
+            <input className={examInput} placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            {error && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-200">{error}</div>}
+            <div className="rounded-xl bg-slate-950 p-3 text-[11px] leading-relaxed text-slate-400">
+              শুরু করার পর টাইমার চলবে এবং একবারই দেওয়া যাবে। ব্রাউজার বন্ধ হলেও একই Transaction ID আর নম্বর দিয়ে সময় থাকতে ফিরে আসা যাবে।
+            </div>
+            <button
+              disabled={!valid}
+              onClick={() => start({ trx: trxClean, phone: phone10, name: form.name.trim() })}
+              className="w-full rounded-xl bg-amber-400 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-300 disabled:opacity-40"
+            >
+              পরীক্ষা শুরু করুন
+            </button>
+          </>
+        )}
+        {stage === 'loading' && <div className="py-10 text-center text-sm text-slate-300">লোড হচ্ছে…</div>}
+        {stage === 'run' && run && (
+          <ExamRunner
+            exam={exam}
+            run={run}
+            creds={{ trx: trxClean || saved.trx, phone: phone10 || saved.phone }}
+            onDone={(r) => {
+              setResult(r);
+              setStage('result');
+            }}
+          />
+        )}
+        {stage === 'result' && result && <ExamResultView result={result} onClose={onClose} />}
+      </div>
+    </div>
+  );
+}
+
+function ExamsPage({ onAsk }) {
+  const content = useContent();
+  const [open, setOpen] = useState(null);
+  const exams = (content && content.exams) || [];
+  const grants = readExamGrants();
+  return (
+    <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <PrivateHero
+        badge="LIVE EXAM"
+        title="লাইভ এক্সাম — প্রতিটি মাত্র ৳১০"
+        sub="টাইমারসহ MCQ পরীক্ষা দিন, সাথে সাথে স্কোর, সঠিক উত্তর ও ব্যাখ্যা আর র‍্যাঙ্কিং দেখুন।"
+        grad="from-rose-500 via-orange-500 to-amber-500"
+        icon="📝"
+      />
+      {!content ? (
+        <div className="text-sm text-slate-400">লোড হচ্ছে…</div>
+      ) : exams.length === 0 ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm text-slate-300">
+          এখন কোনো পরীক্ষা চালু নেই। নতুন পরীক্ষার খবর পেতে WhatsApp এ জানান।
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {exams.map((e) => {
+            const mine = grants.some((g) => g.examId === e.id);
+            return (
+              <div key={e.id} className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+                <div className="space-y-1.5">
+                  {e.subject && <span className="rounded-full bg-rose-500/20 px-2.5 py-0.5 text-[11px] font-bold text-rose-300">{e.subject}</span>}
+                  <h3 className="text-lg font-extrabold leading-snug text-white">{e.title}</h3>
+                  <p className="text-xs text-slate-400">
+                    {toBnDigits(e.count)}টি MCQ • {toBnDigits(e.minutes)} মিনিট
+                  </p>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xl font-black text-amber-300">৳{toBnDigits(e.price)}</span>
+                  <button onClick={() => setOpen(e)} className="rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+                    {mine ? 'চালিয়ে যান / ফলাফল' : 'পরীক্ষা দিন'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="text-sm text-slate-300">পরীক্ষা নিয়ে কোনো প্রশ্ন আছে?</div>
+        <button onClick={onAsk} className="rounded-xl bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+          প্রশ্ন করুন
+        </button>
+      </div>
+      {open && <ExamFlow key={open.id} exam={open} onClose={() => setOpen(null)} />}
+    </main>
+  );
+}
+
+// Admin: create, edit and publish exams.
+function AdminExamEditor({ exam, password, onBack }) {
+  const [form, setForm] = useState({ id: exam.id || '', title: exam.title || '', subject: exam.subject || '', minutes: exam.minutes || 30, price: exam.price || 10, status: exam.status || 'draft' });
+  const [questions, setQuestions] = useState(exam.questions && exam.questions.length ? exam.questions : [emptyQuestion()]);
+  const [state, setState] = useState('idle');
+  const [msg, setMsg] = useState('');
+  const update = (i, patch) => {
+    setQuestions((qs) => qs.map((q, j) => (j === i ? { ...q, ...patch } : q)));
+    setState('idle');
+  };
+  const setField = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+    setState('idle');
+  };
+  const complete = questions.filter((q) => q.q.trim() && q.options.every((o) => o.trim()));
+  const save = () => {
+    setState('saving');
+    setMsg('');
+    adminPost(password, { action: 'saveExam', exam: { ...form, minutes: Number(form.minutes), price: Number(form.price), questions: complete } }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) setForm((f) => ({ ...f, id: r.id }));
+      else setMsg({ 'bad-input': 'নাম, সময় (১–৩০০ মিনিট) আর ফি ঠিকঠাক দিন।', 'no-questions': 'প্রকাশ করতে অন্তত একটি পূর্ণ প্রশ্ন লাগবে।', 'unknown-action': 'Apps Script এর ভার্সন পুরনো, নতুন কোড Deploy করুন।' }[r.error] || 'Save করা যায়নি।');
+    });
+  };
+  const remove = () => {
+    if (!form.id || !window.confirm('এই পরীক্ষা ও প্রশ্নগুলো মুছে ফেলবেন?')) return;
+    adminPost(password, { action: 'deleteExam', id: form.id }).then((r) => r.ok && onBack());
+  };
+  return (
+    <div className="space-y-4">
+      <button onClick={onBack} className="text-xs font-bold text-cyan-300 hover:underline">← সব পরীক্ষা</button>
+      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 lg:grid-cols-[3fr_2fr_1fr_1fr_1.4fr]">
+        <input className={`${adminInput} col-span-2 lg:col-span-1`} placeholder="পরীক্ষার নাম" value={form.title} onChange={setField('title')} />
+        <input className={adminInput} placeholder="বিষয় (যেমন উচ্চতর গণিত)" value={form.subject} onChange={setField('subject')} />
+        <input className={adminInput} type="number" min="1" max="300" placeholder="মিনিট" value={form.minutes} onChange={setField('minutes')} />
+        <input className={adminInput} type="number" min="1" placeholder="ফি ৳" value={form.price} onChange={setField('price')} />
+        <select className={adminInput} value={form.status} onChange={setField('status')}>
+          <option value="draft">খসড়া (লুকানো)</option>
+          <option value="published">প্রকাশিত</option>
+        </select>
+      </div>
+      {questions.map((q, i) => (
+        <div key={i} className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-white">প্রশ্ন {toBnDigits(i + 1)}</span>
+            <button type="button" onClick={() => setQuestions((qs) => qs.filter((_, j) => j !== i))} className="text-xs font-bold text-rose-300 hover:underline">
+              মুছুন
+            </button>
+          </div>
+          <input className={adminInput} placeholder="প্রশ্ন" value={q.q} onChange={(e) => update(i, { q: e.target.value })} />
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {q.options.map((o, oi) => (
+              <label key={oi} className="flex items-center gap-2">
+                <input type="radio" name={`exam-ans-${i}`} checked={q.answer === oi} onChange={() => update(i, { answer: oi })} className="h-4 w-4 accent-emerald-400" />
+                <input className={adminInput} placeholder={`অপশন ${['ক', 'খ', 'গ', 'ঘ'][oi]}`} value={o} onChange={(e) => update(i, { options: q.options.map((x, xi) => (xi === oi ? e.target.value : x)) })} />
+              </label>
+            ))}
+          </div>
+          <input className={adminInput} placeholder="ব্যাখ্যা (ঐচ্ছিক)" value={q.explain} onChange={(e) => update(i, { explain: e.target.value })} />
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setQuestions((qs) => [...qs, emptyQuestion()])} className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:border-slate-500">
+            + নতুন প্রশ্ন
+          </button>
+          {form.id && (
+            <button type="button" onClick={remove} className="rounded-xl px-3 py-2.5 text-xs font-bold text-rose-300 hover:underline">
+              পরীক্ষা মুছুন
+            </button>
+          )}
+        </div>
+        <AdminSaveButton state={state} onClick={save} label={`পরীক্ষা Save করুন (${toBnDigits(complete.length)}টি প্রশ্ন)`} />
+      </div>
+      {msg && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs text-rose-200">{msg}</div>}
+    </div>
+  );
+}
+
+function AdminExamsTab({ password }) {
+  const [exams, setExams] = useState(null); // null loading, false old script
+  const [editing, setEditing] = useState(null);
+  const load = () => adminPost(password, { action: 'getExams' }).then((r) => setExams(r.ok ? r.exams : false));
+  useEffect(() => {
+    load();
+  }, []);
+  if (exams === null) return <div className="text-sm text-slate-400">লোড হচ্ছে…</div>;
+  if (exams === false) {
+    return <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-100">Apps Script এর ভার্সন পুরনো। নতুন <code>admin-apps-script.gs</code> পেস্ট করে New version Deploy করুন।</div>;
+  }
+  if (editing) {
+    return (
+      <AdminExamEditor
+        key={editing.id || 'new'}
+        exam={editing}
+        password={password}
+        onBack={() => {
+          setEditing(null);
+          setExams(null);
+          load();
+          loadContent();
+        }}
+      />
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-slate-400">প্রকাশিত পরীক্ষা সাইটের "লাইভ এক্সাম" পেজে দেখায়। প্রশ্ন ও উত্তর শুধু পেমেন্ট যাচাইয়ের পর শিক্ষার্থীর কাছে যায়।</p>
+      {exams.map((e) => (
+        <div key={e.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div>
+            <div className="text-sm font-bold text-white">{e.title}</div>
+            <div className="mt-0.5 text-[11px] text-slate-400">
+              {e.questions.length}টি প্রশ্ন • {e.minutes} মিনিট • ৳{e.price} •{' '}
+              <span className={e.status === 'published' ? 'text-emerald-300' : 'text-slate-500'}>{e.status === 'published' ? 'প্রকাশিত' : 'খসড়া'}</span>
+            </div>
+          </div>
+          <button onClick={() => setEditing(e)} className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700">
+            সম্পাদনা
+          </button>
+        </div>
+      ))}
+      <button onClick={() => setEditing({})} className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:border-slate-500">
+        + নতুন পরীক্ষা
+      </button>
+    </div>
+  );
+}
 
 // item: { scope: 'lecture' | 'course', key, title, amount (number) }
 function UnlockModal({ item, onClose, onWhatsApp }) {
@@ -4291,7 +4813,7 @@ export default function App() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {activeSubPage !== 'HOME' && (
               <button
                 onClick={() => openSubPage('HOME')}
@@ -4305,6 +4827,12 @@ export default function App() {
               className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 font-semibold border border-slate-700"
             >
               🗓️ ক্লাস রুটিন
+            </button>
+            <button
+              onClick={() => openSubPage('Live Exam')}
+              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 font-semibold border border-slate-700"
+            >
+              📝 লাইভ এক্সাম
             </button>
             <button
               onClick={() => setCvModalOpen(true)}
@@ -4508,7 +5036,8 @@ export default function App() {
                 { id: 'Research & Papers', label: 'Research' },
                 { id: 'About Me', label: 'About Me' },
                 { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' },
-                { id: 'Class Routine', label: 'ক্লাস রুটিন' }
+                { id: 'Class Routine', label: 'ক্লাস রুটিন' },
+                { id: 'Live Exam', label: 'লাইভ এক্সাম' }
               ]
                 .filter((t) => t.id !== navActive)
                 .map((t) => (
@@ -4930,6 +5459,8 @@ export default function App() {
       {activeSubPage === 'Admin' && <AdminPage />}
 
       {activeSubPage === 'Class Routine' && <ClassRoutinePage onAsk={() => askQuestion([['বিষয়', 'ক্লাস রুটিন']])} />}
+
+      {activeSubPage === 'Live Exam' && <ExamsPage onAsk={() => askQuestion([['বিষয়', 'লাইভ এক্সাম']])} />}
 
       {/* VIEW: PRIVATE BATCH HUB + OPTION PAGES */}
       {activeSubPage === 'Private Batch' && (
