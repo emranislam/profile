@@ -1,6 +1,6 @@
 # Private session slots (Google Sheet)
 
-> If the admin panel is set up (`SITE_LINKS.contentApi`, see [ADMIN.md](ADMIN.md)), manage slots on the `#/admin` page instead; this published-CSV method is only used without it.
+> If the admin panel is set up (`SITE_LINKS.contentApi`, see [ADMIN.md](ADMIN.md)), manage slots on the `/admin/` page instead; this published-CSV method is only used without it.
 
 The 1-to-1 and custom O/A-Level pages show your free weekly slots. Students can only pick slots
 marked `available`; `booked` slots show as locked, and any time you don't list stays locked.
