@@ -9,6 +9,7 @@
  *   quiz     – chapter, question, a, b, c, d, answer (1-4), explain
  *   slots    – day, time, for, mode, status
  *   payments – trxId, amount, sender, received, status, usedBy, usedFor, usedAt, raw
+ *   exams, examq, attempts – paid live MCQ exams (questions are never in the public GET)
  *
  * GET  → public content as JSON (only the free first lecture of each chapter).
  * POST → by action:
@@ -31,6 +32,9 @@ const SHEETS = {
   counts: ['chapter', 'lectures'],
   titles: ['key', 'title'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
+  exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
+  examq: ['exam', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
+  attempts: ['exam', 'trxId', 'name', 'phone', 'startedAt', 'submittedAt', 'score', 'total', 'seconds', 'answers'],
   payments: ['trxId', 'amount', 'sender', 'received', 'status', 'usedBy', 'usedFor', 'usedAt', 'raw']
 };
 
@@ -132,7 +136,7 @@ function outline_() {
 }
 
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), outline: outline_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), outline: outline_(), exams: publicExams_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -149,6 +153,188 @@ function doGet() {
     }
   });
   return json_(out);
+}
+
+// ---------------------------------------------------------------- live exams
+// MCQ exams a student pays for (৳ price set on the admin page). Questions and answers stay in the
+// sheet: 'examStart' sends the questions without answers once the payment is verified, and
+// 'examSubmit' grades on the server and then returns the answers.
+
+const EXAM_ATTEMPT = { EXAM: 0, TRX: 1, NAME: 2, PHONE: 3, STARTED: 4, SUBMITTED: 5, SCORE: 6, TOTAL: 7, SECONDS: 8, ANSWERS: 9 };
+const EXAM_GRACE_MS = 120000;
+
+function examRows_() {
+  return rows_('exams').filter((r) => r[0] && r[1]);
+}
+
+function examQuestions_(examId) {
+  return rows_('examq')
+    .filter((r) => String(r[0]) === examId && r[1])
+    .map((r) => ({
+      q: String(r[1]),
+      options: [r[2], r[3], r[4], r[5]].map(String),
+      answer: Number(r[6]) - 1,
+      explain: String(r[7] || '')
+    }));
+}
+
+function examMeta_(r, count) {
+  return { id: String(r[0]), title: String(r[1]), subject: String(r[2] || ''), minutes: Number(r[3]) || 30, price: Number(r[4]) || 10, status: String(r[5] || 'draft'), count: count };
+}
+
+function publicExams_() {
+  const counts = {};
+  rows_('examq').forEach((r) => {
+    if (r[0] && r[1]) counts[r[0]] = (counts[r[0]] || 0) + 1;
+  });
+  return examRows_()
+    .filter((r) => String(r[5]) === 'published' && counts[r[0]])
+    .map((r) => examMeta_(r, counts[r[0]]));
+}
+
+function findExam_(id) {
+  const r = examRows_().find((x) => String(x[0]) === String(id));
+  return r && String(r[5]) === 'published' ? examMeta_(r, 0) : null;
+}
+
+function findAttempt_(examId, trxId) {
+  const sh = sheet_('attempts');
+  const values = sh.getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][EXAM_ATTEMPT.EXAM]) === examId && trx_(values[i][EXAM_ATTEMPT.TRX]) === trxId) return { sh: sh, rowNum: i + 1, row: values[i] };
+  }
+  return null;
+}
+
+function toMillis_(v) {
+  return v ? new Date(v).getTime() : 0;
+}
+
+// Best first: higher score, then faster. Late submissions are not ranked.
+function examBoard_(examId) {
+  const list = [];
+  sheet_('attempts').getDataRange().getValues().forEach((r, i) => {
+    if (i === 0 || String(r[EXAM_ATTEMPT.EXAM]) !== examId || !r[EXAM_ATTEMPT.SUBMITTED] || String(r[EXAM_ATTEMPT.ANSWERS]).indexOf('late;') === 0) return;
+    list.push({ trx: trx_(r[EXAM_ATTEMPT.TRX]), name: String(r[EXAM_ATTEMPT.NAME] || 'শিক্ষার্থী'), score: Number(r[EXAM_ATTEMPT.SCORE]), total: Number(r[EXAM_ATTEMPT.TOTAL]), seconds: Number(r[EXAM_ATTEMPT.SECONDS]), at: toMillis_(r[EXAM_ATTEMPT.SUBMITTED]) });
+  });
+  list.sort((a, b) => b.score - a.score || a.seconds - b.seconds || a.at - b.at);
+  return list;
+}
+
+function boardView_(list, myTrx) {
+  const mine = myTrx ? list.findIndex((x) => x.trx === myTrx) : -1;
+  return {
+    top: list.slice(0, 20).map((x, i) => ({ rank: i + 1, name: x.name, score: x.score, total: x.total, seconds: x.seconds, me: x.trx === myTrx })),
+    rank: mine >= 0 ? mine + 1 : null,
+    count: list.length
+  };
+}
+
+// The payment must be a verified, used one for this exam and this sender number.
+function examPayment_(exam, trxId, phone) {
+  const hit = findPayment_(trxId);
+  if (!hit) return null;
+  if (String(hit.row[P.STATUS]) !== 'used') return null;
+  if (phone10_(hit.row[P.SENDER]) !== phone) return null;
+  if (String(hit.row[P.USED_FOR]) !== 'exam|' + exam.id) return null;
+  return hit;
+}
+
+function examStart_(body) {
+  const id = trx_(body.trxId);
+  const phone = phone10_(body.phone);
+  const exam = findExam_(body.examId);
+  if (!exam) return { ok: false, error: 'no-exam' };
+  if (id.length < 6 || phone.length < 10) return { ok: false, error: 'bad-input' };
+  if (throttled_(phone)) return { ok: false, error: 'too-many' };
+
+  const questions = examQuestions_(exam.id);
+  if (!questions.length) return { ok: false, error: 'no-exam' };
+  const hit = findPayment_(id);
+  if (!hit) {
+    recordFailure_(phone);
+    return { ok: false, error: 'not-found' };
+  }
+  const status = String(hit.row[P.STATUS]);
+  const usedFor = 'exam|' + exam.id;
+  if (status === 'void') return { ok: false, error: 'void' };
+  if (status === 'review') return { ok: false, error: 'review' };
+  if (phone10_(hit.row[P.SENDER]) !== phone) {
+    recordFailure_(phone);
+    return { ok: false, error: 'phone-mismatch' };
+  }
+
+  const now = Date.now();
+  let attempt = null;
+  if (status === 'used') {
+    if (String(hit.row[P.USED_FOR]) !== usedFor) return { ok: false, error: 'used' };
+    attempt = findAttempt_(exam.id, id);
+  } else {
+    const paid = Number(hit.row[P.AMOUNT]);
+    if (!(paid >= exam.price)) return { ok: false, error: 'amount-low', paid: paid, price: exam.price };
+    hit.sh.getRange(hit.rowNum, P.STATUS + 1, 1, 4).setValues([['used', phone, usedFor, new Date()]]);
+  }
+
+  let name = String(body.name || '').replace(/[\r\n]/g, ' ').trim().slice(0, 30);
+  if (!attempt) {
+    name = safe_(name || 'শিক্ষার্থী');
+    sheet_('attempts').appendRow([exam.id, id, name, '0' + phone, new Date(now), '', '', questions.length, '', '']);
+    attempt = findAttempt_(exam.id, id);
+    notify_('পরীক্ষা শুরু 📝\n' + exam.title + '\nনাম: ' + name + '\nনম্বর: 0' + phone + '\nTrxID: ' + id);
+  }
+
+  if (attempt.row[EXAM_ATTEMPT.SUBMITTED]) return Object.assign({ ok: true, finished: true }, examResult_(exam, questions, attempt));
+  const started = toMillis_(attempt.row[EXAM_ATTEMPT.STARTED]);
+  return {
+    ok: true,
+    exam: { id: exam.id, title: exam.title, minutes: exam.minutes },
+    questions: questions.map((q) => ({ q: q.q, options: q.options })),
+    now: now,
+    deadline: started + exam.minutes * 60000
+  };
+}
+
+// Grade on the server. Submitting twice returns the saved result.
+function examSubmit_(body) {
+  const id = trx_(body.trxId);
+  const phone = phone10_(body.phone);
+  const exam = findExam_(body.examId);
+  if (!exam) return { ok: false, error: 'no-exam' };
+  if (!examPayment_(exam, id, phone)) return { ok: false, error: 'not-allowed' };
+  const attempt = findAttempt_(exam.id, id);
+  if (!attempt) return { ok: false, error: 'not-started' };
+  const questions = examQuestions_(exam.id);
+  if (!attempt.row[EXAM_ATTEMPT.SUBMITTED]) {
+    const now = Date.now();
+    const started = toMillis_(attempt.row[EXAM_ATTEMPT.STARTED]);
+    const late = now > started + exam.minutes * 60000 + EXAM_GRACE_MS;
+    const given = Array.isArray(body.answers) ? body.answers : [];
+    const picked = questions.map((q, i) => {
+      const a = Number(given[i]);
+      return a >= 0 && a <= 3 ? a : -1;
+    });
+    const score = picked.reduce((n, a, i) => n + (a === questions[i].answer ? 1 : 0), 0);
+    const seconds = Math.min(Math.round((now - started) / 1000), exam.minutes * 60);
+    attempt.sh.getRange(attempt.rowNum, EXAM_ATTEMPT.SUBMITTED + 1, 1, 5).setValues([[new Date(now), score, questions.length, seconds, (late ? 'late;' : 'ok;') + picked.join(',')]]);
+    attempt.row = attempt.sh.getRange(attempt.rowNum, 1, 1, 10).getValues()[0];
+  }
+  return Object.assign({ ok: true }, examResult_(exam, questions, attempt));
+}
+
+function examResult_(exam, questions, attempt) {
+  const stored = String(attempt.row[EXAM_ATTEMPT.ANSWERS] || '');
+  const late = stored.indexOf('late;') === 0;
+  const picked = stored.replace(/^(late|ok);/, '').split(',').map((x) => (x === '' ? -1 : Number(x)));
+  const board = boardView_(examBoard_(exam.id), trx_(attempt.row[EXAM_ATTEMPT.TRX]));
+  return {
+    title: exam.title,
+    score: Number(attempt.row[EXAM_ATTEMPT.SCORE]),
+    total: Number(attempt.row[EXAM_ATTEMPT.TOTAL]),
+    seconds: Number(attempt.row[EXAM_ATTEMPT.SECONDS]),
+    late: late,
+    review: questions.map((q, i) => ({ q: q.q, options: q.options, answer: q.answer, explain: q.explain, yours: picked[i] === undefined ? -1 : picked[i] })),
+    board: board
+  };
 }
 
 // ---------------------------------------------------------------- bKash SMS
@@ -389,6 +575,51 @@ function adminAction_(body) {
     return { ok: true };
   }
 
+  if (body.action === 'getExams') {
+    return {
+      ok: true,
+      exams: examRows_().map((r) => Object.assign(examMeta_(r, 0), { questions: examQuestions_(String(r[0])) }))
+    };
+  }
+
+  if (body.action === 'saveExam') {
+    const e = body.exam || {};
+    const title = String(e.title || '').trim();
+    const minutes = Math.floor(Number(e.minutes));
+    const price = Number(e.price);
+    const questions = (Array.isArray(e.questions) ? e.questions : []).slice(0, 200);
+    const status = e.status === 'published' ? 'published' : 'draft';
+    if (!title || !(minutes >= 1 && minutes <= 300) || !(price >= 1 && price <= 5000)) return { ok: false, error: 'bad-input' };
+    const bad = questions.some((q) => !q || !String(q.q || '').trim() || !Array.isArray(q.options) || q.options.length !== 4 || q.options.some((o) => !String(o || '').trim()) || !(Number(q.answer) >= 0 && Number(q.answer) <= 3));
+    if (bad) return { ok: false, error: 'bad-question' };
+    if (status === 'published' && !questions.length) return { ok: false, error: 'no-questions' };
+    const examId = String(e.id || '').replace(/[^A-Za-z0-9_-]/g, '') || 'ex' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+
+    const sh = sheet_('exams');
+    const values = sh.getDataRange().getValues();
+    const row = [examId, safe_(title), safe_(e.subject), minutes, price, status, new Date()];
+    const i = values.findIndex((r, ix) => ix > 0 && String(r[0]) === examId);
+    if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+    else sh.appendRow(row);
+
+    const qs = sheet_('examq');
+    const all = qs.getDataRange().getValues();
+    for (let k = all.length - 1; k >= 1; k--) if (String(all[k][0]) === examId) qs.deleteRow(k + 1);
+    const rows = questions.map((q) => [examId, safe_(q.q), safe_(q.options[0]), safe_(q.options[1]), safe_(q.options[2]), safe_(q.options[3]), Number(q.answer) + 1, safe_(q.explain)]);
+    if (rows.length) qs.getRange(qs.getLastRow() + 1, 1, rows.length, 8).setValues(rows);
+    return { ok: true, id: examId };
+  }
+
+  if (body.action === 'deleteExam') {
+    const examId = String(body.id || '');
+    [['exams', 0], ['examq', 0]].forEach((pair) => {
+      const sh = sheet_(pair[0]);
+      const v = sh.getDataRange().getValues();
+      for (let k = v.length - 1; k >= 1; k--) if (String(v[k][pair[1]]) === examId) sh.deleteRow(k + 1);
+    });
+    return { ok: true };
+  }
+
   if (body.action === 'saveTitle') {
     const sh = sheet_('titles');
     const values = sh.getDataRange().getValues();
@@ -501,6 +732,9 @@ function doPost(e) {
     }
     if (body.action === 'unlock') return json_(unlock_(body));
     if (body.action === 'access') return json_(access_(body));
+    if (body.action === 'examStart') return json_(examStart_(body));
+    if (body.action === 'examSubmit') return json_(examSubmit_(body));
+    if (body.action === 'examBoard') return json_({ ok: true, board: boardView_(examBoard_(String(body.examId || '')), '') });
 
     const password = prop_('ADMIN_PASSWORD');
     if (!password || body.password !== password) return json_({ ok: false, error: 'wrong-password' });
