@@ -9,6 +9,7 @@
  *   quiz     – chapter, question, a, b, c, d, answer (1-4), explain
  *   slots    – day, time, for, mode, status
  *   payments – trxId, amount, sender, received, status, usedBy, usedFor, usedAt, raw
+ *   orders   – book orders (paid by bKash, delivered by hand; status new / delivered / cancelled)
  *   exams, examq, attempts – paid live MCQ exams (questions are never in the public GET)
  *
  * GET  → public content as JSON (only the free first lecture of each chapter).
@@ -32,6 +33,7 @@ const SHEETS = {
   counts: ['chapter', 'lectures'],
   titles: ['key', 'title'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
+  orders: ['orderedAt', 'book', 'title', 'name', 'address', 'phone', 'trxId', 'amount', 'status'],
   exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
   examq: ['exam', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
   attempts: ['exam', 'trxId', 'name', 'phone', 'startedAt', 'submittedAt', 'score', 'total', 'seconds', 'answers'],
@@ -382,6 +384,7 @@ function priceFor_(scope, key) {
   }
   if (!rules) return null;
   key = String(key || '');
+  if (scope === 'book') return rules.book && Number(rules.book[key]) > 0 ? Number(rules.book[key]) : null;
   if (scope === 'course') return rules.course && Number(rules.course[key]) > 0 ? Number(rules.course[key]) : null;
   if (scope === 'lecture') {
     if (!/-lec-\d+$/.test(key) || /-lec-1$/.test(key)) return null;
@@ -492,6 +495,56 @@ function unlock_(body) {
   return { ok: true, grants: [{ scope: scope, key: key }], links: linksFor_(scope, key) };
 }
 
+// A book order: the bKash payment is checked like an unlock, then the delivery details are saved
+// and the owner is notified. The same student can open it again with the same ID + number.
+function orderView_(row) {
+  return { title: String(row[2]), name: String(row[3]), address: String(row[4]), contact: '0' + phone10_(row[5]), amount: Number(row[7]) };
+}
+
+function order_(body) {
+  const id = trx_(body.trxId);
+  const phone = phone10_(body.phone);
+  const key = String(body.bookKey || '');
+  const name = String(body.name || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 60);
+  const address = String(body.address || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 300);
+  const contact = phone10_(body.contact);
+  if (id.length < 6 || phone.length < 10) return { ok: false, error: 'bad-input' };
+  if (name.length < 2 || address.length < 10 || contact.length < 10) return { ok: false, error: 'bad-order' };
+  if (throttled_(phone)) return { ok: false, error: 'too-many' };
+  const price = priceFor_('book', key);
+  if (!price) return { ok: false, error: 'no-price' };
+
+  const hit = findPayment_(id);
+  if (!hit) {
+    recordFailure_(phone);
+    return { ok: false, error: 'not-found' };
+  }
+  const status = String(hit.row[P.STATUS]);
+  const usedFor = 'book|' + key;
+  if (status === 'void') return { ok: false, error: 'void' };
+  if (status === 'review') return { ok: false, error: 'review' };
+  if (status === 'used') {
+    if (phone10_(hit.row[P.SENDER]) === phone && String(hit.row[P.USED_FOR]) === usedFor) {
+      const mine = rows_('orders').find((r) => trx_(r[6]) === id);
+      if (mine) return { ok: true, again: true, order: orderView_(mine) };
+    }
+    return { ok: false, error: 'used' };
+  }
+  if (phone10_(hit.row[P.SENDER]) !== phone) {
+    recordFailure_(phone);
+    return { ok: false, error: 'phone-mismatch' };
+  }
+  const paid = Number(hit.row[P.AMOUNT]);
+  if (!(paid >= price)) return { ok: false, error: 'amount-low', paid: paid, price: price };
+
+  const title = safe_(String(body.title || key).slice(0, 120));
+  hit.sh.getRange(hit.rowNum, P.STATUS + 1, 1, 4).setValues([['used', phone, usedFor, new Date()]]);
+  const row = [new Date(), safe_(key), title, safe_(name), safe_(address), '0' + contact, id, paid, 'new'];
+  sheet_('orders').appendRow(row);
+  notify_('বই অর্ডার 📦\n' + title + '\nনাম: ' + name + '\nঠিকানা: ' + address + '\nযোগাযোগ: 0' + contact + '\nTrxID: ' + id + '\nটাকা: ' + paid + ' (দাম ' + price + ')');
+  return { ok: true, order: orderView_(row) };
+}
+
 // A student's saved unlocks (kept in their browser) → what is currently unlocked, with links.
 function access_(body) {
   const grants = [];
@@ -501,7 +554,8 @@ function access_(body) {
     if (!hit || String(hit.row[P.STATUS]) !== 'used') return;
     if (phone10_(hit.row[P.SENDER]) !== phone10_(g.phone)) return;
     const parts = String(hit.row[P.USED_FOR]).split('|');
-    if (parts.length !== 2) return;
+    // Only lecture and course payments unlock links; book and exam payments never do.
+    if (parts.length !== 2 || (parts[0] !== 'lecture' && parts[0] !== 'course')) return;
     grants.push({ scope: parts[0], key: parts[1], trx: trx_(g.trx) });
     links = Object.assign(links, linksFor_(parts[0], parts[1]));
   });
@@ -572,6 +626,23 @@ function adminAction_(body) {
       .slice(0, 60)
       .map((c) => [safe_(group), safe_(String(c.id)), safe_(c.num), safe_(c.title), safe_(c.eng)]);
     if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setValues(rows);
+    return { ok: true };
+  }
+
+  if (body.action === 'listOrders') {
+    const out = [];
+    sheet_('orders').getDataRange().getValues().forEach((r, i) => {
+      if (i === 0 || !r[6]) return;
+      out.push({ row: i + 1, at: r[0] ? new Date(r[0]).toISOString() : '', book: String(r[1]), title: String(r[2]), name: String(r[3]), address: String(r[4]), phone: '0' + phone10_(r[5]), trxId: String(r[6]), amount: Number(r[7]), status: String(r[8] || 'new') });
+    });
+    return { ok: true, orders: out.reverse().slice(0, 300) };
+  }
+
+  if (body.action === 'setOrderStatus') {
+    const sh = sheet_('orders');
+    const rowNum = Number(body.row);
+    if (!(rowNum > 1 && rowNum <= sh.getLastRow()) || ['new', 'delivered', 'cancelled'].indexOf(body.status) < 0) return { ok: false, error: 'bad-input' };
+    sh.getRange(rowNum, 9).setValue(body.status);
     return { ok: true };
   }
 
@@ -657,10 +728,14 @@ function adminAction_(body) {
     const r = body.rules || {};
     const rules = {
       lecture: (r.lecture || []).filter((x) => x && x.prefix && Number(x.price) > 0).map((x) => ({ prefix: String(x.prefix), price: Number(x.price) })),
-      course: {}
+      course: {},
+      book: {}
     };
     Object.keys(r.course || {}).forEach((k) => {
       if (Number(r.course[k]) > 0) rules.course[String(k)] = Number(r.course[k]);
+    });
+    Object.keys(r.book || {}).forEach((k) => {
+      if (Number(r.book[k]) > 0) rules.book[String(k)] = Number(r.book[k]);
     });
     PropertiesService.getScriptProperties().setProperty('PRICE_RULES', JSON.stringify(rules));
     return { ok: true, lectures: rules.lecture.length, courses: Object.keys(rules.course).length };
@@ -732,6 +807,7 @@ function doPost(e) {
     }
     if (body.action === 'unlock') return json_(unlock_(body));
     if (body.action === 'access') return json_(access_(body));
+    if (body.action === 'order') return json_(order_(body));
     if (body.action === 'examStart') return json_(examStart_(body));
     if (body.action === 'examSubmit') return json_(examSubmit_(body));
     if (body.action === 'examBoard') return json_({ ok: true, board: boardView_(examBoard_(String(body.examId || '')), '') });

@@ -1038,6 +1038,10 @@ const bookOrderHref = (book) =>
     `বই অর্ডার: ${book.series ? `${book.series}: ` : ''}${book.title}`
   )}`;
 
+// Opens the book order form (rendered once by App); books without a price keep the e-mail link.
+const bookOrderListeners = new Set();
+const openBookOrder = (book) => bookOrderListeners.forEach((fn) => fn(book));
+
 function BookCover({ book, large = false }) {
   return (
     <div className="relative aspect-[3/4] w-full [perspective:900px]">
@@ -1113,12 +1117,22 @@ function BookShopCard({ book, onDetails, light = false }) {
             বিস্তারিত
           </button>
         )}
-        <a
-          href={bookOrderHref(book)}
-          className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
-        >
-          অর্ডার করুন
-        </a>
+        {book.price ? (
+          <button
+            type="button"
+            onClick={() => openBookOrder(book)}
+            className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
+          >
+            অর্ডার করুন
+          </button>
+        ) : (
+          <a
+            href={bookOrderHref(book)}
+            className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
+          >
+            অর্ডার করুন
+          </a>
+        )}
       </div>
     </div>
   );
@@ -3804,9 +3818,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders' }[v])}
         />
         <button
           type="button"
@@ -3870,6 +3884,8 @@ function AdminPage() {
       {tab === 'slots' && <AdminSlotsEditor saved={content.slots || []} password={password} />}
 
       {tab === 'payments' && <AdminPaymentsTab password={password} />}
+
+      {tab === 'orders' && <AdminOrdersTab password={password} />}
     </>
   );
 }
@@ -3959,7 +3975,8 @@ const priceRules = () => ({
     { prefix: 'p2-', price: 30 },
     ...Object.values(PART3_ACADEMIC_TRACKS).flatMap((t) => t.modules.map((m) => ({ prefix: `p3-${m.id}-`, price: priceNumber(t.unlockFee) })))
   ],
-  course: Object.fromEntries(SPECIAL_COURSES_WITH_BOOKS.map((c) => [c.id, priceNumber(c.priceBdt)]))
+  course: Object.fromEntries(SPECIAL_COURSES_WITH_BOOKS.map((c) => [c.id, priceNumber(c.priceBdt)])),
+  book: Object.fromEntries(SPECIAL_COURSES_WITH_BOOKS.map((c) => [c.id, priceNumber(c.bookPriceBdt)]))
 });
 
 const UNLOCK_ERRORS = {
@@ -3975,6 +3992,173 @@ const UNLOCK_ERRORS = {
   'too-many': 'অনেকবার ভুল চেষ্টা হয়েছে। এক ঘণ্টা পরে আবার চেষ্টা করুন বা WhatsApp এ জানান।',
   network: 'সংযোগে সমস্যা হচ্ছে। ইন্টারনেট দেখে আবার চেষ্টা করুন।'
 };
+
+// ---------------------------------------------------------------- Book orders
+// Same payment check as a lecture unlock (bKash Send Money + Transaction ID + sender number); the
+// student also gives a delivery address, and the order reaches the owner as soon as it is verified.
+const BOOK_ERRORS = {
+  ...UNLOCK_ERRORS,
+  'bad-order': 'নাম, ডেলিভারির পুরো ঠিকানা (অন্তত ১০ অক্ষর) আর যোগাযোগের নম্বর ঠিকঠাক লিখুন।',
+  'amount-low': 'পাঠানো টাকা কম। বইয়ের দামের পুরোটা পাঠাতে হবে।'
+};
+const bookInput =
+  'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none';
+
+// book: { key, title, series, price: '৳ ২৯০' }
+function BookOrderModal({ book, onClose }) {
+  const amount = priceNumber(book.price);
+  const [method, setMethod] = useState('bKash');
+  const [form, setForm] = useState({ name: '', address: '', contact: '', trx: '', phone: '' });
+  const [state, setState] = useState('idle'); // idle | busy | done
+  const [error, setError] = useState('');
+  const [order, setOrder] = useState(null);
+  const connected = !!SITE_LINKS.contentApi;
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const trxClean = form.trx.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const digits = (v) => v.replace(/\D/g, '');
+  const valid =
+    form.name.trim().length >= 2 && form.address.trim().length >= 10 && digits(form.contact).length >= 10 && trxClean.length >= 6 && digits(form.phone).length >= 10;
+  const title = `${book.series ? `${book.series}: ` : ''}${book.title}`;
+
+  const submit = () => {
+    setState('busy');
+    setError('');
+    postPublic({
+      action: 'order',
+      bookKey: book.key,
+      title,
+      trxId: trxClean,
+      phone: form.phone,
+      name: form.name.trim(),
+      address: form.address.trim(),
+      contact: form.contact
+    }).then((r) => {
+      if (!r.ok) {
+        setState('idle');
+        setError(BOOK_ERRORS[r.error] || 'অর্ডার নেওয়া যায়নি। WhatsApp এ যোগাযোগ করুন।');
+        return;
+      }
+      setOrder(r.order);
+      setState('done');
+    });
+  };
+
+  return (
+    <div onClick={onClose} className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/85 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg space-y-5 rounded-3xl border border-amber-400/40 bg-slate-900 p-5 text-white shadow-2xl sm:p-7">
+        <button onClick={onClose} aria-label="বন্ধ করুন" className="absolute right-4 top-4 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700">
+          <X className="h-4 w-4" />
+        </button>
+        <div>
+          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">বই অর্ডার</span>
+          <h3 className="mt-1.5 pr-8 text-lg font-extrabold leading-snug">{title}</h3>
+          <p className="mt-1 text-sm text-slate-300">বইয়ের দাম: <b className="text-amber-300">৳{toBnDigits(amount)}</b></p>
+        </div>
+
+        {state === 'done' && order ? (
+          <div className="space-y-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5">
+            <div className="text-lg font-extrabold text-emerald-300">✓ অর্ডার নিশ্চিত হয়েছে!</div>
+            <div className="space-y-1 text-sm text-slate-200">
+              <div>নাম: <b>{order.name}</b></div>
+              <div>ঠিকানা: <b>{order.address}</b></div>
+              <div>যোগাযোগ: <b>{order.contact}</b></div>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-300">
+              আপনার পেমেন্ট যাচাই হয়েছে। বই পাঠানোর বিষয়ে এই নম্বরে যোগাযোগ করা হবে। অর্ডারে কোনো ভুল থাকলে WhatsApp এ জানান।
+              আবার দেখতে একই Transaction ID আর নম্বর দিয়ে চেষ্টা করুন।
+            </p>
+            <button onClick={onClose} className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-emerald-300">
+              ঠিক আছে
+            </button>
+          </div>
+        ) : !connected ? (
+          <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-300">
+            স্বয়ংক্রিয় অর্ডার এখনো চালু হয়নি। WhatsApp এ যোগাযোগ করে বইটি অর্ডার করুন।
+            <a href={`https://wa.me/${SITE_LINKS.whatsapp}`} className="block rounded-xl bg-amber-400 px-4 py-2.5 text-center text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+              WhatsApp এ জানান
+            </a>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <ol className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm">
+              <li className="space-y-2">
+                <div className="font-bold text-white">১. নিচের নম্বরে ৳{toBnDigits(amount)} Send Money করুন</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.keys(PAYMENT_NUMBERS).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setMethod(m)}
+                      className={`rounded-xl border py-2 text-xs font-extrabold transition ${method === m ? 'border-amber-300 bg-amber-400 text-slate-950' : 'border-slate-700 bg-slate-800 text-slate-300'}`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center font-mono text-lg font-black text-amber-300">{PAYMENT_NUMBERS[method]}</div>
+              </li>
+              <li className="font-bold text-white">২. ডেলিভারির তথ্য আর পেমেন্টের তথ্য দিয়ে অর্ডার করুন</li>
+            </ol>
+            <input className={bookInput} placeholder="আপনার নাম" maxLength={60} value={form.name} onChange={set('name')} />
+            <textarea className={`${bookInput} min-h-[84px]`} placeholder="ডেলিভারির পুরো ঠিকানা (বাসা, রাস্তা, এলাকা, জেলা)" maxLength={300} value={form.address} onChange={set('address')} />
+            <input className={bookInput} placeholder="যোগাযোগের নম্বর" inputMode="tel" value={form.contact} onChange={set('contact')} />
+            <input className={`${bookInput} font-mono tracking-wider`} placeholder="Transaction ID (যেমন 9K4M2P7XQA)" value={form.trx} autoCapitalize="characters" onChange={set('trx')} />
+            <input className={bookInput} placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন" inputMode="tel" value={form.phone} onChange={set('phone')} />
+            {error && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-200">{error}</div>}
+            <button
+              disabled={!valid || state === 'busy'}
+              onClick={submit}
+              className="w-full rounded-xl bg-amber-400 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-300 disabled:opacity-40"
+            >
+              {state === 'busy' ? 'যাচাই হচ্ছে…' : 'অর্ডার নিশ্চিত করুন'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Admin: book orders and their delivery status.
+const ORDER_STATUS = { new: ['নতুন', 'bg-amber-500/20 text-amber-300'], delivered: ['ডেলিভারি হয়েছে', 'bg-emerald-500/20 text-emerald-300'], cancelled: ['বাতিল', 'bg-slate-700 text-slate-300'] };
+function AdminOrdersTab({ password }) {
+  const [orders, setOrders] = useState(null); // null loading, false old script
+  const load = () => adminPost(password, { action: 'listOrders' }).then((r) => setOrders(r.ok ? r.orders : false));
+  useEffect(() => {
+    load();
+  }, []);
+  const mark = (row, status) => adminPost(password, { action: 'setOrderStatus', row, status }).then(load);
+  if (orders === null) return <div className="text-sm text-slate-400">লোড হচ্ছে…</div>;
+  if (orders === false) {
+    return <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-100">Apps Script এর ভার্সন পুরনো। নতুন <code>admin-apps-script.gs</code> পেস্ট করে New version Deploy করুন।</div>;
+  }
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-slate-400">পেমেন্ট যাচাই হওয়া বইয়ের অর্ডার। বই পাঠালে "ডেলিভারি হয়েছে" চিহ্ন দিন।</p>
+      {orders.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-400">এখনো কোনো অর্ডার নেই।</div>}
+      {orders.map((o) => (
+        <div key={o.row} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm font-bold text-white">{o.title}</div>
+            <span className={`rounded px-2 py-0.5 text-[11px] font-bold ${(ORDER_STATUS[o.status] || ORDER_STATUS.new)[1]}`}>{(ORDER_STATUS[o.status] || ORDER_STATUS.new)[0]}</span>
+          </div>
+          <div className="space-y-0.5 text-xs text-slate-300">
+            <div>নাম: <b className="text-white">{o.name}</b> • যোগাযোগ: <b className="text-white">{o.phone}</b></div>
+            <div>ঠিকানা: <b className="text-white">{o.address}</b></div>
+            <div className="font-mono text-[11px] text-slate-500">{o.trxId} • ৳{o.amount} • {o.at ? new Date(o.at).toLocaleString('bn-BD') : ''}</div>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {['new', 'delivered', 'cancelled'].filter((s) => s !== o.status).map((s) => (
+              <button key={s} onClick={() => mark(o.row, s)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-slate-700">
+                {ORDER_STATUS[s][0]} করুন
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------- Live exams
 // Paid MCQ exams (৳ price set on the admin page). Questions come from the script only after the
@@ -4768,6 +4952,11 @@ export default function App() {
   const [activeLectureResourceModal, setActiveLectureResourceModal] = useState(null);
   const [selectedSpecialCourseModal, setSelectedSpecialCourseModal] = useState(null);
   const [bookModalOpen, setBookModalOpen] = useState(false);
+  const [bookOrder, setBookOrder] = useState(null);
+  useEffect(() => {
+    bookOrderListeners.add(setBookOrder);
+    return () => bookOrderListeners.delete(setBookOrder);
+  }, []);
   const [bookingRequest, setBookingRequest] = useState(null);
   const siteContent = useContent();
   const askQuestion = (lines = []) => setBookingRequest({ kind: 'question', type: 'প্রশ্ন', lines });
@@ -6397,12 +6586,13 @@ export default function App() {
               <div className="text-sm text-slate-400">লেখক: {activeSpecialCourse.author}</div>
               <div className="flex flex-wrap items-center gap-4 pt-1">
                 <span className="text-2xl font-black text-amber-300">{activeSpecialCourse.bookPriceBdt}</span>
-                <a
-                  href={bookOrderHref(courseBookToShop(activeSpecialCourse))}
+                <button
+                  type="button"
+                  onClick={() => openBookOrder(courseBookToShop(activeSpecialCourse))}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
                 >
                   বইটি অর্ডার করুন
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -6975,6 +7165,8 @@ export default function App() {
       )}
       </div>
 
+      {bookOrder && <BookOrderModal key={bookOrder.key} book={bookOrder} onClose={() => setBookOrder(null)} />}
+
       {/* UNLOCK (course enrollment / single lecture) */}
       {courseEnrollModal && (
         <UnlockModal
@@ -7163,12 +7355,13 @@ export default function App() {
                   {selectedSpecialCourseModal.bookPriceBdt}
                 </div>
                 <div className="flex flex-wrap gap-3 pt-1">
-                  <a
-                    href={bookOrderHref(courseBookToShop(selectedSpecialCourseModal))}
+                  <button
+                    type="button"
+                    onClick={() => openBookOrder(courseBookToShop(selectedSpecialCourseModal))}
                     className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
                   >
                     অর্ডার করুন
-                  </a>
+                  </button>
                   <button
                     onClick={() => {
                       const item = selectedSpecialCourseModal;
