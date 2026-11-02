@@ -42,8 +42,7 @@ const mainLinks = [
   { path: '/job-math/', label: 'JOB MATH — চাকরির পরীক্ষার গণিত' },
   { path: '/honours/', label: 'B.Sc. Honours Mathematics' },
   { path: '/private/', label: 'প্রাইভেট ব্যাচ ও ১-টু-১ সেশন' },
-  { path: '/routine/', label: 'ক্লাস রুটিন' },
-  { path: '/exams/', label: 'লাইভ এক্সাম' }
+  { path: '/routine/', label: 'লাইভ ক্লাসের রুটিন' }
 ];
 
 function fallback(r) {

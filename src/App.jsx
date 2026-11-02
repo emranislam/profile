@@ -17,7 +17,6 @@ import {
   X,
   Play,
   BookMarked,
-  Globe,
   Lock,
   Unlock,
   Trophy,
@@ -1335,7 +1334,7 @@ function AboutMountainBanner() {
   );
 }
 
-function AboutPage({ onOpenRole }) {
+function AboutPage({ onOpenRole, onOpenCv }) {
   return (
     <section className="bg-[#fbfaf7] text-[#1d2a44]">
       {/* HERO */}
@@ -1362,6 +1361,13 @@ function AboutPage({ onOpenRole }) {
               <div className="font-script text-3xl leading-none">Emran Islam</div>
               <ScriptUnderline className="mt-1 h-3 w-28 text-[#1d2a44]" />
             </div>
+            <button
+              type="button"
+              onClick={onOpenCv}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#14213d] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[#1f3159]"
+            >
+              <FileText className="h-4 w-4" /> Full Academic CV
+            </button>
           </div>
 
           <div className="relative md:col-span-6 flex justify-center md:justify-end">
@@ -2470,7 +2476,7 @@ function ClassRoutinePage({ onAsk }) {
     <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <PrivateHero
         badge="WEEKLY ROUTINE"
-        title="সাপ্তাহিক ক্লাস রুটিন"
+        title="লাইভ ক্লাসের রুটিন"
         sub="সব লাইভ ক্লাস এক জায়গায়। Online ক্লাসের লিংক লেকচারের Live Class বাটনে আর এখানে দেওয়া হবে।"
         grad="from-indigo-500 via-blue-600 to-cyan-600"
         icon="🗓️"
@@ -3118,7 +3124,7 @@ const routeInfo = (st) => {
     });
   }
   if (page === 'Class Routine') {
-    return make({ title: `সাপ্তাহিক ক্লাস রুটিন${suffix}`, heading: 'সাপ্তাহিক ক্লাস রুটিন', summary: 'সব লাইভ ও অফলাইন ক্লাসের সাপ্তাহিক রুটিন এক জায়গায়। HSC, O/A-Level, ভর্তি প্রস্তুতি ও অনার্স গণিত।' });
+    return make({ title: `লাইভ ক্লাসের রুটিন${suffix}`, heading: 'লাইভ ক্লাসের রুটিন', summary: 'সব লাইভ ও অফলাইন ক্লাসের সাপ্তাহিক রুটিন এক জায়গায়। HSC, O/A-Level, ভর্তি প্রস্তুতি ও অনার্স গণিত।' });
   }
   if (page === 'Live Exam') {
     return make({ title: `লাইভ এক্সাম — প্রতিটি মাত্র ৳১০${suffix}`, heading: 'লাইভ এক্সাম', summary: 'টাইমারসহ MCQ পরীক্ষা দিন, সাথে সাথে স্কোর, সঠিক উত্তর, ব্যাখ্যা ও র‍্যাঙ্কিং দেখুন। প্রতিটি পরীক্ষা মাত্র ৳১০।' });
@@ -4958,7 +4964,6 @@ function AdminPaymentRow({ p, tone, label, act }) {
 }
 
 export default function App() {
-  const [lang, setLang] = useState('bn');
   const [profilePhoto, setProfilePhoto] = useState('/assets/emran-avatar.jpg');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [activeCourse, setActiveCourse] = useState(null);
@@ -5374,34 +5379,6 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <button
-              onClick={() => openSubPage('Class Routine')}
-              className={`px-3 py-1.5 rounded-lg font-semibold border ${navActive === 'Class Routine' ? 'bg-cyan-400 text-slate-950 border-cyan-400' : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border-slate-700'}`}
-            >
-              🗓️ ক্লাস রুটিন
-            </button>
-            <button
-              onClick={() => openSubPage('Live Exam')}
-              className={`px-3 py-1.5 rounded-lg font-semibold border ${navActive === 'Live Exam' ? 'bg-rose-400 text-slate-950 border-rose-400' : 'bg-slate-900 hover:bg-slate-800 text-rose-300 border-slate-700'}`}
-            >
-              📝 লাইভ এক্সাম
-            </button>
-            <button
-              onClick={() => setCvModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-semibold border border-slate-700"
-            >
-              📄 Full Academic CV
-            </button>
-            <button
-              onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
-              className="px-3 py-1.5 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 font-semibold border border-teal-500/30 flex items-center gap-1.5"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              {lang === 'bn' ? 'English' : 'বাংলা'}
-            </button>
-          </div>
-
           <div className="flex w-full flex-wrap items-center gap-2">
             <button
               onClick={() => openSubPage('HOME')}
@@ -5509,6 +5486,16 @@ export default function App() {
             >
               📅 প্রাইভেট ব্যাচ
             </button>
+            <button
+              onClick={() => openSubPage('Class Routine')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
+                navActive === 'Class Routine'
+                  ? 'bg-cyan-400 text-slate-950 shadow-sm'
+                  : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800'
+              }`}
+            >
+              🗓️ লাইভ ক্লাসের রুটিন
+            </button>
           </div>
         </div>
       </header>
@@ -5558,8 +5545,7 @@ export default function App() {
                 { id: 'Research & Papers', label: 'Research' },
                 { id: 'About Me', label: 'About Me' },
                 { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' },
-                { id: 'Class Routine', label: 'ক্লাস রুটিন' },
-                { id: 'Live Exam', label: 'লাইভ এক্সাম' }
+                { id: 'Class Routine', label: 'লাইভ ক্লাসের রুটিন' }
               ]
                 .filter((t) => t.id !== navActive)
                 .map((t) => (
@@ -5981,6 +5967,7 @@ export default function App() {
       {/* VIEW: ABOUT ME */}
       {activeSubPage === 'About Me' && (
         <AboutPage
+          onOpenCv={() => setCvModalOpen(true)}
           onOpenRole={(role) =>
             openCourse({ kind: 'about', role, parent: 'About Me', title: ABOUT_ROLES.find((r) => r.key === role).title })
           }
