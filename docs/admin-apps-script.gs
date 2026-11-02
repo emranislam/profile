@@ -517,10 +517,16 @@ function order_(body) {
   const phone = phone10_(body.phone);
   const key = String(body.bookKey || '');
   const name = String(body.name || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 60);
-  const address = String(body.address || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 300);
+  const pdf = body.format === 'pdf';
+  const email = String(body.email || '').replace(/[\r\n\s]+/g, '').slice(0, 120);
+  // A PDF copy needs no delivery address: it is sent to the WhatsApp number (and the e-mail, if given).
+  const address = pdf
+    ? 'PDF কপি — WhatsApp' + (email ? ' / ' + email : '')
+    : String(body.address || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 300);
   const contact = phone10_(body.contact);
   if (id.length < 6 || phone.length < 10) return { ok: false, error: 'bad-input' };
-  if (name.length < 2 || address.length < 10 || contact.length < 10) return { ok: false, error: 'bad-order' };
+  if (name.length < 2 || (!pdf && address.length < 10) || contact.length < 10) return { ok: false, error: 'bad-order' };
+  if (pdf && email && !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return { ok: false, error: 'bad-order' };
   if (throttled_(phone)) return { ok: false, error: 'too-many' };
   const price = priceFor_('book', key);
   if (!price) return { ok: false, error: 'no-price' };
@@ -552,7 +558,7 @@ function order_(body) {
   hit.sh.getRange(hit.rowNum, P.STATUS + 1, 1, 4).setValues([['used', phone, usedFor, new Date()]]);
   const row = [new Date(), safe_(key), title, safe_(name), safe_(address), '0' + contact, id, paid, 'new'];
   sheet_('orders').appendRow(row);
-  notify_('বই অর্ডার 📦\n' + title + '\nনাম: ' + name + '\nঠিকানা: ' + address + '\nযোগাযোগ: 0' + contact + '\nTrxID: ' + id + '\nটাকা: ' + paid + ' (দাম ' + price + ')');
+  notify_((pdf ? 'PDF কপির অর্ডার 📄\n' : 'বই অর্ডার 📦\n') + title + '\nনাম: ' + name + (pdf ? '\nপাঠাতে হবে: ' : '\nঠিকানা: ') + address + '\nযোগাযোগ: 0' + contact + '\nTrxID: ' + id + '\nটাকা: ' + paid + ' (দাম ' + price + ')');
   return { ok: true, order: orderView_(row) };
 }
 
