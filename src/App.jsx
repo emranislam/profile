@@ -3214,7 +3214,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, outline: {}, exams: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], ...data };
       applyOutline(contentCache.outline);
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
@@ -3238,6 +3238,12 @@ const lectureCountFor = (content, prefix, fallback) => {
 };
 // A lecture's heading from the admin page, else the built-in topic.
 const lectureTitleFor = (content, key, fallback) => (content && content.titles && content.titles[key]) || fallback;
+// Length of a lecture, as typed on the admin page; nothing is shown until it is set.
+const lectureDurationFor = (content, key, english = false) => {
+  const n = content && content.durations && Number(content.durations[key]);
+  if (!(n >= 1)) return '';
+  return english ? `${n} Mins` : `${toBnDigits(n)} মিনিট`;
+};
 const BV_LECTURES = 10;
 const COURSE_LECTURES = 8;
 const EXTRA_TOPIC = 'অতিরিক্ত অনুশীলন ও সমস্যা সমাধান';
@@ -3346,9 +3352,10 @@ function AdminSaveButton({ state, onClick, label = 'Save' }) {
   );
 }
 
-function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
+function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) {
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
   const [heading, setHeading] = useState(title || '');
+  const [mins, setMins] = useState(minutes ? String(minutes) : '');
   const [state, setState] = useState('idle');
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -3359,9 +3366,10 @@ function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
     setState('saving');
     Promise.all([
       adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }),
-      adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading })
-    ]).then(([r, t]) => {
-      r = { ok: r.ok && t.ok };
+      adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading }),
+      adminPost(password, { action: 'saveDuration', key: lecture.key, minutes: mins })
+    ]).then(([r, t, d]) => {
+      r = { ok: r.ok && t.ok && d.ok };
       setState(r.ok ? 'saved' : 'error');
       if (r.ok) {
         loadContent();
@@ -3379,16 +3387,32 @@ function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
           <span className={`rounded px-1.5 py-0.5 ${saved.live ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>Live</span>
         </div>
       </div>
-      <input
-        className={adminInput}
-        placeholder="লেকচারের হেডিং (ঐচ্ছিক), যেমন: সংজ্ঞা ও মৌলিক সূত্র"
-        value={heading}
-        maxLength={200}
-        onChange={(e) => {
-          setHeading(e.target.value);
-          setState('idle');
-        }}
-      />
+      <div className="grid grid-cols-[1fr_7.5rem] gap-2">
+        <input
+          className={adminInput}
+          placeholder="লেকচারের হেডিং (ঐচ্ছিক), যেমন: সংজ্ঞা ও মৌলিক সূত্র"
+          value={heading}
+          maxLength={200}
+          onChange={(e) => {
+            setHeading(e.target.value);
+            setState('idle');
+          }}
+        />
+        <input
+          className={adminInput}
+          type="number"
+          min="1"
+          max="600"
+          inputMode="numeric"
+          placeholder="সময় (মিনিট)"
+          aria-label="ক্লাসের সময় (মিনিট)"
+          value={mins}
+          onChange={(e) => {
+            setMins(e.target.value);
+            setState('idle');
+          }}
+        />
+      </div>
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div>
           <input className={adminInput} placeholder="YouTube লিংক" value={form.youtube} onChange={set('youtube')} />
@@ -3872,6 +3896,7 @@ function AdminPage() {
               lecture={l}
               saved={allLectures[l.key] || {}}
               title={(content.titles && content.titles[l.key]) || ''}
+              minutes={(content.durations && content.durations[l.key]) || ''}
               password={password}
               onSaved={() => refreshLectures()}
             />
@@ -5012,7 +5037,7 @@ export default function App() {
         lecKey,
         titleBn: `Lecture ${lecNum}`,
         topic: lectureTitleFor(siteContent, lecKey, `${activePart3Chapter.title} — ${topicDesc}`),
-        duration: `${45 + (idx % 3) * 10} Mins`,
+        duration: lectureDurationFor(siteContent, lecKey, true),
         isFree,
         isUnlocked,
         priceBdt: activePart3Track.unlockFee,
@@ -5064,7 +5089,7 @@ export default function App() {
         progressKey,
         titleBn: `লেকচার ${lecNum}`,
         topic: lectureTitleFor(siteContent, progressKey, `${activeCourseChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
-        duration: `${45 + (idx % 3) * 10} মিনিট`,
+        duration: lectureDurationFor(siteContent, progressKey),
         liveDate: liveDates[idx] || 'সময় শিগগিরই জানানো হবে',
         livePlatform: 'Zoom Live + Interactive Whiteboard',
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-course-${activeSpecialCourse.id}-${activeCourseChapter.chId}-L${lecNum}/viewform`
@@ -5124,7 +5149,7 @@ export default function App() {
         lecKey,
         titleBn: `লেকচার ${lecNum}`,
         topic: lectureTitleFor(siteContent, lecKey, `${currentBvChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
-        duration: `${40 + (idx % 4) * 5} মিনিট`,
+        duration: lectureDurationFor(siteContent, lecKey),
         isFree,
         isUnlocked,
         priceBdt: 30,
@@ -6213,9 +6238,11 @@ export default function App() {
                         {lec.topic}
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                    </span>
+                    {lec.duration && (
+                      <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                      </span>
+                    )}
                   </div>
 
                   {/* 3 Links per Lecture: ক্লাস নোট (PDF), ভিডিও লেকচার, Self Test */}
@@ -6505,7 +6532,7 @@ export default function App() {
                           <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
                           Scheduled Live Class: {lec.liveDate}
                         </span>
-                        <span className="text-slate-400 font-mono">{lec.duration}</span>
+                        {lec.duration && <span className="text-slate-400 font-mono">{lec.duration}</span>}
                       </div>
 
                       {/* 4 Action Buttons per Lecture: লেকচার নোট (PDF), Recorded Class, Live Class (Scheduled), Self Test */}
@@ -6689,7 +6716,7 @@ export default function App() {
                 lecKey,
                 titleBn: `Lecture ${lecNum}`,
                 topic: lectureTitleFor(siteContent, lecKey, `${currentChapter.title} — ${topicDesc}`),
-                duration: `${45 + (idx % 3) * 10} Mins`,
+                duration: lectureDurationFor(siteContent, lecKey, true),
                 isFree,
                 isUnlocked,
                 priceBdt: currentTrack.unlockFee,
@@ -6834,9 +6861,11 @@ export default function App() {
                               {lec.topic}
                             </div>
                           </div>
-                          <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                          </span>
+                          {lec.duration && (
+                            <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                            </span>
+                          )}
                         </div>
 
                         {lec.isUnlocked ? (

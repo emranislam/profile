@@ -32,6 +32,7 @@ const SHEETS = {
   slots: ['day', 'time', 'for', 'mode', 'status'],
   counts: ['chapter', 'lectures'],
   titles: ['key', 'title'],
+  durations: ['key', 'minutes'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
   orders: ['orderedAt', 'book', 'title', 'name', 'address', 'phone', 'trxId', 'amount', 'status'],
   exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
@@ -126,6 +127,16 @@ function titles_() {
   return out;
 }
 
+// How long each lecture really is (minutes), set on the admin page; lectures without one show no length.
+function durations_() {
+  const out = {};
+  rows_('durations').forEach((r) => {
+    const n = Math.floor(Number(r[1]));
+    if (r[0] && n >= 1 && n <= 600) out[String(r[0])] = n;
+  });
+  return out;
+}
+
 // The chapter list of a paper / course / module as arranged on the admin page (public).
 // Groups not listed here use the chapters built into the site.
 function outline_() {
@@ -138,7 +149,7 @@ function outline_() {
 }
 
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), outline: outline_(), exams: publicExams_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -688,6 +699,22 @@ function adminAction_(body) {
       const v = sh.getDataRange().getValues();
       for (let k = v.length - 1; k >= 1; k--) if (String(v[k][pair[1]]) === examId) sh.deleteRow(k + 1);
     });
+    return { ok: true };
+  }
+
+  if (body.action === 'saveDuration') {
+    const sh = sheet_('durations');
+    const values = sh.getDataRange().getValues();
+    const raw = String(body.minutes == null ? '' : body.minutes).trim();
+    const n = Math.floor(Number(raw));
+    if (raw && !(n >= 1 && n <= 600)) return { ok: false, error: 'bad-input' };
+    const i = values.findIndex((r, ix) => ix > 0 && r[0] === body.key);
+    if (i > 0) {
+      if (!raw) sh.deleteRow(i + 1);
+      else sh.getRange(i + 1, 2).setValue(n);
+    } else if (raw) {
+      sh.appendRow([safe_(body.key), n]);
+    }
     return { ok: true };
   }
 
