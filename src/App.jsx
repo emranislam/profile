@@ -1199,31 +1199,16 @@ function PremiumCard({ grad, icon, code, bigTag, poster, title, sub, chips = [],
 }
 
 // App-icon style program tile for the six main programs.
-function ProgramTile({ grad, icon, top, big, label, onClick }) {
+// A home-page program card drawn as one picture (assets/cards/<name>.webp); the words are part of the picture.
+function ImageTile({ src, label, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group relative rounded-[24px] p-[1.5px] text-center transition-transform duration-300 hover:-translate-y-1"
+      aria-label={label}
+      className="group block w-full rounded-[28px] transition duration-300 hover:-translate-y-1.5 hover:drop-shadow-[0_14px_22px_rgba(99,102,241,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
     >
-      <span className="absolute inset-0 rounded-[24px] bg-gradient-to-b from-amber-300/70 via-orange-500/40 to-rose-600 opacity-70 transition-opacity group-hover:opacity-100" />
-      <span className="relative flex flex-col rounded-[23px] bg-[#0d1018] p-1.5 shadow-[inset_0_-16px_28px_-14px_rgba(249,115,22,0.35)] sm:p-2.5">
-        <span className={`relative block aspect-[4/3] overflow-hidden rounded-[17px] bg-gradient-to-br ${grad}`}>
-          <span className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" />
-          <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-            <span className="text-[11px] font-black uppercase tracking-wider text-white/95 [text-shadow:0_2px_0_rgba(0,0,0,0.25)] sm:text-base">
-              {top}
-            </span>
-            <span className="mt-0.5 text-[28px] font-black tracking-tight text-white [text-shadow:0_3px_0_rgba(0,0,0,0.3),0_8px_16px_rgba(0,0,0,0.25)] sm:text-5xl">
-              {big}
-            </span>
-          </span>
-          <span className="absolute -bottom-1 -right-1 text-3xl drop-shadow-[0_6px_8px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 sm:text-5xl">
-            {icon}
-          </span>
-        </span>
-        <span className="block px-0.5 pb-1 pt-2 text-[11px] font-extrabold leading-tight text-white sm:text-sm">{label}</span>
-      </span>
+      <img src={src} alt={label} width="370" height="490" loading="lazy" className="block h-auto w-full select-none" draggable="false" />
     </button>
   );
 }
@@ -5390,88 +5375,16 @@ export default function App() {
             <div className="space-y-3 pt-1">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5 max-w-5xl mx-auto">
                 {[
-                  {
-                    id: 'HSC Bangla Version',
-                    code: 'HSC',
-                    bigTag: 'BV',
-                    icon: '🏆',
-                    title: 'HSC বাংলা ভার্সন',
-                    sub: '২টি পত্র + ৬টি স্পেশাল কোর্স + ৬টি বই',
-                    tileGrad: 'from-sky-400 via-blue-500 to-indigo-600',
-                  },
-                  {
-                    id: 'HSC English Version',
-                    code: 'HSC',
-                    bigTag: 'EV',
-                    icon: '🎯',
-                    title: 'HSC English Version',
-                    sub: '1st & 2nd Paper + 6 EV Courses',
-                    tileGrad: 'from-cyan-400 via-teal-500 to-emerald-600',
-                  },
-                  {
-                    id: 'O-Level & A-Level',
-                    code: 'CAIE/IAL',
-                    bigTag: 'O/A',
-                    icon: '📐',
-                    title: 'O & A-Level Math',
-                    sub: 'D-Math, Add-Math, P1–P4, M1, S1',
-                    tileGrad: 'from-violet-400 via-purple-500 to-indigo-700',
-                  },
-                  {
-                    id: 'Admission Test (BUET/DU)',
-                    code: 'ADM',
-                    bigTag: 'ADM',
-                    icon: '🚀',
-                    title: 'ভর্তি পরীক্ষার প্রস্তুতি',
-                    sub: 'Medi-Math, DU Ka, BUET & Archive',
-                    tileGrad: 'from-amber-400 via-orange-500 to-red-600',
-                  },
-                  {
-                    id: 'Job Math',
-                    code: 'BCS • BANK',
-                    bigTag: 'JOB',
-                    icon: '💼',
-                    title: 'JOB MATH',
-                    sub: 'চাকরির পরীক্ষার গণিত',
-                    tileGrad: 'from-lime-400 via-green-500 to-emerald-700',
-                  },
-                  {
-                    id: 'B.Sc. Honours Math',
-                    code: 'B.Sc.',
-                    bigTag: 'HON',
-                    icon: '🎓',
-                    title: 'B.Sc. Honours Math',
-                    sub: 'Calculus, LinAlg, ODE, Num, OR/TSP',
-                    tileGrad: 'from-emerald-400 via-green-500 to-teal-700',
-                  },
-                  {
-                    id: 'Research & Papers',
-                    code: 'PhD/RES',
-                    bigTag: 'RES',
-                    icon: '🔬',
-                    title: 'Research & Thesis',
-                    sub: 'Thesis Consultation, ML & Papers',
-                    tileGrad: 'from-rose-400 via-pink-500 to-purple-700',
-                  },
-                  {
-                    id: 'Private Batch',
-                    code: '1-TO-1 • GROUP',
-                    bigTag: 'PVT',
-                    icon: '📅',
-                    title: 'প্রাইভেট ব্যাচ',
-                    sub: 'Online / Offline ব্যাচ ও ১-টু-১ সেশন',
-                    tileGrad: 'from-orange-300 via-pink-500 to-fuchsia-700',
-                  }
+                  { id: 'HSC Bangla Version', img: 'bv', title: 'HSC বাংলা ভার্সন' },
+                  { id: 'HSC English Version', img: 'ev', title: 'HSC English Version' },
+                  { id: 'O-Level & A-Level', img: 'oa', title: 'O & A-Level Math' },
+                  { id: 'Admission Test (BUET/DU)', img: 'adm', title: 'ভর্তি পরীক্ষার প্রস্তুতি' },
+                  { id: 'Job Math', img: 'job', title: 'JOB MATH' },
+                  { id: 'B.Sc. Honours Math', img: 'hon', title: 'B.Sc. Honours Math' },
+                  { id: 'Research & Papers', img: 'res', title: 'Research & Thesis' },
+                  { id: 'Private Batch', img: 'pvt', title: 'প্রাইভেট ব্যাচ' }
                 ].map((card) => (
-                  <ProgramTile
-                    key={card.id}
-                    grad={card.tileGrad}
-                    icon={card.icon}
-                    top={card.code}
-                    big={card.bigTag}
-                    label={card.title}
-                    onClick={() => openSubPage(card.id)}
-                  />
+                  <ImageTile key={card.id} src={`/assets/cards/${card.img}.webp`} label={card.title} onClick={() => openSubPage(card.id)} />
                 ))}
               </div>
             </div>
