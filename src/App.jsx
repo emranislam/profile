@@ -787,69 +787,60 @@ const PART3_ACADEMIC_TRACKS = {
   'Job Math': {
     id: 'Job Math',
     badge: 'JOB MATH • BCS, BANK, TEACHER RECRUITMENT & MORE',
-    title: 'Job Exam Mathematics (BCS, Bank, Primary & NTRCA Teacher Recruitment)',
-    subtitle: 'চাকরির পরীক্ষার গণিত: পাটিগণিত, বীজগণিত, জ্যামিতি, মানসিক দক্ষতা ও মডেল টেস্ট। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার।',
+    title: 'Job Exam Mathematics (গাণিতিক যুক্তি ও মানসিক দক্ষতা)',
+    subtitle: 'চাকরির পরীক্ষার প্রস্তুতি: গাণিতিক যুক্তি (পাটিগণিত, বীজগণিত, জ্যামিতি, ত্রিকোণমিতি ও অন্যান্য) এবং মানসিক দক্ষতা। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার ও মডেল টেস্ট।',
     unlockFee: 30,
     modules: [
       {
-        id: 'job-arith',
-        code: 'JOB • ARITHMETIC',
-        name: 'পাটিগণিত (Arithmetic for Job Exams)',
-        sub: 'গড়, শতকরা, লাভ-ক্ষতি, অনুপাত, সময় ও কাজ, সুদকষা — সব পরীক্ষার সবচেয়ে বেশি আসা টপিক',
+        id: 'job-logic',
+        code: 'JOB • MATH LOGIC',
+        name: 'গাণিতিক যুক্তি (Mathematical Reasoning)',
+        sub: 'পাটিগণিত, বীজগাণিতিক যুক্তি, জ্যামিতি ও পরিমিতি, ত্রিকোণমিতি ও অন্যান্য',
         icon: '🧮',
         grad: 'from-lime-400 via-green-500 to-emerald-600',
         chapters: [
-          { id: 'job-ar-1', num: 'Unit 01', title: 'ল.সা.গু, গ.সা.গু ও ভগ্নাংশ', eng: 'LCM, HCF & Fractions', icon: '🔢' },
-          { id: 'job-ar-2', num: 'Unit 02', title: 'গড় ও শতকরা', eng: 'Average & Percentage', icon: '📊' },
-          { id: 'job-ar-3', num: 'Unit 03', title: 'লাভ-ক্ষতি ও সুদকষা', eng: 'Profit & Loss, Simple & Compound Interest', icon: '💰' },
-          { id: 'job-ar-4', num: 'Unit 04', title: 'অনুপাত, সমানুপাত ও অংশীদারি কারবার', eng: 'Ratio, Proportion & Partnership', icon: '⚖️' },
-          { id: 'job-ar-5', num: 'Unit 05', title: 'সময় ও কাজ, নল ও চৌবাচ্চা', eng: 'Time & Work, Pipes & Cisterns', icon: '⏱️' },
-          { id: 'job-ar-6', num: 'Unit 06', title: 'সময়, দূরত্ব ও গতি', eng: 'Time, Distance & Speed', icon: '🚆' },
-          { id: 'job-ar-7', num: 'Unit 07', title: 'বয়স ও সংখ্যা সম্পর্কিত সমস্যা', eng: 'Age & Number Problems', icon: '🎂' }
+          { id: 'job-gl-1', num: 'পাটিগণিত ১', title: 'বাস্তব সংখ্যা', eng: 'Real Numbers', icon: '🔢', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-2', num: 'পাটিগণিত ২', title: 'ল.সা.গু ও গ.সা.গু', eng: 'LCM & GCD', icon: '➗', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-3', num: 'পাটিগণিত ৩', title: 'ঐকিক নিয়ম, গড়, শতকরা', eng: 'Unitary Method, Average & Percentage', icon: '📊', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-4', num: 'পাটিগণিত ৪', title: 'সরল ও যৌগিক মুনাফা', eng: 'Simple and Compound Interest', icon: '💰', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-5', num: 'পাটিগণিত ৫', title: 'অনুপাত ও সমানুপাত', eng: 'Ratio and Proportion', icon: '⚖️', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-6', num: 'পাটিগণিত ৬', title: 'লাভ ও ক্ষতি', eng: 'Profit and Loss', icon: '📈', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-7', num: 'বীজগণিত ১', title: 'বীজগাণিতিক সূত্রাবলি', eng: 'Algebraic Formulas', icon: '🔣', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-8', num: 'বীজগণিত ২', title: 'বহুপদী উৎপাদক', eng: 'Factorization of Polynomials', icon: '🧩', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-9', num: 'বীজগণিত ৩', title: 'সরল ও দ্বিঘাত সমীকরণ এবং অসমতা', eng: 'Linear and Quadratic Equations and Inequalities', icon: '🟰', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-10', num: 'বীজগণিত ৪', title: 'সরল সহসমীকরণ', eng: 'Systems of Linear Equations', icon: '🔗', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-11', num: 'বীজগণিত ৫', title: 'সূচক ও লগারিদম', eng: 'Exponents and Logarithms', icon: '✖️', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-12', num: 'বীজগণিত ৬', title: 'সমান্তর ও গুণোত্তর অনুক্রম ও ধারা', eng: 'Arithmetic and Geometric Sequences and Series', icon: '🪜', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
+          { id: 'job-gl-13', num: 'জ্যামিতি ১', title: 'রেখা, কোণ, ত্রিভুজ ও চতুর্ভুজ সংক্রান্ত উপপাদ্য', eng: 'Theorems on Lines, Angles, Triangles and Quadrilaterals', icon: '📐', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
+          { id: 'job-gl-14', num: 'জ্যামিতি ২', title: 'পিথাগোরাসের উপপাদ্য ও বৃত্ত সংক্রান্ত উপপাদ্য', eng: 'Pythagoras Theorem and Circle Theorems', icon: '⭕', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
+          { id: 'job-gl-15', num: 'জ্যামিতি ৩', title: 'ক্ষেত্রফল সম্পর্কিত উপপাদ্য ও পরিমিতি', eng: 'Area Theorems and Mensuration', icon: '📏', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
+          { id: 'job-gl-16', num: 'অন্যান্য ১', title: 'ত্রিকোণমিতিক অনুপাত ও দূরত্ব-উচ্চতা', eng: 'Trigonometric Ratios, Distance and Height', icon: '🗼', group: 'ত্রিকোণমিতি ও অন্যান্য' },
+          { id: 'job-gl-17', num: 'অন্যান্য ২', title: 'সেট তত্ত্ব ও ভেনচিত্র', eng: 'Set Theory & Venn Diagram', icon: '🔵', group: 'ত্রিকোণমিতি ও অন্যান্য' },
+          { id: 'job-gl-18', num: 'অন্যান্য ৩', title: 'বিন্যাস ও সমাবেশ', eng: 'Permutations and Combinations', icon: '🎲', group: 'ত্রিকোণমিতি ও অন্যান্য' },
+          { id: 'job-gl-19', num: 'অন্যান্য ৪', title: 'সম্ভাবনা', eng: 'Probability', icon: '🎯', group: 'ত্রিকোণমিতি ও অন্যান্য' }
         ],
         lectureBlueprint: [
           'মৌলিক ধারণা ও সূত্র (শূন্য থেকে শুরু)',
-          'বোর্ড-স্টাইল ও সাধারণ মানের অঙ্ক সমাধান',
+          'সাধারণ ও মাঝারি মানের অঙ্ক সমাধান',
           'শর্টকাট কৌশল ও ক্যালকুলেটর ছাড়া দ্রুত সমাধান',
           'বিগত বছরের BCS, ব্যাংক ও শিক্ষক নিয়োগ প্রশ্ন সমাধান',
           'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
         ]
       },
       {
-        id: 'job-algebra',
-        code: 'JOB • ALGEBRA & GEOMETRY',
-        name: 'বীজগণিত ও জ্যামিতি (Algebra & Geometry)',
-        sub: 'সূচক, লগারিদম, সমীকরণ, ক্ষেত্রফল, আয়তন, ত্রিভুজ ও বৃত্ত',
-        icon: '📐',
-        grad: 'from-sky-400 via-blue-500 to-indigo-600',
-        chapters: [
-          { id: 'job-al-1', num: 'Unit 01', title: 'সূচক, লগারিদম ও উৎপাদকে বিশ্লেষণ', eng: 'Indices, Logarithm & Factorization', icon: '✖️' },
-          { id: 'job-al-2', num: 'Unit 02', title: 'সরল ও দ্বিঘাত সমীকরণ', eng: 'Linear & Quadratic Equations', icon: '🟰' },
-          { id: 'job-al-3', num: 'Unit 03', title: 'ক্ষেত্রফল ও পরিসীমা', eng: 'Area & Perimeter', icon: '📏' },
-          { id: 'job-al-4', num: 'Unit 04', title: 'আয়তন ও ঘনবস্তু', eng: 'Volume & Solids', icon: '🧊' },
-          { id: 'job-al-5', num: 'Unit 05', title: 'ত্রিভুজ, বৃত্ত ও কোণ', eng: 'Triangles, Circles & Angles', icon: '⭕' },
-          { id: 'job-al-6', num: 'Unit 06', title: 'ত্রিকোণমিতির প্রাথমিক ধারণা', eng: 'Basic Trigonometry', icon: '📐' }
-        ],
-        lectureBlueprint: [
-          'মৌলিক ধারণা ও সূত্র',
-          'সাধারণ ও মাঝারি মানের অঙ্ক সমাধান',
-          'শর্টকাট কৌশল',
-          'বিগত বছরের প্রশ্ন সমাধান',
-          'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
-        ]
-      },
-      {
         id: 'job-mental',
         code: 'JOB • MENTAL ABILITY',
-        name: 'মানসিক দক্ষতা ও বিশ্লেষণ (Mental Ability & Data)',
-        sub: 'সংখ্যা ধারা, বিন্যাস-সমাবেশ, সম্ভাবনা ও ডেটা বিশ্লেষণ',
+        name: 'মানসিক দক্ষতা (Mental Ability)',
+        sub: 'ভাষাগত যৌক্তিক বিচার, সমস্যা সমাধান, বানান ও ভাষা, যান্ত্রিক দক্ষতা, স্থানাঙ্ক সম্পর্ক, সংখ্যাগত ক্ষমতা',
         icon: '🧠',
         grad: 'from-fuchsia-400 via-purple-500 to-violet-600',
         chapters: [
-          { id: 'job-me-1', num: 'Unit 01', title: 'সংখ্যা ও অক্ষর ধারা', eng: 'Number & Letter Series', icon: '🔠' },
-          { id: 'job-me-2', num: 'Unit 02', title: 'বিন্যাস, সমাবেশ ও সম্ভাবনার প্রাথমিক ধারণা', eng: 'Permutation, Combination & Probability Basics', icon: '🎲' },
-          { id: 'job-me-3', num: 'Unit 03', title: 'ডেটা বিশ্লেষণ ও লেখচিত্র', eng: 'Data Interpretation & Graphs', icon: '📈' },
-          { id: 'job-me-4', num: 'Unit 04', title: 'যুক্তি ও ধাঁধার অঙ্ক', eng: 'Logical Reasoning & Puzzles', icon: '🧩' }
+          { id: 'job-me-1', num: 'ক্ষমতা ১', title: 'ভাষাগত যৌক্তিক বিচার', eng: 'Verbal Reasoning', icon: '🗣️' },
+          { id: 'job-me-2', num: 'ক্ষমতা ২', title: 'সমস্যা সমাধান', eng: 'Problem Solving', icon: '🧩' },
+          { id: 'job-me-3', num: 'ক্ষমতা ৩', title: 'বানান ও ভাষা', eng: 'Spelling and Language', icon: '✍️' },
+          { id: 'job-me-4', num: 'ক্ষমতা ৪', title: 'যান্ত্রিক দক্ষতা', eng: 'Mechanical Reasoning', icon: '⚙️' },
+          { id: 'job-me-5', num: 'ক্ষমতা ৫', title: 'স্থানাঙ্ক সম্পর্ক', eng: 'Space Relation', icon: '🧭' },
+          { id: 'job-me-6', num: 'ক্ষমতা ৬', title: 'সংখ্যাগত ক্ষমতা', eng: 'Numerical Ability', icon: '🔢' }
         ],
         lectureBlueprint: [
           'ধরন চেনা ও মূল কৌশল',
@@ -857,26 +848,6 @@ const PART3_ACADEMIC_TRACKS = {
           'দ্রুত সমাধানের কৌশল',
           'বিগত বছরের প্রশ্ন সমাধান',
           'টাইমড মডেল টেস্ট'
-        ]
-      },
-      {
-        id: 'job-model',
-        code: 'JOB • MODEL TEST',
-        name: 'মডেল টেস্ট ও প্রশ্নব্যাংক (Model Tests & Question Bank)',
-        sub: 'BCS প্রিলি, ব্যাংক নিয়োগ, প্রাথমিক ও NTRCA শিক্ষক নিয়োগের গণিত প্রশ্ন সমাধান',
-        icon: '📝',
-        grad: 'from-amber-400 via-orange-500 to-red-600',
-        chapters: [
-          { id: 'job-mt-1', num: 'Set 01', title: 'BCS প্রিলিমিনারি গণিত ও মানসিক দক্ষতা', eng: 'BCS Preliminary Math & Mental Ability', icon: '🏛️' },
-          { id: 'job-mt-2', num: 'Set 02', title: 'ব্যাংক নিয়োগ পরীক্ষার গণিত', eng: 'Bank Recruitment Math', icon: '🏦' },
-          { id: 'job-mt-3', num: 'Set 03', title: 'প্রাথমিক সহকারী শিক্ষক নিয়োগের গণিত', eng: 'Primary Assistant Teacher Recruitment Math', icon: '🎒' },
-          { id: 'job-mt-4', num: 'Set 04', title: 'NTRCA শিক্ষক নিবন্ধন গণিত', eng: 'NTRCA Teacher Registration Math', icon: '🎓' }
-        ],
-        lectureBlueprint: [
-          'পরীক্ষার ধরন ও প্রস্তুতির কৌশল',
-          'বিগত বছরের প্রশ্ন সমাধান — পর্ব ১',
-          'বিগত বছরের প্রশ্ন সমাধান — পর্ব ২',
-          'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
         ]
       }
     ]
@@ -1550,7 +1521,7 @@ const TEACHING_LEVELS = [
   { page: 'HSC English Version', title: 'HSC English Version', sub: 'Higher Math 1st & 2nd Paper + EV courses', icon: '🎯' },
   { page: 'O-Level & A-Level', title: 'O & A-Level Mathematics', sub: 'D-Math, Add-Math, P1–P4, M1, S1', icon: '📐' },
   { page: 'Admission Test (BUET/DU)', title: 'ভর্তি পরীক্ষার প্রস্তুতি', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
-  { page: 'Job Math', title: 'JOB MATH', sub: 'BCS, ব্যাংক ও অন্যান্য চাকরির পরীক্ষার গণিত', icon: '💼' },
+  { page: 'Job Math', title: 'JOB MATH', sub: 'গাণিতিক যুক্তি ও মানসিক দক্ষতা', icon: '💼' },
   { page: 'B.Sc. Honours Math', title: 'B.Sc. (Honours) Mathematics', sub: 'Calculus, Linear Algebra, ODE, Numerical, OR', icon: '🎓' }
 ];
 
@@ -5740,7 +5711,7 @@ export default function App() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
               {PART3_ACADEMIC_TRACKS['Job Math'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
@@ -5750,7 +5721,7 @@ export default function App() {
                   icon={mod.icon}
                   title={mod.name}
                   sub={mod.sub}
-                  chips={[`${mod.chapters.length} Units`, '1st Lec Free']}
+                  chips={[`${mod.chapters.length} Topics`, '1st Lec Free']}
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'Job Math', parent: 'Job Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
@@ -6659,18 +6630,22 @@ export default function App() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     {currentModule.chapters.map((ch, cIdx) => (
-                      <PremiumCard
-                        key={ch.id}
-                        grad={currentModule.grad}
-                        icon={ch.icon}
-                        poster={ch.num}
-                        title={ch.title}
-                        sub={ch.eng}
-                        chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
-                        onClick={() =>
-                          openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
-                        }
-                      />
+                      <React.Fragment key={ch.id}>
+                        {ch.group && ch.group !== (currentModule.chapters[cIdx - 1] || {}).group && (
+                          <h5 className="col-span-full pt-2 text-sm font-extrabold text-amber-300">{ch.group}</h5>
+                        )}
+                        <PremiumCard
+                          grad={currentModule.grad}
+                          icon={ch.icon}
+                          poster={ch.num}
+                          title={ch.title}
+                          sub={ch.eng}
+                          chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
+                          onClick={() =>
+                            openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
+                          }
+                        />
+                      </React.Fragment>
                     ))}
                   </div>
                 </div>
