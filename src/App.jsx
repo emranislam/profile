@@ -835,12 +835,12 @@ const PART3_ACADEMIC_TRACKS = {
         icon: '🧠',
         grad: 'from-fuchsia-400 via-purple-500 to-violet-600',
         chapters: [
-          { id: 'job-me-1', num: 'ক্ষমতা ১', title: 'ভাষাগত যৌক্তিক বিচার', eng: 'Verbal Reasoning', icon: '🗣️' },
-          { id: 'job-me-2', num: 'ক্ষমতা ২', title: 'সমস্যা সমাধান', eng: 'Problem Solving', icon: '🧩' },
-          { id: 'job-me-3', num: 'ক্ষমতা ৩', title: 'বানান ও ভাষা', eng: 'Spelling and Language', icon: '✍️' },
-          { id: 'job-me-4', num: 'ক্ষমতা ৪', title: 'যান্ত্রিক দক্ষতা', eng: 'Mechanical Reasoning', icon: '⚙️' },
-          { id: 'job-me-5', num: 'ক্ষমতা ৫', title: 'স্থানাঙ্ক সম্পর্ক', eng: 'Space Relation', icon: '🧭' },
-          { id: 'job-me-6', num: 'ক্ষমতা ৬', title: 'সংখ্যাগত ক্ষমতা', eng: 'Numerical Ability', icon: '🔢' }
+          { id: 'job-me-1', num: 'ক্ষমতা ১', title: 'ভাষাগত যৌক্তিক বিচার', eng: 'Verbal Reasoning', icon: '🗣️', img: 'mental-1' },
+          { id: 'job-me-2', num: 'ক্ষমতা ২', title: 'সমস্যা সমাধান', eng: 'Problem Solving', icon: '🧩', img: 'mental-2' },
+          { id: 'job-me-3', num: 'ক্ষমতা ৩', title: 'বানান ও ভাষা', eng: 'Spelling and Language', icon: '✍️', img: 'mental-3' },
+          { id: 'job-me-4', num: 'ক্ষমতা ৪', title: 'যান্ত্রিক দক্ষতা', eng: 'Mechanical Reasoning', icon: '⚙️', img: 'mental-4' },
+          { id: 'job-me-5', num: 'ক্ষমতা ৫', title: 'স্থানাঙ্ক সম্পর্ক', eng: 'Space Relation', icon: '🧭', img: 'mental-5' },
+          { id: 'job-me-6', num: 'ক্ষমতা ৬', title: 'সংখ্যাগত ক্ষমতা', eng: 'Numerical Ability', icon: '🔢', img: 'mental-6' }
         ],
         lectureBlueprint: [
           'ধরন চেনা ও মূল কৌশল',
@@ -1242,7 +1242,7 @@ function ImageTile({ src, label, onClick }) {
       aria-label={label}
       className="group block w-full rounded-[28px] transition duration-300 hover:-translate-y-1.5 hover:drop-shadow-[0_14px_22px_rgba(99,102,241,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
     >
-      <img src={src} alt={label} width="370" height="490" loading="lazy" className="block h-auto w-full select-none" draggable="false" />
+      <img src={src} alt={label} loading="lazy" className="block h-auto w-full select-none" draggable="false" />
     </button>
   );
 }
@@ -6778,23 +6778,33 @@ export default function App() {
                     </h4>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div className={currentModule.chapters.some((c) => c.img) ? 'grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 max-w-5xl mx-auto' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3'}>
                     {currentModule.chapters.map((ch, cIdx) => (
                       <React.Fragment key={ch.id}>
                         {ch.group && ch.group !== (currentModule.chapters[cIdx - 1] || {}).group && (
                           <h5 className="col-span-full pt-2 text-sm font-extrabold text-amber-300">{ch.group}</h5>
                         )}
-                        <PremiumCard
-                          grad={currentModule.grad}
-                          icon={ch.icon}
-                          poster={ch.num}
-                          title={ch.title}
-                          sub={ch.eng}
-                          chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
-                          onClick={() =>
-                            openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
-                          }
-                        />
+                        {ch.img ? (
+                          <ImageTile
+                            src={`/assets/cards/${ch.img}.webp`}
+                            label={`${ch.title} (${ch.eng})`}
+                            onClick={() =>
+                              openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
+                            }
+                          />
+                        ) : (
+                          <PremiumCard
+                            grad={currentModule.grad}
+                            icon={ch.icon}
+                            poster={ch.num}
+                            title={ch.title}
+                            sub={ch.eng}
+                            chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
+                            onClick={() =>
+                              openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
+                            }
+                          />
+                        )}
                       </React.Fragment>
                     ))}
                   </div>
