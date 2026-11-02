@@ -20,7 +20,6 @@ import {
   Lock,
   Unlock,
   Trophy,
-  Camera,
   MessageCircle,
   Send,
   Facebook,
@@ -529,6 +528,79 @@ const RESEARCH_SHOWCASE_CARDS = [
   }
 ];
 
+// ---------------------------------------------------------------- Admission (ভর্তি পরীক্ষা)
+// The Admission page shows one card per university; each university has two sections
+// (অধ্যায় ভিত্তিক ক্লাস, মডেল টেস্ট), which are modules of the Admission track below.
+const ADMISSION_UNIVERSITIES = [
+  { id: 'du', name: 'ঢাবি প্রস্তুতি', full: 'ঢাকা বিশ্ববিদ্যালয় পূর্ণাঙ্গ প্রস্তুতি', short: 'ঢাবি', icon: '🏛️', grad: 'from-sky-400 via-blue-500 to-indigo-700' },
+  { id: 'ju', name: 'জাবি প্রস্তুতি', full: 'জাহাঙ্গীরনগর বিশ্ববিদ্যালয়', short: 'জাবি', icon: '🌳', grad: 'from-emerald-400 via-green-500 to-teal-700' },
+  { id: 'cu', name: 'চবি প্রস্তুতি', full: 'চট্টগ্রাম বিশ্ববিদ্যালয়', short: 'চবি', icon: '⛰️', grad: 'from-amber-400 via-orange-500 to-red-600' },
+  { id: 'ru', name: 'রাবি প্রস্তুতি', full: 'রাজশাহী বিশ্ববিদ্যালয়', short: 'রাবি', icon: '🏫', grad: 'from-rose-400 via-pink-500 to-fuchsia-700' },
+  { id: 'guccho', name: 'গুচ্ছ প্রস্তুতি', full: 'সমন্বিত বিশ্ববিদ্যালয় (গুচ্ছ)', short: 'গুচ্ছ', icon: '🧩', grad: 'from-violet-400 via-purple-500 to-indigo-700' },
+  { id: 'sust', name: 'শাবিপ্রবি', full: 'শাহজালাল বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়', short: 'শাবিপ্রবি', icon: '🔬', grad: 'from-cyan-400 via-teal-500 to-emerald-700' },
+  { id: 'other', name: 'অন্যান্য', full: 'অন্যান্য বিশ্ববিদ্যালয় ও ভর্তি পরীক্ষা', short: 'অন্যান্য', icon: '🎓', grad: 'from-slate-400 via-slate-500 to-slate-700' }
+];
+const ADMISSION_UNIVERSITY_BY_ID = Object.fromEntries(ADMISSION_UNIVERSITIES.map((u) => [u.id, u]));
+
+const ADM_CHAPTER_TOPICS = [
+  ['ম্যাট্রিক্স, নির্ণায়ক ও ভেক্টর', 'Matrices, Determinants & Vectors', '🔢'],
+  ['সরলরেখা, বৃত্ত ও কণিক', 'Straight Lines, Circle & Conics', '⭕'],
+  ['ফাংশন, সীমা ও অন্তরীকরণ', 'Functions, Limits & Differentiation', '⚡'],
+  ['যোগজীকরণ ও এর প্রয়োগ', 'Integration & Applications', '∫'],
+  ['ত্রিকোণমিতি ও বিপরীত ত্রিকোণমিতি', 'Trigonometry & Inverse Trigonometry', '📐'],
+  ['জটিল সংখ্যা, বহুপদী ও দ্বিপদী', 'Complex Numbers, Polynomials & Binomial', '🌀'],
+  ['বিন্যাস, সমাবেশ ও সম্ভাবনা', 'Permutation, Combination & Probability', '🎲'],
+  ['স্থিতি, গতি ও পরিসংখ্যান', 'Statics, Dynamics & Statistics', '🎯']
+];
+const ADM_MODEL_TOPICS = [
+  ['টপিক-ভিত্তিক মডেল টেস্ট', 'Topic-wise Model Tests', '🧩'],
+  ['অর্ধ-পূর্ণাঙ্গ মডেল টেস্ট', 'Half-length Model Tests', '📄'],
+  ['পূর্ণাঙ্গ মডেল টেস্ট', 'Full-length Model Tests', '📝'],
+  ['বিগত বছরের প্রশ্ন সমাধান', "Previous Years' Questions", '📚']
+];
+const ADM_CHAPTER_BLUEPRINT = [
+  'মৌলিক ধারণা ও সূত্র রিভিশন',
+  'ভর্তি পরীক্ষার টাইপ অনুযায়ী সমস্যা সমাধান',
+  'ক্যালকুলেটর ছাড়া দ্রুত সমাধানের কৌশল',
+  'বিগত বছরের প্রশ্ন সমাধান',
+  'টাইমড প্র্যাকটিস ও ভুল বিশ্লেষণ'
+];
+const ADM_MODEL_BLUEPRINT = [
+  'পরীক্ষার নিয়ম ও সময় ব্যবস্থাপনা',
+  'মডেল টেস্ট সমাধান — পর্ব ১',
+  'মডেল টেস্ট সমাধান — পর্ব ২',
+  'বিস্তারিত সমাধান ও ভুল বিশ্লেষণ'
+];
+const toBn_ = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+const ADMISSION_MODULES = ADMISSION_UNIVERSITIES.flatMap((u) => [
+  {
+    id: `adm-${u.id}-ch`,
+    univ: u.id,
+    section: 'ch',
+    code: `${u.short} • অধ্যায়`,
+    name: `${u.full} — অধ্যায় ভিত্তিক ক্লাস`,
+    cardLabel: 'অধ্যায় ভিত্তিক ক্লাস',
+    sub: 'সিলেবাস অনুযায়ী অধ্যায়ভিত্তিক লেকচার ও সেলফ টেস্ট',
+    icon: '📚',
+    grad: u.grad,
+    chapters: ADM_CHAPTER_TOPICS.map(([title, eng, icon], i) => ({ id: `adm-${u.id}-ch-${i + 1}`, num: `অধ্যায় ${toBn_(i + 1)}`, title, eng, icon })),
+    lectureBlueprint: ADM_CHAPTER_BLUEPRINT
+  },
+  {
+    id: `adm-${u.id}-mt`,
+    univ: u.id,
+    section: 'mt',
+    code: `${u.short} • মডেল টেস্ট`,
+    name: `${u.full} — মডেল টেস্ট`,
+    cardLabel: 'মডেল টেস্ট',
+    sub: 'টপিক-ভিত্তিক ও পূর্ণাঙ্গ মডেল টেস্ট',
+    icon: '📝',
+    grad: u.grad,
+    chapters: ADM_MODEL_TOPICS.map(([title, eng, icon], i) => ({ id: `adm-${u.id}-mt-${i + 1}`, num: `মডেল টেস্ট ${toBn_(i + 1)}`, title, eng, icon })),
+    lectureBlueprint: ADM_MODEL_BLUEPRINT
+  }
+]);
+
 const PART3_ACADEMIC_TRACKS = {
   'HSC English Version': {
     id: 'HSC English Version',
@@ -687,101 +759,11 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'Admission Test (BUET/DU)': {
     id: 'Admission Test (BUET/DU)',
-    badge: 'MEDI-MATH, DU KA, ENGINEERING (BUET/CKRUET) & 20-YR ARCHIVE',
-    title: 'University Admission Mathematics Hub (Medi-Math, DU ‘Ka’, BUET/CKRUET & Question Bank)',
-    subtitle: 'Dedicated Medi-Math batch for Medical + DU Ka aspirants, high-voltage BUET written derivations, and 20-year question bank hacks.',
+    badge: 'ঢাবি, জাবি, চবি, রাবি, গুচ্ছ, শাবিপ্রবি ও অন্যান্য',
+    title: 'ভর্তি পরীক্ষার প্রস্তুতি — বিশ্ববিদ্যালয়ভিত্তিক গণিত',
+    subtitle: 'প্রতিটি বিশ্ববিদ্যালয়ের জন্য অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট।',
     unlockFee: 40,
-    modules: [
-      {
-        id: 'adm-medimath',
-        code: 'MEDI-MATH • DU KA',
-        name: 'Medi-Math (Medical + DU ‘Ka’ Dedicated Batch)',
-        sub: 'মেডিকেল প্রস্তুতির পাশাপাশি ঢাকা বিশ্ববিদ্যালয় ‘ক’ ইউনিটের গণিত প্রস্তুতির ডেডিকেটেড ব্যাচ',
-        icon: '🩺',
-        grad: 'from-emerald-400 via-teal-500 to-cyan-600',
-        chapters: [
-          { id: 'adm-mm-1', num: 'Medi-Math 01', title: 'High-Yield Calculus (Differentiation & Integration Without Fear)', eng: 'বায়োলজি-ফোকাসড শিক্ষার্থীদের জন্য কম সময়ে ১০০% কমন উপযোগী ক্যালকুলাস শর্টকাট ও রিটেন', icon: '⚡' },
-          { id: 'adm-mm-2', num: 'Medi-Math 02', title: 'Matrices, Determinants, Vectors & Straight Lines', eng: 'DU ‘Ka’ MCQ ও সংক্ষিপ্ত লিখিত প্রশ্নের জন্য ১৫ সেকেন্ডের নির্ভুল কৌশল', icon: '🔢' },
-          { id: 'adm-mm-3', num: 'Medi-Math 03', title: 'Circles, Conics & Inverse Trigonometry', eng: 'চিত্র ছাড়াই উপবৃত্ত, পরাবৃত্ত ও অধিবৃত্তের ফোকাস-উৎকেন্দ্রিকতা নির্ণয়', icon: '🪐' },
-          { id: 'adm-mm-4', num: 'Medi-Math 04', title: 'Polynomials, Complex Numbers & Binomial Theorem', eng: 'এককের ঘনমূল ω, মূলের সহগ সম্পর্ক ও মধ্যপদ নির্ণয়ের সহজ ট্রিকস', icon: '🌀' },
-          { id: 'adm-mm-5', num: 'Medi-Math 05', title: 'Selected Statics, Dynamics & Probability for Medical Aspirants', eng: 'বলবিদ্যা ও সম্ভাবনার শুধু সেই টপিকগুলো যা DU ‘ক’ ও GST-তে প্রতি বছর আসে', icon: '🎯' },
-          { id: 'adm-mm-6', num: 'Medi-Math 06', title: 'DU ‘Ka’ Written 2.5-Mark Master Strategy & Model Tests', eng: 'মেডিকেল পরীক্ষার পর দ্রুততম সময়ে ঢাবি ‘ক’ রিটেন প্রস্তুতির পূর্ণাঙ্গ গাইডলাইন', icon: '📝' }
-        ],
-        lectureBlueprint: [
-          'Zero-Panic Concept Builder (Designed for Medical + DU Ka Aspirants)',
-          'No-Calculator 15-Second MCQ Shortcut & Memory Hooks',
-          'Dhaka University (DU Ka) Last 12 Years Exact Question Walkthrough',
-          '2.5-Mark DU Written Crisp Step-by-Step Presentation',
-          'Medi-Math Timed Self-Test & Instant Score Evaluation'
-        ]
-      },
-      {
-        id: 'adm-du',
-        code: 'DU KA • GST • AGRI',
-        name: 'Dhaka University ‘Ka’ Unit & GST Varsity Booster',
-        sub: 'No-Calculator 20-Second Tricks + DU Written Short-Question Mastery',
-        icon: '🎯',
-        grad: 'from-rose-400 via-red-500 to-orange-600',
-        chapters: [
-          { id: 'adm-du-1', num: 'Booster 01', title: 'No-Calculator Calculus Shortcuts (Differentiation & Integration)', eng: '10-second standard integral patterns, area shortcuts & limit tricks', icon: '⚡' },
-          { id: 'adm-du-2', num: 'Booster 02', title: 'Matrices, Determinants, Real Numbers & Inequalities', eng: '2x2 / 3x3 instant inverse, eigenvalues & modulus inequality intervals', icon: '🔢' },
-          { id: 'adm-du-3', num: 'Booster 03', title: 'Straight Lines, Circles & Conics Rapid Recognition', eng: 'Instant vertex, focus, latus rectum & tangent condition identification', icon: '⭕' },
-          { id: 'adm-du-4', num: 'Booster 04', title: 'Trigonometry & Inverse Trig Mental Math Hacks', eng: 'Value substitution, quadrant elimination & principal value tricks', icon: '📐' },
-          { id: 'adm-du-5', num: 'Booster 05', title: 'Complex Numbers, Polynomials & Binomial Theorem', eng: 'Cube roots of unity (1, ω, ω²), sum/product of roots & middle terms', icon: '🌀' },
-          { id: 'adm-du-6', num: 'Booster 06', title: 'DU ‘Ka’ Written Part: 2.5-Mark Crisp Derivation Strategy', eng: 'How to write full-mark steps in limited space for Dhaka University Written', icon: '📝' }
-        ],
-        lectureBlueprint: [
-          'No-Calculator Mental Math Framework & Formula Compression',
-          'Dhaka University (DU Ka) Past 15 Years Question Analysis',
-          'JU, RU, CU & GST Cluster Admission High-Yield Problems',
-          'DU Written Short-Question Model Answers & Marking Breakdown',
-          'Varsity Standard Timed Negative-Marking Self-Test'
-        ]
-      },
-      {
-        id: 'adm-buet',
-        code: 'BUET • CKRUET • IUT',
-        name: 'Engineering Written & Preli (BUET, CKRUET, IUT, MIST)',
-        sub: 'BUET, KUET, RUET, CUET, MIST & IUT Written + MCQ Intensive',
-        icon: '🚀',
-        grad: 'from-amber-400 via-orange-500 to-red-600',
-        chapters: [
-          { id: 'adm-eng-1', num: 'Module 01', title: 'Engineering Calculus: Limits, L’Hôpital, Leibnitz & Extrema', eng: 'BUET Written 10-mark derivations, indeterminate forms & curve sketching', icon: '⚡' },
-          { id: 'adm-eng-2', num: 'Module 02', title: 'Definite Integrals, Reduction Formulas & Area Bounded by Curves', eng: 'King’s property, Walli’s theorem, Gamma-Beta shortcuts & BUET archive', icon: '∫' },
-          { id: 'adm-eng-3', num: 'Module 03', title: 'Coordinate Geometry & Conics Locus Masterclass', eng: 'Pair of straight lines, chord of contact, focal properties & rotation of axes', icon: '🪐' },
-          { id: 'adm-eng-4', num: 'Module 04', title: 'Vectors & 3D Geometry for Engineering Admission', eng: 'Projection, tetrahedron volume, shortest distance & vector mechanics', icon: '🧭' },
-          { id: 'adm-eng-5', num: 'Module 05', title: 'Statics & Dynamics High-Voltage Engineering Problems', eng: 'Projectile on inclined plane, river-boat minimum time & string tension', icon: '⚖️' },
-          { id: 'adm-eng-6', num: 'Module 06', title: 'Matrices, Complex Numbers, Theory of Equations & Probability', eng: 'Cayley-Hamilton, nth roots of unity, card/dice Bayes probability', icon: '🎲' }
-        ],
-        lectureBlueprint: [
-          'Concept Booster & Multi-Chapter Synoptic Theory for Engineering',
-          'BUET Last 15 Years Written Question Step-by-Step Solution',
-          'CKRUET, IUT & MIST High-Frequency Problem Patterns',
-          'Scientific Calculator ES/EX Matrix, Integral & Complex Hacks',
-          'Engineering Standard Written + MCQ Self-Test (Google Form)'
-        ]
-      },
-      {
-        id: 'adm-qbank',
-        code: '20-YR ARCHIVE & HACKS',
-        name: '20-Year Admission Question Bank & Calculator Hacks',
-        sub: 'Topic-wise 20 Years Archive + Casio fx-991EX ClassWiz Masterclass',
-        icon: '🧮',
-        grad: 'from-violet-400 via-purple-500 to-indigo-700',
-        chapters: [
-          { id: 'adm-qb-1', num: 'Archive 01', title: 'Casio fx-991ES / 991EX ClassWiz Matrix, Vector & Complex Hacks', eng: 'Solve 4x4 systems, 3D cross products & Argand loci in 12 seconds', icon: '🧮' },
-          { id: 'adm-qb-2', num: 'Archive 02', title: '20-Year Calculus Archive (BUET, DU, CKRUET, SUST, JU)', eng: 'Most repeated limit, derivative & definite integral questions with 2-line solutions', icon: '∫' },
-          { id: 'adm-qb-3', num: 'Archive 03', title: '20-Year Coordinate Geometry & Conics Question Bank', eng: 'Locus, common chord, tangent & eccentric angle archive solutions', icon: '🪐' },
-          { id: 'adm-qb-4', num: 'Archive 04', title: '20-Year Algebra, Permutations & Probability Archive', eng: 'Binomial coefficients, derangements & Bayes conditional probability archive', icon: '🎲' }
-        ],
-        lectureBlueprint: [
-          'Pattern Recognition: Identifying 20-Year Repeated Question Archetypes',
-          'Live Calculator Keystroke Demonstration (fx-991EX / 991CW)',
-          'Option Elimination & Dimensional/Boundary Value Checking',
-          'Full-Length Timed Admission Simulation Self-Test'
-        ]
-      }
-    ]
+    modules: ADMISSION_MODULES
   },
   'Job Math': {
     id: 'Job Math',
@@ -2891,6 +2873,7 @@ const navStateToPath = (st) => {
   const slug = PAGE_SLUGS[st.page];
   if (!slug) return '/';
   const o = st.options || {};
+  if (o.admUniv) return `/${slug}/${o.admUniv}/`;
   if (o.researchCardId) return `/${slug}/${o.researchCardId}/`;
   if (o.bvPaperKey) return `/${slug}/${o.bvPaperKey}/`;
   return `/${slug}/`;
@@ -2913,6 +2896,10 @@ const partsToNavState = (parts) => {
     const ch = b && paper.chapters.find((x) => x.id === b);
     if (!ch) return { page, options: { bvPaperKey: a } };
     return { page: 'COURSE', course: { kind: 'bvChapter', paperKey: a, chapterId: ch.id, parent: page, title: `${ch.num}: ${ch.title}` } };
+  }
+
+  if (page === 'Admission Test (BUET/DU)' && a && !b && ADMISSION_UNIVERSITY_BY_ID[a]) {
+    return { page, options: { admUniv: a } };
   }
 
   const track = PART3_ACADEMIC_TRACKS[page];
@@ -3029,12 +3016,14 @@ const routeInfo = (st) => {
       const mod = track && track.modules[c.moduleIdx];
       if (!mod) return null;
       const modLink = link({ page: 'COURSE', course: { kind: 'track', trackId: c.trackId, moduleIdx: c.moduleIdx, parent } }, mod.name);
+      const admU = c.trackId === 'Admission Test (BUET/DU)' && mod.univ && ADMISSION_UNIVERSITY_BY_ID[mod.univ];
+      const univCrumb = admU ? [link({ page: c.trackId, options: { admUniv: admU.id } }, admU.name)] : [];
       if (c.kind === 'track') {
         return make({
           title: `${mod.name} — ${track.id}${suffix}`,
           heading: mod.name,
           summary: `${mod.name}: ${mod.sub}. অধ্যায়: ${mod.chapters.map((x) => x.title).join(', ')}।`,
-          crumbs: [home, parentLink],
+          crumbs: [home, parentLink, ...univCrumb],
           children: mod.chapters.map((ch, i) => link({ page: 'COURSE', course: { kind: 'trackChapter', trackId: c.trackId, moduleIdx: c.moduleIdx, chapterIdx: i, parent } }, `${ch.num} — ${ch.title}`))
         });
       }
@@ -3045,7 +3034,7 @@ const routeInfo = (st) => {
         heading: `${mod.name} — ${ch.num}: ${ch.title}`,
         summary: `${ch.title}: ${ch.eng}. ${mod.name} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
         description: `${ch.title} (${ch.eng}) — ${mod.name}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
-        crumbs: [home, parentLink, modLink]
+        crumbs: [home, parentLink, ...univCrumb, modLink]
       });
     }
     if (c.kind === 'about') {
@@ -3083,6 +3072,27 @@ const routeInfo = (st) => {
         ...Object.values(HSC_BV_PAPERS).map((p) => link({ page, options: { bvPaperKey: p.id } }, p.title)),
         ...SPECIAL_COURSES_WITH_BOOKS.map((c) => link({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page } }, `${c.courseTitle} মাস্টার কোর্স`))
       ]
+    });
+  }
+  if (page === 'Admission Test (BUET/DU)') {
+    const admT = PART3_ACADEMIC_TRACKS[page];
+    if (o.admUniv) {
+      const u = ADMISSION_UNIVERSITY_BY_ID[o.admUniv];
+      if (!u) return null;
+      const sections = admT.modules.map((m, i) => ({ m, i })).filter(({ m }) => m.univ === u.id);
+      return make({
+        title: `${u.full} — ভর্তি পরীক্ষার গণিত প্রস্তুতি${suffix}`,
+        heading: u.full,
+        summary: `${u.full} ভর্তি পরীক্ষার গণিত প্রস্তুতি: অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${admT.unlockFee}।`,
+        crumbs: [home, pageLink(page)],
+        children: sections.map(({ m, i }) => link({ page: 'COURSE', course: { kind: 'track', trackId: page, moduleIdx: i, parent: page } }, `${u.name} — ${m.cardLabel}`))
+      });
+    }
+    return make({
+      title: `ভর্তি পরীক্ষার প্রস্তুতি — ঢাবি, জাবি, চবি, রাবি, গুচ্ছ, শাবিপ্রবি${suffix}`,
+      heading: 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষার গণিত প্রস্তুতি',
+      summary: `প্রতিটি বিশ্ববিদ্যালয়ের জন্য অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট — ${ADMISSION_UNIVERSITIES.map((u) => u.full).join(', ')}।`,
+      children: ADMISSION_UNIVERSITIES.map((u) => link({ page, options: { admUniv: u.id } }, u.name))
     });
   }
   const track = PART3_ACADEMIC_TRACKS[page];
@@ -3144,6 +3154,7 @@ const listRoutes = () => {
     p.chapters.forEach((ch) => sts.push({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: p.id, chapterId: ch.id, parent: 'HSC Bangla Version' } }));
   });
   SPECIAL_COURSES_WITH_BOOKS.forEach((c) => sts.push({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'HSC Bangla Version' } }));
+  ADMISSION_UNIVERSITIES.forEach((u) => sts.push({ page: 'Admission Test (BUET/DU)', options: { admUniv: u.id } }));
   Object.values(PART3_ACADEMIC_TRACKS).forEach((t) =>
     t.modules.forEach((m, mi) => {
       sts.push({ page: 'COURSE', course: { kind: 'track', trackId: t.id, moduleIdx: mi, parent: t.id } });
@@ -4964,7 +4975,6 @@ function AdminPaymentRow({ p, tone, label, act }) {
 }
 
 export default function App() {
-  const [profilePhoto, setProfilePhoto] = useState('/assets/emran-avatar.jpg');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [activeCourse, setActiveCourse] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
@@ -5017,6 +5027,7 @@ export default function App() {
   const [thesisLevel, setThesisLevel] = useState('M.Sc. Thesis');
 
   const [part3ModuleIdx, setPart3ModuleIdx] = useState(0);
+  const [admUniv, setAdmUniv] = useState(null); // selected university on the Admission page (null = show the 7 cards)
   const [part3ChapterIdx, setPart3ChapterIdx] = useState(0);
 
   const activePart3Track = PART3_ACADEMIC_TRACKS[selectedTrack] || null;
@@ -5163,18 +5174,6 @@ export default function App() {
     });
   }, [currentBvChapter, unlockedLectures, siteContent]);
 
-  const handleCustomPhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setProfilePhoto(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   // Sets the page state for a sub-page without touching history or scroll.
   const applySubPage = (trackId, options = {}) => {
     setActiveCourse(null);
@@ -5200,6 +5199,7 @@ export default function App() {
     if (options.researchCardId) {
       setActiveResearchCardId(options.researchCardId);
     }
+    setAdmUniv(trackId === 'Admission Test (BUET/DU)' ? options.admUniv || null : null);
     setSelectedTrack(trackId);
     setActiveSubPage(trackId);
   };
@@ -5219,6 +5219,10 @@ export default function App() {
       setSelectedTrack(course.trackId);
       setPart3ModuleIdx(course.moduleIdx);
       setPart3ChapterIdx(course.chapterIdx || 0);
+      if (course.trackId === 'Admission Test (BUET/DU)') {
+        const m = PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'].modules[course.moduleIdx];
+        setAdmUniv((m && m.univ) || null);
+      }
     }
     setActiveCourse(course);
     setActiveSubPage('COURSE');
@@ -5303,6 +5307,11 @@ export default function App() {
     isCourseView && (activeCourse.kind === 'track' || activeCourse.kind === 'trackChapter');
   const isTrackChapterView = isCourseView && activeCourse.kind === 'trackChapter';
   const part3TrackKey = isTrackCourse ? activeCourse.trackId : activeSubPage;
+  // The Admission landing (7 university cards, or one university's 2 section cards) has its own view.
+  const admissionHubView = activeSubPage === 'Admission Test (BUET/DU)' && !isCourseView;
+  // Friendly Bengali page labels for the breadcrumb (menu already uses these).
+  const pageLabelBn = (id) =>
+    ({ 'Admission Test (BUET/DU)': 'ভর্তি পরীক্ষার প্রস্তুতি', 'Job Math': 'JOB MATH', 'Class Routine': 'লাইভ ক্লাসের রুটিন', 'Private Batch': 'প্রাইভেট ব্যাচ' }[id] || id);
 
   // Browser tab title follows the page.
   useEffect(() => {
@@ -5343,27 +5352,9 @@ export default function App() {
       <header className="lg:sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <label
-              title="আপনার নিজের ছবি পরিবর্তন করতে ক্লিক করুন"
-              className="relative group cursor-pointer shrink-0"
-            >
-              <div className="w-11 h-11 rounded-2xl overflow-hidden bg-slate-900 border-2 border-teal-400/70 shadow-md">
-                <img
-                  src={profilePhoto}
-                  alt="Emran Islam"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-900 text-teal-300 border border-teal-400 flex items-center justify-center">
-                <Camera className="w-2.5 h-2.5" />
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCustomPhotoUpload}
-                className="hidden"
-              />
-            </label>
+            <div className="w-11 h-11 shrink-0 rounded-2xl overflow-hidden bg-slate-900 border-2 border-teal-400/70 shadow-md">
+              <img src="/assets/emran-avatar.jpg" alt="Emran Islam" className="w-full h-full object-cover object-top" draggable="false" />
+            </div>
             <div onClick={() => openSubPage('HOME')} className="cursor-pointer">
               <div className="flex items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white hover:text-teal-300 transition">
@@ -5522,13 +5513,13 @@ export default function App() {
                       onClick={() => openSubPage(activeCourse.parent)}
                       className="text-slate-400 hover:text-white transition"
                     >
-                      {activeCourse.parent}
+                      {pageLabelBn(activeCourse.parent)}
                     </button>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                     <span className="text-amber-300 font-extrabold">{activeCourse.title}</span>
                   </>
                 ) : (
-                  <span className="text-amber-300 font-extrabold">{activeSubPage}</span>
+                  <span className="text-amber-300 font-extrabold">{pageLabelBn(activeSubPage)}</span>
                 )}
               </div>
             </div>
@@ -5810,24 +5801,20 @@ export default function App() {
           >
             <div className="text-center">
               <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 leading-snug pb-1">
-                University & Engineering Admission
+                বিশ্ববিদ্যালয় ভর্তি পরীক্ষার প্রস্তুতি
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'].modules.map((mod, mIdx) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {ADMISSION_UNIVERSITIES.map((u) => (
                 <PremiumCard
-                  key={mod.id}
-                  person
-                  poster={shortTag(mod.code)}
-                  grad={mod.grad}
-                  icon={mod.icon}
-                  title={mod.name}
-                  sub={mod.sub}
-                  chips={[mIdx === 0 ? 'Medical + DU Ka' : `${mod.chapters.length} Modules`, '1st Lec Free']}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'Admission Test (BUET/DU)', parent: 'Admission Test (BUET/DU)', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
-                  }
+                  key={u.id}
+                  poster={u.short}
+                  grad={u.grad}
+                  icon={u.icon}
+                  title={u.name}
+                  sub={u.full}
+                  onClick={() => openSubPage('Admission Test (BUET/DU)', { admUniv: u.id })}
                 />
               ))}
             </div>
@@ -6634,7 +6621,69 @@ export default function App() {
       )}
 
       {/* VIEW 3: DEDICATED SUB-PAGE FOR PART 3 TRACKS (HSC EV, O/A-LEVEL, ADMISSION, B.SC. HONOURS) */}
-      {PART3_ACADEMIC_TRACKS[part3TrackKey] && (
+      {admissionHubView && (
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-cyan-500/30 p-5 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(168,85,247,0.10),_transparent_55%)]" />
+          {(() => {
+            const admTrack = PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'];
+            const univ = admUniv && ADMISSION_UNIVERSITY_BY_ID[admUniv];
+            if (univ) {
+              const sections = admTrack.modules
+                .map((m, mIdx) => ({ m, mIdx }))
+                .filter(({ m }) => m.univ === univ.id);
+              return (
+                <div className="relative space-y-6">
+                  <div className="flex items-center gap-4 border-b border-slate-800 pb-5">
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br ${univ.grad} flex items-center justify-center text-3xl sm:text-4xl shadow-lg`}>
+                      {univ.icon}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-cyan-300">ভর্তি পরীক্ষার প্রস্তুতি</span>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{univ.full}</h3>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1">অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-3xl mx-auto">
+                    {sections.map(({ m, mIdx }) => (
+                      <PremiumCard
+                        key={m.id}
+                        poster={m.cardLabel}
+                        grad={m.grad}
+                        icon={m.icon}
+                        title={m.cardLabel}
+                        sub={m.sub}
+                        chips={[`${toBnDigits(m.chapters.length)}${m.section === 'mt' ? 'টি টেস্ট' : 'টি অধ্যায়'}`, '১ম লেকচার ফ্রি']}
+                        onClick={() =>
+                          openCourse({ kind: 'track', trackId: admTrack.id, parent: admTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: m.sub, icon: m.icon, grad: m.grad })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="relative grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 max-w-5xl mx-auto">
+                {ADMISSION_UNIVERSITIES.map((u) => (
+                  <PremiumCard
+                    key={u.id}
+                    poster={u.short}
+                    grad={u.grad}
+                    icon={u.icon}
+                    title={u.name}
+                    sub={u.full}
+                    onClick={() => openSubPage('Admission Test (BUET/DU)', { admUniv: u.id })}
+                  />
+                ))}
+              </div>
+            );
+          })()}
+        </section>
+      </main>
+      )}
+
+      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section
           id="part3-academic-hub"
@@ -6650,7 +6699,7 @@ export default function App() {
                 {activeCourse.icon}
               </div>
               <div>
-                <span className="text-xs font-bold text-cyan-300">{activeCourse.parent}</span>
+                <span className="text-xs font-bold text-cyan-300">{pageLabelBn(activeCourse.parent)}</span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{activeCourse.title}</h3>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1">{activeCourse.sub}</p>
               </div>
