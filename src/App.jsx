@@ -786,9 +786,9 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'Job Math': {
     id: 'Job Math',
-    badge: 'JOB MATH • BCS, BANK, TEACHER RECRUITMENT & MORE',
-    title: 'Job Exam Mathematics (গাণিতিক যুক্তি ও মানসিক দক্ষতা)',
-    subtitle: 'চাকরির পরীক্ষার প্রস্তুতি: গাণিতিক যুক্তি (পাটিগণিত, বীজগণিত, জ্যামিতি, ত্রিকোণমিতি ও অন্যান্য) এবং মানসিক দক্ষতা। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার ও মডেল টেস্ট।',
+    badge: 'JOB MATH • BCS PRELIMINARY SYLLABUS',
+    title: 'JOB MATH — BCS Preliminary: গাণিতিক যুক্তি, মানসিক দক্ষতা ও মডেল টেস্ট',
+    subtitle: 'BCS প্রিলিমিনারি সিলেবাস অনুযায়ী প্রস্তুতি: গাণিতিক যুক্তি (পাটিগণিত, বীজগণিত, জ্যামিতি ও পরিমিতি, ত্রিকোণমিতি ও অন্যান্য), মানসিক দক্ষতা এবং মডেল টেস্ট ও প্রশ্নব্যাংক। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার।',
     unlockFee: 30,
     modules: [
       {
@@ -848,6 +848,26 @@ const PART3_ACADEMIC_TRACKS = {
           'দ্রুত সমাধানের কৌশল',
           'বিগত বছরের প্রশ্ন সমাধান',
           'টাইমড মডেল টেস্ট'
+        ]
+      },
+      {
+        id: 'job-model',
+        code: 'JOB • MODEL TEST',
+        name: 'মডেল টেস্ট ও প্রশ্নব্যাংক (Model Tests & Question Bank)',
+        sub: 'BCS প্রিলিমিনারির গাণিতিক যুক্তি ও মানসিক দক্ষতার মডেল টেস্ট এবং বিগত বছরের প্রশ্নব্যাংক',
+        icon: '📝',
+        grad: 'from-amber-400 via-orange-500 to-red-600',
+        chapters: [
+          { id: 'job-mt-1', num: 'মডেল টেস্ট ১', title: 'গাণিতিক যুক্তি — মডেল টেস্ট', eng: 'Mathematical Reasoning Model Tests', icon: '🧮' },
+          { id: 'job-mt-2', num: 'মডেল টেস্ট ২', title: 'মানসিক দক্ষতা — মডেল টেস্ট', eng: 'Mental Ability Model Tests', icon: '🧠' },
+          { id: 'job-mt-3', num: 'মডেল টেস্ট ৩', title: 'BCS প্রিলিমিনারি পূর্ণাঙ্গ মডেল টেস্ট', eng: 'Full-length BCS Preliminary Model Tests', icon: '🏛️' },
+          { id: 'job-mt-4', num: 'প্রশ্নব্যাংক', title: 'বিগত বছরের BCS প্রিলিমিনারি প্রশ্নব্যাংক', eng: 'Previous Years BCS Preliminary Question Bank', icon: '📚' }
+        ],
+        lectureBlueprint: [
+          'পরীক্ষার ধরন, সময় ব্যবস্থাপনা ও প্রস্তুতির কৌশল',
+          'মডেল টেস্ট সমাধান — পর্ব ১',
+          'মডেল টেস্ট সমাধান — পর্ব ২',
+          'ভুল বিশ্লেষণ ও চূড়ান্ত রিভিশন'
         ]
       }
     ]
@@ -1520,7 +1540,7 @@ const TEACHING_LEVELS = [
   { page: 'HSC English Version', title: 'HSC English Version', sub: 'Higher Math 1st & 2nd Paper + EV courses', icon: '🎯' },
   { page: 'O-Level & A-Level', title: 'O & A-Level Mathematics', sub: 'D-Math, Add-Math, P1–P4, M1, S1', icon: '📐' },
   { page: 'Admission Test (BUET/DU)', title: 'ভর্তি পরীক্ষার প্রস্তুতি', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
-  { page: 'Job Math', title: 'JOB MATH', sub: 'গাণিতিক যুক্তি ও মানসিক দক্ষতা', icon: '💼' },
+  { page: 'Job Math', title: 'JOB MATH', sub: 'BCS প্রিলি: গাণিতিক যুক্তি, মানসিক দক্ষতা ও মডেল টেস্ট', icon: '💼' },
   { page: 'B.Sc. Honours Math', title: 'B.Sc. (Honours) Mathematics', sub: 'Calculus, Linear Algebra, ODE, Numerical, OR', icon: '🎓' }
 ];
 
@@ -3194,7 +3214,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, outline: {}, exams: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], ...data };
       applyOutline(contentCache.outline);
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
@@ -3218,6 +3238,12 @@ const lectureCountFor = (content, prefix, fallback) => {
 };
 // A lecture's heading from the admin page, else the built-in topic.
 const lectureTitleFor = (content, key, fallback) => (content && content.titles && content.titles[key]) || fallback;
+// Length of a lecture, as typed on the admin page; nothing is shown until it is set.
+const lectureDurationFor = (content, key, english = false) => {
+  const n = content && content.durations && Number(content.durations[key]);
+  if (!(n >= 1)) return '';
+  return english ? `${n} Mins` : `${toBnDigits(n)} মিনিট`;
+};
 const BV_LECTURES = 10;
 const COURSE_LECTURES = 8;
 const EXTRA_TOPIC = 'অতিরিক্ত অনুশীলন ও সমস্যা সমাধান';
@@ -3326,9 +3352,10 @@ function AdminSaveButton({ state, onClick, label = 'Save' }) {
   );
 }
 
-function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
+function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) {
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
   const [heading, setHeading] = useState(title || '');
+  const [mins, setMins] = useState(minutes ? String(minutes) : '');
   const [state, setState] = useState('idle');
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -3339,9 +3366,10 @@ function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
     setState('saving');
     Promise.all([
       adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }),
-      adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading })
-    ]).then(([r, t]) => {
-      r = { ok: r.ok && t.ok };
+      adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading }),
+      adminPost(password, { action: 'saveDuration', key: lecture.key, minutes: mins })
+    ]).then(([r, t, d]) => {
+      r = { ok: r.ok && t.ok && d.ok };
       setState(r.ok ? 'saved' : 'error');
       if (r.ok) {
         loadContent();
@@ -3359,16 +3387,32 @@ function AdminLectureRow({ lecture, saved, title, password, onSaved }) {
           <span className={`rounded px-1.5 py-0.5 ${saved.live ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>Live</span>
         </div>
       </div>
-      <input
-        className={adminInput}
-        placeholder="লেকচারের হেডিং (ঐচ্ছিক), যেমন: সংজ্ঞা ও মৌলিক সূত্র"
-        value={heading}
-        maxLength={200}
-        onChange={(e) => {
-          setHeading(e.target.value);
-          setState('idle');
-        }}
-      />
+      <div className="grid grid-cols-[1fr_7.5rem] gap-2">
+        <input
+          className={adminInput}
+          placeholder="লেকচারের হেডিং (ঐচ্ছিক), যেমন: সংজ্ঞা ও মৌলিক সূত্র"
+          value={heading}
+          maxLength={200}
+          onChange={(e) => {
+            setHeading(e.target.value);
+            setState('idle');
+          }}
+        />
+        <input
+          className={adminInput}
+          type="number"
+          min="1"
+          max="600"
+          inputMode="numeric"
+          placeholder="সময় (মিনিট)"
+          aria-label="ক্লাসের সময় (মিনিট)"
+          value={mins}
+          onChange={(e) => {
+            setMins(e.target.value);
+            setState('idle');
+          }}
+        />
+      </div>
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div>
           <input className={adminInput} placeholder="YouTube লিংক" value={form.youtube} onChange={set('youtube')} />
@@ -3852,6 +3896,7 @@ function AdminPage() {
               lecture={l}
               saved={allLectures[l.key] || {}}
               title={(content.titles && content.titles[l.key]) || ''}
+              minutes={(content.durations && content.durations[l.key]) || ''}
               password={password}
               onSaved={() => refreshLectures()}
             />
@@ -4992,7 +5037,7 @@ export default function App() {
         lecKey,
         titleBn: `Lecture ${lecNum}`,
         topic: lectureTitleFor(siteContent, lecKey, `${activePart3Chapter.title} — ${topicDesc}`),
-        duration: `${45 + (idx % 3) * 10} Mins`,
+        duration: lectureDurationFor(siteContent, lecKey, true),
         isFree,
         isUnlocked,
         priceBdt: activePart3Track.unlockFee,
@@ -5044,7 +5089,7 @@ export default function App() {
         progressKey,
         titleBn: `লেকচার ${lecNum}`,
         topic: lectureTitleFor(siteContent, progressKey, `${activeCourseChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
-        duration: `${45 + (idx % 3) * 10} মিনিট`,
+        duration: lectureDurationFor(siteContent, progressKey),
         liveDate: liveDates[idx] || 'সময় শিগগিরই জানানো হবে',
         livePlatform: 'Zoom Live + Interactive Whiteboard',
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-course-${activeSpecialCourse.id}-${activeCourseChapter.chId}-L${lecNum}/viewform`
@@ -5104,7 +5149,7 @@ export default function App() {
         lecKey,
         titleBn: `লেকচার ${lecNum}`,
         topic: lectureTitleFor(siteContent, lecKey, `${currentBvChapter.title} — ${lectureTopics[idx] || EXTRA_TOPIC}`),
-        duration: `${40 + (idx % 4) * 5} মিনিট`,
+        duration: lectureDurationFor(siteContent, lecKey),
         isFree,
         isUnlocked,
         priceBdt: 30,
@@ -5813,7 +5858,7 @@ export default function App() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 max-w-4xl mx-auto">
               {PART3_ACADEMIC_TRACKS['Job Math'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
@@ -6193,9 +6238,11 @@ export default function App() {
                         {lec.topic}
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                    </span>
+                    {lec.duration && (
+                      <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                      </span>
+                    )}
                   </div>
 
                   {/* 3 Links per Lecture: ক্লাস নোট (PDF), ভিডিও লেকচার, Self Test */}
@@ -6485,7 +6532,7 @@ export default function App() {
                           <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
                           Scheduled Live Class: {lec.liveDate}
                         </span>
-                        <span className="text-slate-400 font-mono">{lec.duration}</span>
+                        {lec.duration && <span className="text-slate-400 font-mono">{lec.duration}</span>}
                       </div>
 
                       {/* 4 Action Buttons per Lecture: লেকচার নোট (PDF), Recorded Class, Live Class (Scheduled), Self Test */}
@@ -6669,7 +6716,7 @@ export default function App() {
                 lecKey,
                 titleBn: `Lecture ${lecNum}`,
                 topic: lectureTitleFor(siteContent, lecKey, `${currentChapter.title} — ${topicDesc}`),
-                duration: `${45 + (idx % 3) * 10} Mins`,
+                duration: lectureDurationFor(siteContent, lecKey, true),
                 isFree,
                 isUnlocked,
                 priceBdt: currentTrack.unlockFee,
@@ -6814,9 +6861,11 @@ export default function App() {
                               {lec.topic}
                             </div>
                           </div>
-                          <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                          </span>
+                          {lec.duration && (
+                            <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                            </span>
+                          )}
                         </div>
 
                         {lec.isUnlocked ? (
