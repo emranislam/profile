@@ -799,12 +799,12 @@ const PART3_ACADEMIC_TRACKS = {
         icon: '🧮',
         grad: 'from-lime-400 via-green-500 to-emerald-600',
         chapters: [
-          { id: 'job-gl-1', num: 'পাটিগণিত ১', title: 'বাস্তব সংখ্যা', eng: 'Real Numbers', icon: '🔢', group: 'পাটিগণিত (Arithmetic)' },
-          { id: 'job-gl-2', num: 'পাটিগণিত ২', title: 'ল.সা.গু ও গ.সা.গু', eng: 'LCM & GCD', icon: '➗', group: 'পাটিগণিত (Arithmetic)' },
-          { id: 'job-gl-3', num: 'পাটিগণিত ৩', title: 'ঐকিক নিয়ম, গড়, শতকরা', eng: 'Unitary Method, Average & Percentage', icon: '📊', group: 'পাটিগণিত (Arithmetic)' },
-          { id: 'job-gl-4', num: 'পাটিগণিত ৪', title: 'সরল ও যৌগিক মুনাফা', eng: 'Simple and Compound Interest', icon: '💰', group: 'পাটিগণিত (Arithmetic)' },
-          { id: 'job-gl-5', num: 'পাটিগণিত ৫', title: 'অনুপাত ও সমানুপাত', eng: 'Ratio and Proportion', icon: '⚖️', group: 'পাটিগণিত (Arithmetic)' },
-          { id: 'job-gl-6', num: 'পাটিগণিত ৬', title: 'লাভ ও ক্ষতি', eng: 'Profit and Loss', icon: '📈', group: 'পাটিগণিত (Arithmetic)' },
+          { id: 'job-gl-1', num: 'পাটিগণিত ১', title: 'বাস্তব সংখ্যা', eng: 'Real Numbers', icon: '🔢', group: 'পাটিগণিত (Arithmetic)', img: 'arith-1' },
+          { id: 'job-gl-2', num: 'পাটিগণিত ২', title: 'ল.সা.গু ও গ.সা.গু', eng: 'LCM & GCD', icon: '➗', group: 'পাটিগণিত (Arithmetic)', img: 'arith-2' },
+          { id: 'job-gl-3', num: 'পাটিগণিত ৩', title: 'ঐকিক নিয়ম, গড়, শতকরা', eng: 'Unitary Method, Average & Percentage', icon: '📊', group: 'পাটিগণিত (Arithmetic)', img: 'arith-3' },
+          { id: 'job-gl-4', num: 'পাটিগণিত ৪', title: 'সরল ও যৌগিক মুনাফা', eng: 'Simple and Compound Interest', icon: '💰', group: 'পাটিগণিত (Arithmetic)', img: 'arith-4' },
+          { id: 'job-gl-5', num: 'পাটিগণিত ৫', title: 'অনুপাত ও সমানুপাত', eng: 'Ratio and Proportion', icon: '⚖️', group: 'পাটিগণিত (Arithmetic)', img: 'arith-5' },
+          { id: 'job-gl-6', num: 'পাটিগণিত ৬', title: 'লাভ ও ক্ষতি', eng: 'Profit and Loss', icon: '📈', group: 'পাটিগণিত (Arithmetic)', img: 'arith-6' },
           { id: 'job-gl-7', num: 'বীজগণিত ১', title: 'বীজগাণিতিক সূত্রাবলি', eng: 'Algebraic Formulas', icon: '🔣', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
           { id: 'job-gl-8', num: 'বীজগণিত ২', title: 'বহুপদী উৎপাদক', eng: 'Factorization of Polynomials', icon: '🧩', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
           { id: 'job-gl-9', num: 'বীজগণিত ৩', title: 'সরল ও দ্বিঘাত সমীকরণ এবং অসমতা', eng: 'Linear and Quadratic Equations and Inequalities', icon: '🟰', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
@@ -6778,36 +6778,46 @@ export default function App() {
                     </h4>
                   </div>
 
-                  <div className={currentModule.chapters.some((c) => c.img) ? 'grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 max-w-5xl mx-auto' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3'}>
-                    {currentModule.chapters.map((ch, cIdx) => (
-                      <React.Fragment key={ch.id}>
-                        {ch.group && ch.group !== (currentModule.chapters[cIdx - 1] || {}).group && (
-                          <h5 className="col-span-full pt-2 text-sm font-extrabold text-amber-300">{ch.group}</h5>
-                        )}
-                        {ch.img ? (
-                          <ImageTile
-                            src={`/assets/cards/${ch.img}.webp`}
-                            label={`${ch.title} (${ch.eng})`}
-                            onClick={() =>
-                              openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
-                            }
-                          />
-                        ) : (
-                          <PremiumCard
-                            grad={currentModule.grad}
-                            icon={ch.icon}
-                            poster={ch.num}
-                            title={ch.title}
-                            sub={ch.eng}
-                            chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
-                            onClick={() =>
-                              openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)
-                            }
-                          />
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
+                  {(() => {
+                    // Chapters in the order of the list, one block per group (a group can have its own heading).
+                    const blocks = [];
+                    currentModule.chapters.forEach((ch, cIdx) => {
+                      const last = blocks[blocks.length - 1];
+                      if (last && last.group === ch.group) last.items.push({ ch, cIdx });
+                      else blocks.push({ group: ch.group, items: [{ ch, cIdx }] });
+                    });
+                    return blocks.map((blk, bi) => {
+                      const pictures = blk.items.every((x) => x.ch.img);
+                      return (
+                        <div key={`${blk.group || 'all'}-${bi}`} className="space-y-3">
+                          {blk.group && <h5 className="pt-2 text-sm font-extrabold text-amber-300">{blk.group}</h5>}
+                          <div className={pictures ? 'grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 max-w-5xl mx-auto' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3'}>
+                            {blk.items.map(({ ch, cIdx }) =>
+                              ch.img ? (
+                                <ImageTile
+                                  key={ch.id}
+                                  src={`/assets/cards/${ch.img}.webp`}
+                                  label={`${ch.title} (${ch.eng})`}
+                                  onClick={() => openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)}
+                                />
+                              ) : (
+                                <PremiumCard
+                                  key={ch.id}
+                                  grad={currentModule.grad}
+                                  icon={ch.icon}
+                                  poster={ch.num}
+                                  title={ch.title}
+                                  sub={ch.eng}
+                                  chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
+                                  onClick={() => openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)}
+                                />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
                 )}
 
