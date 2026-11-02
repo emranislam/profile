@@ -5415,9 +5415,9 @@ export default function App() {
               </p>
             </div>
 
-            {/* SIX PROGRAM CARDS */}
+            {/* PROGRAM CARDS (each opens its own page) */}
             <div className="space-y-3 pt-1">
-              <div className="grid grid-cols-3 gap-2.5 sm:gap-5 max-w-3xl mx-auto">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5 max-w-5xl mx-auto">
                 {[
                   {
                     id: 'HSC Bangla Version',
@@ -5451,9 +5451,18 @@ export default function App() {
                     code: 'ADM',
                     bigTag: 'ADM',
                     icon: '🚀',
-                    title: 'Admission Test',
+                    title: 'ভর্তি পরীক্ষার প্রস্তুতি',
                     sub: 'Medi-Math, DU Ka, BUET & Archive',
                     tileGrad: 'from-amber-400 via-orange-500 to-red-600',
+                  },
+                  {
+                    id: 'Job Math',
+                    code: 'BCS • BANK',
+                    bigTag: 'JOB',
+                    icon: '💼',
+                    title: 'JOB MATH',
+                    sub: 'চাকরির পরীক্ষার গণিত',
+                    tileGrad: 'from-lime-400 via-green-500 to-emerald-700',
                   },
                   {
                     id: 'B.Sc. Honours Math',
@@ -5472,6 +5481,15 @@ export default function App() {
                     title: 'Research & Thesis',
                     sub: 'Thesis Consultation, ML & Papers',
                     tileGrad: 'from-rose-400 via-pink-500 to-purple-700',
+                  },
+                  {
+                    id: 'Private Batch',
+                    code: '1-TO-1 • GROUP',
+                    bigTag: 'PVT',
+                    icon: '📅',
+                    title: 'প্রাইভেট ব্যাচ',
+                    sub: 'Online / Offline ব্যাচ ও ১-টু-১ সেশন',
+                    tileGrad: 'from-orange-300 via-pink-500 to-fuchsia-700',
                   }
                 ].map((card) => (
                   <ProgramTile
