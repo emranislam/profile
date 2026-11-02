@@ -20,7 +20,6 @@ import {
   Lock,
   Unlock,
   Trophy,
-  Camera,
   MessageCircle,
   Send,
   Facebook,
@@ -4964,7 +4963,6 @@ function AdminPaymentRow({ p, tone, label, act }) {
 }
 
 export default function App() {
-  const [profilePhoto, setProfilePhoto] = useState('/assets/emran-avatar.jpg');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [activeCourse, setActiveCourse] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
@@ -5163,18 +5161,6 @@ export default function App() {
     });
   }, [currentBvChapter, unlockedLectures, siteContent]);
 
-  const handleCustomPhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setProfilePhoto(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   // Sets the page state for a sub-page without touching history or scroll.
   const applySubPage = (trackId, options = {}) => {
     setActiveCourse(null);
@@ -5343,27 +5329,9 @@ export default function App() {
       <header className="lg:sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <label
-              title="আপনার নিজের ছবি পরিবর্তন করতে ক্লিক করুন"
-              className="relative group cursor-pointer shrink-0"
-            >
-              <div className="w-11 h-11 rounded-2xl overflow-hidden bg-slate-900 border-2 border-teal-400/70 shadow-md">
-                <img
-                  src={profilePhoto}
-                  alt="Emran Islam"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-900 text-teal-300 border border-teal-400 flex items-center justify-center">
-                <Camera className="w-2.5 h-2.5" />
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCustomPhotoUpload}
-                className="hidden"
-              />
-            </label>
+            <div className="w-11 h-11 shrink-0 rounded-2xl overflow-hidden bg-slate-900 border-2 border-teal-400/70 shadow-md">
+              <img src="/assets/emran-avatar.jpg" alt="Emran Islam" className="w-full h-full object-cover object-top" draggable="false" />
+            </div>
             <div onClick={() => openSubPage('HOME')} className="cursor-pointer">
               <div className="flex items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white hover:text-teal-300 transition">
