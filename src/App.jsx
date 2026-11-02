@@ -1113,6 +1113,24 @@ const bookOrderHref = (book) =>
     `বই অর্ডার: ${book.series ? `${book.series}: ` : ''}${book.title}`
   )}`;
 
+// The printed copies are sold out for now; the PDF copy can be ordered. Set to true when stock returns.
+const BOOK_HARDCOPY_IN_STOCK = false;
+const BOOK_ORDER_LABEL = BOOK_HARDCOPY_IN_STOCK ? 'অর্ডার করুন' : 'PDF কপি নিন';
+
+function BookStockNote({ light = false, className = '' }) {
+  if (BOOK_HARDCOPY_IN_STOCK) return null;
+  return (
+    <div className={`flex flex-wrap gap-1.5 ${className}`}>
+      <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-rose-100 text-rose-700' : 'bg-rose-500/15 text-rose-300'}`}>
+        হার্ডকপি: স্টক আউট
+      </span>
+      <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>
+        এখন শুধু PDF কপি পাওয়া যাচ্ছে
+      </span>
+    </div>
+  );
+}
+
 // Opens the book order form (rendered once by App); books without a price keep the e-mail link.
 const bookOrderListeners = new Set();
 const openBookOrder = (book) => bookOrderListeners.forEach((fn) => fn(book));
@@ -1175,7 +1193,10 @@ function BookShopCard({ book, onDetails, light = false }) {
       </div>
       <div className="pt-2.5">
         {book.price ? (
-          <span className={`text-lg font-black ${light ? 'text-[#b45309]' : 'text-amber-300'}`}>{book.price}</span>
+          <>
+            <span className={`text-lg font-black ${light ? 'text-[#b45309]' : 'text-amber-300'}`}>{book.price}</span>
+            <BookStockNote light={light} className="mt-1" />
+          </>
         ) : (
           <span className={`text-[11px] font-semibold ${light ? 'text-[#2c7353]' : 'text-teal-300'}`}>{book.series}</span>
         )}
@@ -1198,7 +1219,7 @@ function BookShopCard({ book, onDetails, light = false }) {
             onClick={() => openBookOrder(book)}
             className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
           >
-            অর্ডার করুন
+            {BOOK_ORDER_LABEL}
           </button>
         ) : (
           <a
@@ -1923,7 +1944,7 @@ function PrivateSummary({ lines, onRequest, disabled, note }) {
   );
 }
 
-function PrivateBatchHub({ onOpenOption }) {
+function PrivateBatchHub({ onOpenOption, onOpenCourse, onOpenEvCourse, enrolled = {} }) {
   return (
     <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       <PrivateHero
@@ -1948,6 +1969,52 @@ function PrivateBatchHub({ onOpenOption }) {
           />
         ))}
       </div>
+
+      {/* Special courses (moved here from the HSC pages) */}
+      <div id="special-courses" className="space-y-4">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">স্পেশাল কোর্স</span>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">HSC বাংলা ভার্সন — ৬টি স্পেশাল গণিত কোর্স</h3>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+          {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+            <PremiumCard
+              key={item.id}
+              person
+              poster={item.courseTitle}
+              grad={item.grad}
+              icon={item.icon}
+              code={item.courseNum}
+              title={item.courseTitle}
+              sub={item.chaptersIncluded}
+              chips={[`${item.syllabusChapters.length}টি অধ্যায়`, ...(enrolled[item.id] ? ['✓ Enrolled'] : [])]}
+              price={item.priceBdt}
+              onClick={() => onOpenCourse(item)}
+            />
+          ))}
+        </div>
+        <div className="pt-4">
+          <h3 className="text-xl sm:text-2xl font-extrabold text-white">HSC English Version — স্পেশাল কোর্স</h3>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+          {EV_SPECIAL_COURSES.map((evc) => (
+            <PremiumCard
+              key={evc.id}
+              person
+              poster={evc.courseTitle.replace(' (EV)', '').split(/,| &/)[0]}
+              grad={evc.grad}
+              icon={evc.icon}
+              code={evc.courseNum}
+              title={evc.courseTitle}
+              sub={evc.sub}
+              chips={['EV Batch']}
+              price={evc.priceBdt}
+              onClick={() => onOpenEvCourse(evc)}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 space-y-5">
         <h3 className="text-lg font-extrabold text-white">কীভাবে বুক করবেন</h3>
         <ol className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -2964,7 +3031,7 @@ const partsToNavState = (parts) => {
   if (page === 'HSC Bangla Version') {
     if (a === 'course') {
       const c = SPECIAL_COURSES_WITH_BOOKS.find((x) => x.id === b);
-      return c ? { page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page, title: c.courseTitle } } : { page };
+      return c ? { page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'Private Batch', title: c.courseTitle } } : { page };
     }
     const paper = HSC_BV_PAPERS[a];
     if (!paper) return { page };
@@ -3017,6 +3084,10 @@ const partsToNavState = (parts) => {
     return r ? { page: 'COURSE', course: { kind: 'about', role: r.key, parent: page, title: r.title } } : { page };
   }
   if (page === 'Private Batch') {
+    if (a === 'course') {
+      const c = SPECIAL_COURSES_WITH_BOOKS.find((x) => x.id === b);
+      return c ? { page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page, title: c.courseTitle } } : { page };
+    }
     const o = PRIVATE_OPTIONS.find((x) => x.key === a);
     return o ? { page: 'COURSE', course: { kind: 'private', option: o.key, parent: page, title: o.title } } : { page };
   }
@@ -3056,7 +3127,7 @@ const routeInfo = (st) => {
   const make = (o) => ({ path, index: true, children: [], crumbs: [home], ...o, description: clipText(o.description || o.summary) });
   const suffix = ' | Emran Islam';
   const link = (nav, label) => ({ path: navStateToPath(nav), label });
-  const pageLink = (page) => link({ page }, page === 'HSC Bangla Version' ? 'HSC উচ্চতর গণিত (বাংলা ভার্সন)' : PART3_ACADEMIC_TRACKS[page] ? PART3_ACADEMIC_TRACKS[page].title : page);
+  const pageLink = (page) => link({ page }, page === 'HSC Bangla Version' ? 'HSC উচ্চতর গণিত (বাংলা ভার্সন)' : page === 'Private Batch' ? 'প্রাইভেট ব্যাচ' : PART3_ACADEMIC_TRACKS[page] ? PART3_ACADEMIC_TRACKS[page].title : page);
 
   if (!st || st.page === 'HOME') return make({ title: HOME_TITLE, heading: 'ইমরান ইসলাম (Emran Islam) — গণিতের প্রভাষক, ঢাকা', summary: HOME_DESCRIPTION, crumbs: [] });
 
@@ -3074,7 +3145,7 @@ const routeInfo = (st) => {
         crumbs: [home, parentLink],
         children: course.syllabusChapters.map((ch) => {
           const pk = paperKeyOfChapter(ch.chId);
-          return pk ? link({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: pk, chapterId: ch.chId, parent } }, `${ch.paper} ${ch.num}: ${ch.title}`) : null;
+          return pk ? link({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: pk, chapterId: ch.chId, parent: 'HSC Bangla Version' } }, `${ch.paper} ${ch.num}: ${ch.title}`) : null;
         }).filter(Boolean)
       });
     }
@@ -3153,11 +3224,8 @@ const routeInfo = (st) => {
     return make({
       title: `HSC উচ্চতর গণিত (বাংলা ভার্সন) — ১ম ও ২য় পত্র, স্পেশাল কোর্স${suffix}`,
       heading: 'HSC উচ্চতর গণিত — বাংলা ভার্সন',
-      summary: `HSC উচ্চতর গণিত ১ম ও ২য় পত্রের সব অধ্যায় লেকচার, সেলফ টেস্ট ও MCQ কুইজসহ। স্পেশাল কোর্স: ${SPECIAL_COURSES_WITH_BOOKS.map((c) => c.courseTitle).join(', ')}। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি।`,
-      children: [
-        ...Object.values(HSC_BV_PAPERS).map((p) => link({ page, options: { bvPaperKey: p.id } }, p.title)),
-        ...SPECIAL_COURSES_WITH_BOOKS.map((c) => link({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page } }, `${c.courseTitle} মাস্টার কোর্স`))
-      ]
+      summary: 'উচ্চতর গণিত ১ম ও ২য় পত্রের সব অধ্যায় — লেকচার, সেলফ টেস্ট ও MCQ কুইজসহ। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি। লেখকের বই ও PDF কপি।',
+      children: Object.values(HSC_BV_PAPERS).map((p) => link({ page, options: { bvPaperKey: p.id } }, `${p.title}ের অধ্যায় সমূহ`))
     });
   }
   if (page === 'Admission Test (BUET/DU)') {
@@ -3236,8 +3304,11 @@ const routeInfo = (st) => {
     return make({
       title: `প্রাইভেট ব্যাচ ও ১-টু-১ সেশন (Online / Offline), ঢাকা${suffix}`,
       heading: 'প্রাইভেট ব্যাচ ও ১-টু-১ সেশন',
-      summary: PRIVATE_OPTIONS.map((x) => `${x.title}: ${x.sub}`).join(' '),
-      children: PRIVATE_OPTIONS.map((x) => link({ page: 'COURSE', course: { kind: 'private', option: x.key, parent: page } }, x.title))
+      summary: `${PRIVATE_OPTIONS.map((x) => `${x.title}: ${x.sub}`).join(' ')} স্পেশাল কোর্স: ${SPECIAL_COURSES_WITH_BOOKS.map((c) => c.courseTitle).join(', ')}।`,
+      children: [
+        ...PRIVATE_OPTIONS.map((x) => link({ page: 'COURSE', course: { kind: 'private', option: x.key, parent: page } }, x.title)),
+        ...SPECIAL_COURSES_WITH_BOOKS.map((c) => link({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: page } }, `${c.courseTitle} মাস্টার কোর্স`))
+      ]
     });
   }
   if (page === 'Class Routine') {
@@ -3260,7 +3331,7 @@ const listRoutes = () => {
     sts.push({ page: 'HSC Bangla Version', options: { bvPaperKey: p.id } });
     p.chapters.forEach((ch) => sts.push({ page: 'COURSE', course: { kind: 'bvChapter', paperKey: p.id, chapterId: ch.id, parent: 'HSC Bangla Version' } }));
   });
-  SPECIAL_COURSES_WITH_BOOKS.forEach((c) => sts.push({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'HSC Bangla Version' } }));
+  SPECIAL_COURSES_WITH_BOOKS.forEach((c) => sts.push({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'Private Batch' } }));
   ADMISSION_UNIVERSITIES.forEach((u) => sts.push({ page: 'Admission Test (BUET/DU)', options: { admUniv: u.id } }));
   HONOURS_YEARS.forEach((y) => sts.push({ page: 'B.Sc. Honours Math', options: { honYear: y.id } }));
   Object.values(PART3_ACADEMIC_TRACKS).forEach((t) =>
@@ -4178,16 +4249,21 @@ const bookInput =
 function BookOrderModal({ book, onClose }) {
   const amount = priceNumber(book.price);
   const [method, setMethod] = useState('bKash');
-  const [form, setForm] = useState({ name: '', address: '', contact: '', trx: '', phone: '' });
+  const [form, setForm] = useState({ name: '', address: '', contact: '', email: '', trx: '', phone: '' });
   const [state, setState] = useState('idle'); // idle | busy | done
   const [error, setError] = useState('');
   const [order, setOrder] = useState(null);
   const connected = !!SITE_LINKS.contentApi;
+  const pdf = !BOOK_HARDCOPY_IN_STOCK; // the printed copy is sold out: the order is for the PDF copy
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const trxClean = form.trx.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const digits = (v) => v.replace(/\D/g, '');
   const valid =
-    form.name.trim().length >= 2 && form.address.trim().length >= 10 && digits(form.contact).length >= 10 && trxClean.length >= 6 && digits(form.phone).length >= 10;
+    form.name.trim().length >= 2 &&
+    (pdf || form.address.trim().length >= 10) &&
+    digits(form.contact).length >= 10 &&
+    trxClean.length >= 6 &&
+    digits(form.phone).length >= 10;
   const title = `${book.series ? `${book.series}: ` : ''}${book.title}`;
 
   const submit = () => {
@@ -4201,7 +4277,9 @@ function BookOrderModal({ book, onClose }) {
       phone: form.phone,
       name: form.name.trim(),
       address: form.address.trim(),
-      contact: form.contact
+      contact: form.contact,
+      format: pdf ? 'pdf' : 'print',
+      email: form.email.trim()
     }).then((r) => {
       if (!r.ok) {
         setState('idle');
@@ -4220,9 +4298,10 @@ function BookOrderModal({ book, onClose }) {
           <X className="h-4 w-4" />
         </button>
         <div>
-          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">বই অর্ডার</span>
+          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">{pdf ? 'PDF কপি' : 'বই অর্ডার'}</span>
           <h3 className="mt-1.5 pr-8 text-lg font-extrabold leading-snug">{title}</h3>
-          <p className="mt-1 text-sm text-slate-300">বইয়ের দাম: <b className="text-amber-300">৳{toBnDigits(amount)}</b></p>
+          <p className="mt-1 text-sm text-slate-300">{pdf ? 'PDF কপির দাম' : 'বইয়ের দাম'}: <b className="text-amber-300">৳{toBnDigits(amount)}</b></p>
+          <BookStockNote className="mt-2" />
         </div>
 
         {state === 'done' && order ? (
@@ -4230,12 +4309,14 @@ function BookOrderModal({ book, onClose }) {
             <div className="text-lg font-extrabold text-emerald-300">✓ অর্ডার নিশ্চিত হয়েছে!</div>
             <div className="space-y-1 text-sm text-slate-200">
               <div>নাম: <b>{order.name}</b></div>
-              <div>ঠিকানা: <b>{order.address}</b></div>
+              <div>{pdf ? 'PDF পাঠানো হবে' : 'ঠিকানা'}: <b>{order.address}</b></div>
               <div>যোগাযোগ: <b>{order.contact}</b></div>
             </div>
             <p className="text-xs leading-relaxed text-slate-300">
-              আপনার পেমেন্ট যাচাই হয়েছে। বই পাঠানোর বিষয়ে এই নম্বরে যোগাযোগ করা হবে। অর্ডারে কোনো ভুল থাকলে WhatsApp এ জানান।
-              আবার দেখতে একই Transaction ID আর নম্বর দিয়ে চেষ্টা করুন।
+              {pdf
+                ? 'আপনার পেমেন্ট যাচাই হয়েছে। PDF কপি WhatsApp বা ইমেইলে পাঠানো হবে। কিছুক্ষণের মধ্যে না পেলে WhatsApp এ জানান।'
+                : 'আপনার পেমেন্ট যাচাই হয়েছে। বই পাঠানোর বিষয়ে এই নম্বরে যোগাযোগ করা হবে। অর্ডারে কোনো ভুল থাকলে WhatsApp এ জানান।'}
+              {' '}আবার দেখতে একই Transaction ID আর নম্বর দিয়ে চেষ্টা করুন।
             </p>
             <button onClick={onClose} className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-emerald-300">
               ঠিক আছে
@@ -4267,11 +4348,15 @@ function BookOrderModal({ book, onClose }) {
                 </div>
                 <div className="text-center font-mono text-lg font-black text-amber-300">{PAYMENT_NUMBERS[method]}</div>
               </li>
-              <li className="font-bold text-white">২. ডেলিভারির তথ্য আর পেমেন্টের তথ্য দিয়ে অর্ডার করুন</li>
+              <li className="font-bold text-white">{pdf ? '২. আপনার তথ্য আর পেমেন্টের তথ্য দিয়ে অর্ডার করুন' : '২. ডেলিভারির তথ্য আর পেমেন্টের তথ্য দিয়ে অর্ডার করুন'}</li>
             </ol>
             <input className={bookInput} placeholder="আপনার নাম" maxLength={60} value={form.name} onChange={set('name')} />
-            <textarea className={`${bookInput} min-h-[84px]`} placeholder="ডেলিভারির পুরো ঠিকানা (বাসা, রাস্তা, এলাকা, জেলা)" maxLength={300} value={form.address} onChange={set('address')} />
-            <input className={bookInput} placeholder="যোগাযোগের নম্বর" inputMode="tel" value={form.contact} onChange={set('contact')} />
+            {pdf ? (
+              <input className={bookInput} type="email" placeholder="ইমেইল (ঐচ্ছিক, PDF ইমেইলে পেতে চাইলে)" maxLength={120} value={form.email} onChange={set('email')} />
+            ) : (
+              <textarea className={`${bookInput} min-h-[84px]`} placeholder="ডেলিভারির পুরো ঠিকানা (বাসা, রাস্তা, এলাকা, জেলা)" maxLength={300} value={form.address} onChange={set('address')} />
+            )}
+            <input className={bookInput} placeholder={pdf ? 'WhatsApp নম্বর (PDF এই নম্বরে পাঠানো হবে)' : 'যোগাযোগের নম্বর'} inputMode="tel" value={form.contact} onChange={set('contact')} />
             <input className={`${bookInput} font-mono tracking-wider`} placeholder="Transaction ID (যেমন 9K4M2P7XQA)" value={form.trx} autoCapitalize="characters" onChange={set('trx')} />
             <input className={bookInput} placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন" inputMode="tel" value={form.phone} onChange={set('phone')} />
             {error && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-200">{error}</div>}
@@ -4280,7 +4365,7 @@ function BookOrderModal({ book, onClose }) {
               onClick={submit}
               className="w-full rounded-xl bg-amber-400 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-300 disabled:opacity-40"
             >
-              {state === 'busy' ? 'যাচাই হচ্ছে…' : 'অর্ডার নিশ্চিত করুন'}
+              {state === 'busy' ? 'যাচাই হচ্ছে…' : pdf ? 'PDF কপির অর্ডার নিশ্চিত করুন' : 'অর্ডার নিশ্চিত করুন'}
             </button>
           </div>
         )}
@@ -5135,6 +5220,7 @@ export default function App() {
   const [thesisLevel, setThesisLevel] = useState('M.Sc. Thesis');
 
   const [part3ModuleIdx, setPart3ModuleIdx] = useState(0);
+  const [bvOpenPaper, setBvOpenPaper] = useState(null); // paper opened on the HSC বাংলা page (null = the two paper cards)
   const [honYear, setHonYear] = useState(null); // selected year on the B.Sc. Honours page (null = show the 4 year cards)
   const [admUniv, setAdmUniv] = useState(null); // selected university on the Admission page (null = show the 7 cards)
   const [part3ChapterIdx, setPart3ChapterIdx] = useState(0);
@@ -5308,6 +5394,7 @@ export default function App() {
     if (options.researchCardId) {
       setActiveResearchCardId(options.researchCardId);
     }
+    setBvOpenPaper(trackId === 'HSC Bangla Version' ? options.bvPaperKey || null : null);
     setAdmUniv(trackId === 'Admission Test (BUET/DU)' ? options.admUniv || null : null);
     setHonYear(trackId === 'B.Sc. Honours Math' ? options.honYear || null : null);
     setSelectedTrack(trackId);
@@ -5424,6 +5511,7 @@ export default function App() {
   // The Admission landing (7 university cards, or one university's 2 section cards) has its own view.
   const admissionHubView = activeSubPage === 'Admission Test (BUET/DU)' && !isCourseView;
   const honoursHubView = activeSubPage === 'B.Sc. Honours Math' && !isCourseView;
+  const evHubView = activeSubPage === 'HSC English Version' && !isCourseView;
   // Friendly Bengali page labels for the breadcrumb (menu already uses these).
   const pageLabelBn = (id) =>
     ({ 'Admission Test (BUET/DU)': 'ভর্তি পরীক্ষার প্রস্তুতি', 'B.Sc. Honours Math': 'B.Sc. Honours', 'Job Math': 'JOB MATH', 'Class Routine': 'লাইভ ক্লাসের রুটিন', 'Private Batch': 'প্রাইভেট ব্যাচ' }[id] || id);
@@ -5766,38 +5854,11 @@ export default function App() {
                   icon={paper.icon}
                   code={paper.code}
                   bigTag={paper.bigTag}
-                  title={paper.title}
-                  sub={paper.sub.replace('১০টি অধ্যায়', `${toBnDigits(paper.chapters.length)}টি অধ্যায়`)}
-                  chips={[`${toBnDigits(paper.chapters.length)}টি অধ্যায়`, 'প্রতি অধ্যায়ে ১০টি লেকচার']}
+                  title={`${paper.title}ের অধ্যায় সমূহ`}
+                  sub={`${toBnDigits(paper.chapters.length)}টি অধ্যায়`}
                   onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
                 />
               ))}
-            </div>
-
-            {/* 6 Special Course Cards */}
-            <div className="space-y-2.5">
-              <div className="text-xs font-extrabold uppercase tracking-wider text-amber-300">
-                ৬টি স্পেশাল কোর্স
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-                {SPECIAL_COURSES_WITH_BOOKS.map((c) => (
-                  <PremiumCard
-                    key={c.id}
-                    person
-                    poster={c.courseTitle}
-                    grad={c.grad}
-                    icon={c.icon}
-                    code={c.courseNum}
-                    title={c.courseTitle}
-                    sub={c.chaptersIncluded}
-                    chips={[`${c.syllabusChapters.length}টি অধ্যায়`]}
-                    price={c.priceBdt}
-                    onClick={() =>
-                      openCourse({ kind: 'bv', id: c.id, parent: 'HSC Bangla Version', title: c.courseTitle })
-                    }
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Authored Books (shop style) */}
@@ -5851,27 +5912,6 @@ export default function App() {
                   chips={['NCTB English Version', '10 Chapters']}
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
-                  }
-                />
-              ))}
-            </div>
-
-            {/* 6 EV Special Course Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-              {EV_SPECIAL_COURSES.map((evc) => (
-                <PremiumCard
-                  key={evc.id}
-                  person
-                  poster={evc.courseTitle.replace(' (EV)', '').split(/,| &/)[0]}
-                  grad={evc.grad}
-                  icon={evc.icon}
-                  code={evc.courseNum}
-                  title={evc.courseTitle}
-                  sub={evc.sub}
-                  chips={['EV Batch']}
-                  price={evc.priceBdt}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: evc.moduleIdx, chapterIdx: evc.chapterIdx, title: evc.courseTitle, sub: evc.sub, icon: evc.icon, grad: evc.grad })
                   }
                 />
               ))}
@@ -6047,6 +6087,11 @@ export default function App() {
       {/* VIEW: PRIVATE BATCH HUB + OPTION PAGES */}
       {activeSubPage === 'Private Batch' && (
         <PrivateBatchHub
+          enrolled={enrolledCourses}
+          onOpenCourse={(item) => openCourse({ kind: 'bv', id: item.id, parent: 'Private Batch', title: item.courseTitle })}
+          onOpenEvCourse={(evc) =>
+            openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: evc.moduleIdx, chapterIdx: evc.chapterIdx, title: evc.courseTitle, sub: evc.sub, icon: evc.icon, grad: evc.grad })
+          }
           onOpenOption={(key) =>
             openCourse({ kind: 'private', option: key, parent: 'Private Batch', title: PRIVATE_OPTIONS.find((o) => o.key === key).title })
           }
@@ -6089,139 +6134,72 @@ export default function App() {
         <div className="rounded-[32px] bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-950 text-white border border-slate-800 p-5 sm:p-8 shadow-2xl space-y-10 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(20,184,166,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(245,158,11,0.10),_transparent_55%)]" />
 
-          {/* STEP 1: PAPER SELECTION (উচ্চতর গণিত ১ম পত্র & ২য় পত্র) */}
-          <div className="relative space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/90 pb-4">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 border border-teal-400/40 text-teal-300 text-xs font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  HSC বাংলা ভার্সন • একাডেমিক লার্নিং পোর্টাল
-                </span>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
-                  উচ্চতর গণিত ১ম পত্র ও ২য় পত্র — অধ্যায়ভিত্তিক লেকচার, ক্লাস নোট ও সেলফ টেস্ট
-                </h3>
+          {bvOpenPaper && HSC_BV_PAPERS[bvOpenPaper] ? (
+            /* A paper's chapters */
+            <div className="relative space-y-5">
+              <div className="flex items-center gap-4 border-b border-slate-800 pb-5">
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br ${HSC_BV_PAPERS[bvOpenPaper].tileGrad} flex items-center justify-center text-3xl sm:text-4xl shadow-lg`}>
+                  {HSC_BV_PAPERS[bvOpenPaper].icon}
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-cyan-300">HSC বাংলা ভার্সন</span>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{HSC_BV_PAPERS[bvOpenPaper].title}ের অধ্যায় সমূহ</h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1">{toBnDigits(HSC_BV_PAPERS[bvOpenPaper].chapters.length)}টি অধ্যায়</p>
+                </div>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-bold">
-                  ✓ ১ম লেকচার সম্পূর্ণ Open (ফ্রি)
-                </span>
-                <span className="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-300 font-bold">
-                  🔒 পরবর্তী প্রতিটি লেকচার আনলক: ৳৩০
-                </span>
-              </div>
-            </div>
-
-            {/* 2 Paper Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto pt-1">
-              {Object.values(HSC_BV_PAPERS).map((paper) => (
-                <PremiumCard
-                  key={paper.id}
-                  person
-                  grad={paper.tileGrad}
-                  icon={paper.icon}
-                  code={paper.code}
-                  bigTag={paper.bigTag}
-                  title={paper.title}
-                  sub={paper.sub.replace('১০টি অধ্যায়', `${toBnDigits(paper.chapters.length)}টি অধ্যায়`)}
-                  chips={[`ধারাবাহিক ${toBnDigits(paper.chapters.length)}টি অধ্যায়`]}
-                  selected={hscBvPaperKey === paper.id}
-                  onClick={() => {
-                    setHscBvPaperKey(paper.id);
-                    setSelectedBvChapterId(paper.chapters[0].id);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* STEP 2: 10 SEQUENTIAL CHAPTERS FOR SELECTED PAPER */}
-          <div className="relative space-y-4 pt-4 border-t border-slate-800/80">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="text-base sm:text-lg font-extrabold text-teal-300 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-amber-400" />
-                {currentBvPaper.title} — ধারাবাহিক {toBnDigits(currentBvPaper.chapters.length)}টি অধ্যায়
-              </h4>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-              {currentBvPaper.chapters.map((ch, idx) => (
-                <PremiumCard
-                  key={ch.id}
-                  grad={ch.color}
-                  icon={ch.icon}
-                  code={ch.num}
-                  bigTag={`CH-${String(idx + 1).padStart(2, '0')}`}
-                  title={ch.title}
-                  sub={ch.eng}
-                  chips={[`${toBnDigits(lectureCountFor(siteContent, ch.id, BV_LECTURES))}টি লেকচার`]}
-                  onClick={() => openBvChapter(currentBvPaper, ch)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* STEP 4: 6 SPECIAL COURSES IN 1 ROW + COURSE INSIDE CLASSROOM (WITH PROGRESS BAR) + 6 BOOKS IN 1 ROW */}
-          <div id="special-courses-row" className="relative space-y-7 pt-6 border-t border-slate-800/90">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                  স্পেশাল কোর্সসমূহ (Course 1 – Course 6) ও কোর্স-ভিত্তিক রচিত বইসমূহ
-                </span>
-                <h4 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
-                  ৬টি স্পেশাল গণিত কোর্স
-                </h4>
-              </div>
-            </div>
-
-            {/* 6 Special Courses in 1 Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-              {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                <PremiumCard
-                  key={item.id}
-                  person
-                  poster={item.courseTitle}
-                  grad={item.grad}
-                  icon={item.icon}
-                  code={item.courseNum}
-                  title={item.courseTitle}
-                  sub={item.chaptersIncluded}
-                  chips={[
-                    `${item.syllabusChapters.length}টি অধ্যায়`,
-                    ...(enrolledCourses[item.id] ? ['✓ Enrolled'] : [])
-                  ]}
-                  price={item.priceBdt}
-                  onClick={() =>
-                    openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle })
-                  }
-                />
-              ))}
-            </div>
-
-            {/* Authored Books (shop style) */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <BookMarked className="w-4 h-4 text-amber-400" /> কোর্স-ভিত্তিক বই
-                </span>
-                <button
-                  onClick={() => setBookModalOpen(true)}
-                  className="text-xs font-bold text-amber-300 hover:underline"
-                >
-                  সব বই দেখুন →
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
-                  <BookShopCard
-                    key={`book-${item.id}`}
-                    book={courseBookToShop(item)}
-                    onDetails={() => setSelectedSpecialCourseModal(item)}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                {HSC_BV_PAPERS[bvOpenPaper].chapters.map((ch, idx) => (
+                  <PremiumCard
+                    key={ch.id}
+                    grad={ch.color}
+                    icon={ch.icon}
+                    code={ch.num}
+                    bigTag={`CH-${String(idx + 1).padStart(2, '0')}`}
+                    title={ch.title}
+                    sub={ch.eng}
+                    chips={[`${toBnDigits(lectureCountFor(siteContent, ch.id, BV_LECTURES))}টি লেকচার`]}
+                    onClick={() => openBvChapter(HSC_BV_PAPERS[bvOpenPaper], ch)}
                   />
                 ))}
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* The two paper cards */}
+              <div className="relative grid grid-cols-2 gap-3 sm:gap-6 max-w-3xl mx-auto">
+                {Object.values(HSC_BV_PAPERS).map((paper) => (
+                  <PremiumCard
+                    key={paper.id}
+                    person
+                    grad={paper.tileGrad}
+                    icon={paper.icon}
+                    code={paper.code}
+                    bigTag={paper.bigTag}
+                    title={`${paper.title}ের অধ্যায় সমূহ`}
+                    sub={`${toBnDigits(paper.chapters.length)}টি অধ্যায়`}
+                    onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
+                  />
+                ))}
+              </div>
+
+              {/* Authored books (shop style) */}
+              <div id="special-courses-row" className="relative space-y-3 pt-6 border-t border-slate-800/90">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-extrabold text-white flex items-center gap-2">
+                    <BookMarked className="w-4 h-4 text-amber-400" /> লেখকের বই
+                  </span>
+                  <button onClick={() => setBookModalOpen(true)} className="text-xs font-bold text-amber-300 hover:underline">
+                    সব বই দেখুন →
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                    <BookShopCard key={`book-${item.id}`} book={courseBookToShop(item)} onDetails={() => setSelectedSpecialCourseModal(item)} />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
       )}
@@ -6718,12 +6696,13 @@ export default function App() {
               <div className="text-sm text-slate-400">লেখক: {activeSpecialCourse.author}</div>
               <div className="flex flex-wrap items-center gap-4 pt-1">
                 <span className="text-2xl font-black text-amber-300">{activeSpecialCourse.bookPriceBdt}</span>
+                <BookStockNote />
                 <button
                   type="button"
                   onClick={() => openBookOrder(courseBookToShop(activeSpecialCourse))}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
                 >
-                  বইটি অর্ডার করুন
+                  {BOOK_HARDCOPY_IN_STOCK ? 'বইটি অর্ডার করুন' : 'PDF কপি নিন'}
                 </button>
               </div>
             </div>
@@ -6732,6 +6711,31 @@ export default function App() {
       )}
 
       {/* VIEW 3: DEDICATED SUB-PAGE FOR PART 3 TRACKS (HSC EV, O/A-LEVEL, ADMISSION, B.SC. HONOURS) */}
+      {evHubView && (
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-cyan-500/30 p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(168,85,247,0.10),_transparent_55%)]" />
+          <div className="relative grid grid-cols-2 gap-3 sm:gap-6 max-w-3xl mx-auto">
+            {PART3_ACADEMIC_TRACKS['HSC English Version'].modules.map((mod, mIdx) => (
+              <PremiumCard
+                key={mod.id}
+                person
+                poster={mod.name.replace(/Higher Math | \(EV\)/g, '')}
+                grad={mod.grad}
+                icon={mod.icon}
+                code={mod.code}
+                title={`${mod.name} — Chapters`}
+                sub={`${mod.chapters.length} Chapters`}
+                onClick={() =>
+                  openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
+                }
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+      )}
+
       {honoursHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-emerald-500/30 p-5 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
@@ -6856,7 +6860,7 @@ export default function App() {
       </main>
       )}
 
-      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && !honoursHubView && (
+      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && !honoursHubView && !evHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section
           id="part3-academic-hub"
@@ -7632,19 +7636,20 @@ export default function App() {
                 <div className="text-3xl font-black text-amber-300">
                   {selectedSpecialCourseModal.bookPriceBdt}
                 </div>
+                <BookStockNote />
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => openBookOrder(courseBookToShop(selectedSpecialCourseModal))}
                     className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-extrabold transition"
                   >
-                    অর্ডার করুন
+                    {BOOK_ORDER_LABEL}
                   </button>
                   <button
                     onClick={() => {
                       const item = selectedSpecialCourseModal;
                       setSelectedSpecialCourseModal(null);
-                      openCourse({ kind: 'bv', id: item.id, parent: 'HSC Bangla Version', title: item.courseTitle });
+                      openCourse({ kind: 'bv', id: item.id, parent: 'Private Batch', title: item.courseTitle });
                     }}
                     className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition"
                   >
