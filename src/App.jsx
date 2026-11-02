@@ -786,9 +786,9 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'Job Math': {
     id: 'Job Math',
-    badge: 'JOB MATH • BCS, BANK, TEACHER RECRUITMENT & MORE',
-    title: 'Job Exam Mathematics (গাণিতিক যুক্তি ও মানসিক দক্ষতা)',
-    subtitle: 'চাকরির পরীক্ষার প্রস্তুতি: গাণিতিক যুক্তি (পাটিগণিত, বীজগণিত, জ্যামিতি, ত্রিকোণমিতি ও অন্যান্য) এবং মানসিক দক্ষতা। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার ও মডেল টেস্ট।',
+    badge: 'JOB MATH • BCS PRELIMINARY SYLLABUS',
+    title: 'JOB MATH — BCS Preliminary: গাণিতিক যুক্তি, মানসিক দক্ষতা ও মডেল টেস্ট',
+    subtitle: 'BCS প্রিলিমিনারি সিলেবাস অনুযায়ী প্রস্তুতি: গাণিতিক যুক্তি (পাটিগণিত, বীজগণিত, জ্যামিতি ও পরিমিতি, ত্রিকোণমিতি ও অন্যান্য), মানসিক দক্ষতা এবং মডেল টেস্ট ও প্রশ্নব্যাংক। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার।',
     unlockFee: 30,
     modules: [
       {
@@ -848,6 +848,26 @@ const PART3_ACADEMIC_TRACKS = {
           'দ্রুত সমাধানের কৌশল',
           'বিগত বছরের প্রশ্ন সমাধান',
           'টাইমড মডেল টেস্ট'
+        ]
+      },
+      {
+        id: 'job-model',
+        code: 'JOB • MODEL TEST',
+        name: 'মডেল টেস্ট ও প্রশ্নব্যাংক (Model Tests & Question Bank)',
+        sub: 'BCS প্রিলিমিনারির গাণিতিক যুক্তি ও মানসিক দক্ষতার মডেল টেস্ট এবং বিগত বছরের প্রশ্নব্যাংক',
+        icon: '📝',
+        grad: 'from-amber-400 via-orange-500 to-red-600',
+        chapters: [
+          { id: 'job-mt-1', num: 'মডেল টেস্ট ১', title: 'গাণিতিক যুক্তি — মডেল টেস্ট', eng: 'Mathematical Reasoning Model Tests', icon: '🧮' },
+          { id: 'job-mt-2', num: 'মডেল টেস্ট ২', title: 'মানসিক দক্ষতা — মডেল টেস্ট', eng: 'Mental Ability Model Tests', icon: '🧠' },
+          { id: 'job-mt-3', num: 'মডেল টেস্ট ৩', title: 'BCS প্রিলিমিনারি পূর্ণাঙ্গ মডেল টেস্ট', eng: 'Full-length BCS Preliminary Model Tests', icon: '🏛️' },
+          { id: 'job-mt-4', num: 'প্রশ্নব্যাংক', title: 'বিগত বছরের BCS প্রিলিমিনারি প্রশ্নব্যাংক', eng: 'Previous Years BCS Preliminary Question Bank', icon: '📚' }
+        ],
+        lectureBlueprint: [
+          'পরীক্ষার ধরন, সময় ব্যবস্থাপনা ও প্রস্তুতির কৌশল',
+          'মডেল টেস্ট সমাধান — পর্ব ১',
+          'মডেল টেস্ট সমাধান — পর্ব ২',
+          'ভুল বিশ্লেষণ ও চূড়ান্ত রিভিশন'
         ]
       }
     ]
@@ -1520,7 +1540,7 @@ const TEACHING_LEVELS = [
   { page: 'HSC English Version', title: 'HSC English Version', sub: 'Higher Math 1st & 2nd Paper + EV courses', icon: '🎯' },
   { page: 'O-Level & A-Level', title: 'O & A-Level Mathematics', sub: 'D-Math, Add-Math, P1–P4, M1, S1', icon: '📐' },
   { page: 'Admission Test (BUET/DU)', title: 'ভর্তি পরীক্ষার প্রস্তুতি', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
-  { page: 'Job Math', title: 'JOB MATH', sub: 'গাণিতিক যুক্তি ও মানসিক দক্ষতা', icon: '💼' },
+  { page: 'Job Math', title: 'JOB MATH', sub: 'BCS প্রিলি: গাণিতিক যুক্তি, মানসিক দক্ষতা ও মডেল টেস্ট', icon: '💼' },
   { page: 'B.Sc. Honours Math', title: 'B.Sc. (Honours) Mathematics', sub: 'Calculus, Linear Algebra, ODE, Numerical, OR', icon: '🎓' }
 ];
 
@@ -5813,7 +5833,7 @@ export default function App() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 max-w-4xl mx-auto">
               {PART3_ACADEMIC_TRACKS['Job Math'].modules.map((mod, mIdx) => (
                 <PremiumCard
                   key={mod.id}
