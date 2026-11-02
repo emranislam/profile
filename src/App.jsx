@@ -601,6 +601,216 @@ const ADMISSION_MODULES = ADMISSION_UNIVERSITIES.flatMap((u) => [
   }
 ]);
 
+// ---------------------------------------------------------------- B.Sc. (Honours) yearwise courses
+// The Honours page shows four year cards; each year has one card per course. A course is a module of
+// the Honours track below (its units are the chapters). The six modules that already had units keep
+// their ids, so content entered for them stays.
+const HONOURS_YEARS = [
+  { id: 'y1', name: '১ম বর্ষের কোর্স সমূহ', full: '১ম বর্ষ — Core & Lab Courses', short: '১ম বর্ষ', icon: '🥇', grad: 'from-emerald-400 via-green-500 to-teal-700' },
+  { id: 'y2', name: '২য় বর্ষের কোর্স সমূহ', full: '২য় বর্ষ — Core & Lab Courses', short: '২য় বর্ষ', icon: '🥈', grad: 'from-sky-400 via-blue-500 to-indigo-700' },
+  { id: 'y3', name: '৩য় বর্ষের কোর্স সমূহ', full: '৩য় বর্ষ — Core & Lab Courses', short: '৩য় বর্ষ', icon: '🥉', grad: 'from-amber-400 via-orange-500 to-red-600' },
+  { id: 'y4', name: '৪র্থ বর্ষের কোর্স সমূহ', full: '৪র্থ বর্ষ — Core & Lab Courses', short: '৪র্থ বর্ষ', icon: '🎓', grad: 'from-fuchsia-400 via-purple-500 to-violet-700' }
+];
+const HONOURS_YEAR_BY_ID = Object.fromEntries(HONOURS_YEARS.map((y) => [y.id, y]));
+
+// [year, course code, name, id of the older module that already had units (if any), lab/viva?]
+const HONOURS_COURSE_LIST = [
+  ['y1', '213701', 'Fundamentals of Mathematics', 'hon-fund'],
+  ['y1', '213703', 'Fundamentals of Calculus', 'hon-calc'],
+  ['y1', '213705', 'Linear Algebra and Analytic Geometry', 'hon-linalg'],
+  ['y1', '213706', 'Math Lab-Practical I (Mathematica)', null, true],
+  ['y2', '223701', 'Calculus–II', null],
+  ['y2', '223703', 'Ordinary Differential Equations', 'hon-ode-pde'],
+  ['y2', '223705', 'Computer Programming (Fortran)', null],
+  ['y2', '223706', 'Math Lab (Practical)', null, true],
+  ['y3', '233701', 'Abstract Algebra', null],
+  ['y3', '233703', 'Real Analysis', null],
+  ['y3', '233705', 'Numerical Analysis', 'hon-numerical'],
+  ['y3', '233707', 'Complex Analysis', null],
+  ['y3', '233709', 'Differential Geometry', null],
+  ['y3', '233711', 'Mechanics', null],
+  ['y3', '233713', 'Linear Programming', 'hon-or-tsp'],
+  ['y3', '233714', 'Math Lab (Practical)', null, true],
+  ['y4', '243701', 'Theory of Numbers', null],
+  ['y4', '243703', 'Topology & Functional Analysis', null],
+  ['y4', '243705', 'Methods of Applied Mathematics', null],
+  ['y4', '243707', 'Tensor Analysis', null],
+  ['y4', '243709', 'Partial Differential Equations', null],
+  ['y4', '243711', 'Hydrodynamics', null],
+  ['y4', '243713', 'Discrete Mathematics (Standard Core Elective)', null],
+  ['y4', '243718', 'Math Lab (Practical) (Standard Core Elective)', null, true],
+  ['y4', '243720', 'Viva-Voce (Oral Examination)', null, true]
+];
+const HONOURS_LEGACY = [
+      {
+        id: 'hon-calc',
+        code: 'COURSE 01 • CALCULUS I',
+        name: 'Calculus I',
+        sub: 'ε-δ Limits, Mean Value Theorems, Improper Integrals, Partial Derivatives',
+        icon: '∫',
+        grad: 'from-emerald-400 via-green-500 to-teal-700',
+        chapters: [
+          { id: 'hon-c-1', num: 'Unit 01', title: 'Real-Valued Functions, ε-δ Definition of Limit & Continuity', eng: 'Sequential criterion, uniform continuity & Intermediate Value Theorem', icon: '♾️' },
+          { id: 'hon-c-2', num: 'Unit 02', title: 'Rolle’s Theorem, Lagrange & Cauchy’s Mean Value Theorems', eng: 'Taylor’s & Maclaurin’s theorem with Lagrange/Cauchy form of remainder', icon: '⚡' },
+          { id: 'hon-c-3', num: 'Unit 03', title: 'Successive Differentiation (Leibnitz’s Theorem) & Indeterminate Forms', eng: 'nth derivatives of standard functions & L’Hôpital’s rigorous proof', icon: '📈' },
+          { id: 'hon-c-4', num: 'Unit 04', title: 'Asymptotes, Envelopes, Curvature & Tracing of Curves', eng: 'Cartesian, polar & parametric radius of curvature, Folium of Descartes', icon: '🪐' },
+          { id: 'hon-c-5', num: 'Unit 05', title: 'Reduction Formulas, Beta & Gamma Functions & Improper Integrals', eng: 'Legendre duplication, Dirichlet integrals & arc length/surface area', icon: '∫' },
+          { id: 'hon-c-6', num: 'Unit 06', title: 'Functions of Several Variables, Euler’s Theorem & Jacobians', eng: 'Partial differentiation, homogeneous functions & Lagrange multipliers', icon: '🧭' }
+        ],
+        lectureBlueprint: [
+          'Rigorous Statement & Step-by-Step Proof of Core Theorems',
+          'Classic Text Problem Solutions (Anton, Apostol, Das & Mukherjee)',
+          'University Honours Final Examination Past Question Solutions',
+          'Viva-Voce Conceptual Questions & Counter-Examples',
+          'Undergraduate Self-Test & Proof Writing Assessment'
+        ]
+      },
+      {
+        id: 'hon-fund',
+        code: 'COURSE 02 • FUNDAMENTALS',
+        name: 'Fundamentals of Mathematics',
+        sub: 'Mathematical Logic, Set Theory, Relations, Number Theory & Complex Analysis',
+        icon: '🧮',
+        grad: 'from-teal-400 via-cyan-500 to-blue-700',
+        chapters: [
+          { id: 'hon-f-1', num: 'Unit 01', title: 'Mathematical Logic, Truth Tables, Quantifiers & Proof Techniques', eng: 'Tautology, contrapositive, contradiction & mathematical induction', icon: '🧠' },
+          { id: 'hon-f-2', num: 'Unit 02', title: 'Set Theory, Binary Relations, Equivalence Classes & Partitions', eng: 'Reflexive, symmetric, transitive relations & partial orderings (Posets)', icon: '🔢' },
+          { id: 'hon-f-3', num: 'Unit 03', title: 'Functions, Cardinality, Countable & Uncountable Sets', eng: 'Injective/surjective proofs, Schroeder-Bernstein & Cantor’s theorem', icon: '♾️' },
+          { id: 'hon-f-4', num: 'Unit 04', title: 'Elementary Number Theory: Divisibility, Primes & Congruences', eng: 'Euclidean algorithm, Fermat’s Little Theorem, Euler’s φ & Chinese Remainder', icon: '🔑' },
+          { id: 'hon-f-5', num: 'Unit 05', title: 'De Moivre’s Theorem, Gregory’s Series & Hyperbolic Functions', eng: 'Summation of C + iS trigonometric series & complex logarithms', icon: '🌀' },
+          { id: 'hon-f-6', num: 'Unit 06', title: 'Theory of Equations: Sturm’s Theorem, Cardan’s & Ferrari’s Methods', eng: 'Descartes’ rule of signs, reciprocal equations & transformation of roots', icon: '📐' }
+        ],
+        lectureBlueprint: [
+          'Axiomatic Definitions, Lemmas & Formal Proof Construction',
+          'Step-by-Step Solutions of Standard Exercises',
+          'Honours 1st Year University Final Exam Archive Solutions',
+          'BCS / NTRCA Written Mathematics Linkage',
+          'Self-Test Quiz & Proof Verification'
+        ]
+      },
+      {
+        id: 'hon-linalg',
+        code: 'COURSE 03 • LINEAR ALGEBRA',
+        name: 'Linear Algebra & Analytical Geometry',
+        sub: 'Vector Spaces, Basis, Linear Transformations, Eigenvalues, 3D Quadric Surfaces',
+        icon: '🔢',
+        grad: 'from-indigo-400 via-blue-500 to-cyan-600',
+        chapters: [
+          { id: 'hon-la-1', num: 'Unit 01', title: 'Systems of Linear Equations, Gauss-Jordan & Echelon Forms', eng: 'Rank of matrix, consistency (Rouché–Capelli) & LU decomposition', icon: '🔢' },
+          { id: 'hon-la-2', num: 'Unit 02', title: 'Vector Spaces, Subspaces, Linear Independence, Basis & Dimension', eng: 'Span, sum & direct sum of subspaces, dimension theorem proofs', icon: '🧭' },
+          { id: 'hon-la-3', num: 'Unit 03', title: 'Linear Transformations, Kernel, Range & Rank-Nullity Theorem', eng: 'Matrix representation of linear operators & change of basis', icon: '🔄' },
+          { id: 'hon-la-4', num: 'Unit 04', title: 'Eigenvalues, Eigenvectors, Diagonalization & Cayley-Hamilton', eng: 'Characteristic/minimal polynomials, algebraic vs geometric multiplicity', icon: '⚡' },
+          { id: 'hon-la-5', num: 'Unit 05', title: 'Inner Product Spaces & Gram-Schmidt Orthonormalization', eng: 'Cauchy-Schwarz inequality, orthogonal complements & Spectral Theorem', icon: '📐' },
+          { id: 'hon-la-6', num: 'Unit 06', title: '3D Analytical Geometry: Planes, Straight Lines, Spheres & Conoids', eng: 'Shortest distance between skew lines, central conicoids & generating lines', icon: '🪐' }
+        ],
+        lectureBlueprint: [
+          'Theorem Proofs (Hoffman & Kunze / Howard Anton / Seymour Lipschutz)',
+          'Computational & Proof-Based Worked Examples',
+          'University Honours Exam Questions & Solutions',
+          'Applications in Machine Learning & 3D Geometry',
+          'Linear Algebra Self-Test & Assessment'
+        ]
+      },
+      {
+        id: 'hon-ode-pde',
+        code: 'COURSE 04 • ODE & PDE',
+        name: 'Ordinary & Partial Differential Equations (ODE & PDE)',
+        sub: 'Exact ODEs, Wronskian, Series Solutions (Frobenius), Bessel/Legendre, Wave & Heat PDEs',
+        icon: '🌊',
+        grad: 'from-sky-400 via-blue-500 to-indigo-700',
+        chapters: [
+          { id: 'hon-de-1', num: 'Unit 01', title: 'First-Order ODEs: Exact Equations, Integrating Factors & Clairaut’s Form', eng: 'Existence-uniqueness theorem, orthogonal trajectories & singular solutions', icon: '📈' },
+          { id: 'hon-de-2', num: 'Unit 02', title: 'Higher-Order Linear ODEs: Wronskian, Undetermined Coefficients & Variation of Parameters', eng: 'Cauchy-Euler homogeneous equations & operator methods', icon: '⚡' },
+          { id: 'hon-de-3', num: 'Unit 03', title: 'Power Series Solutions (Frobenius Method), Bessel & Legendre Functions', eng: 'Generating functions, recurrence relations & orthogonality properties', icon: '🌀' },
+          { id: 'hon-de-4', num: 'Unit 04', title: 'First-Order PDEs: Lagrange’s Linear Equation & Charpit’s Method', eng: 'Complete, particular & singular integrals, Monge’s method', icon: '🧭' },
+          { id: 'hon-de-5', num: 'Unit 05', title: 'Second-Order PDEs: Classification (Elliptic, Parabolic, Hyperbolic) & Canonical Forms', eng: 'D’Alembert’s solution, 1D Wave, Heat & Laplace boundary value problems', icon: '🌊' }
+        ],
+        lectureBlueprint: [
+          'Rigorous Analytical Derivation & Boundary Value Modeling',
+          'Worked Solutions from Ross, Sneddon & Raisinghania',
+          'University Honours 2nd/3rd Year Final Archive Solutions',
+          'Physical & Geophysical Wave Modeling Applications',
+          'ODE & PDE Timed Self-Test'
+        ]
+      },
+      {
+        id: 'hon-numerical',
+        code: 'COURSE 05 • NUMERICAL & SCI-COMP',
+        name: 'Numerical Analysis & Scientific Computing',
+        sub: 'Root Finding, Interpolation, Numerical Integration, RK4 & Python/C Implementation',
+        icon: '💻',
+        grad: 'from-amber-400 via-orange-500 to-rose-600',
+        chapters: [
+          { id: 'hon-na-1', num: 'Unit 01', title: 'Transcendental & Polynomial Equations: Bisection, False Position & Newton-Raphson', eng: 'Order of convergence proof, Secant method & fixed-point iteration', icon: '🔢' },
+          { id: 'hon-na-2', num: 'Unit 02', title: 'Finite Differences & Polynomial Interpolation (Newton, Gauss, Stirling & Lagrange)', eng: 'Divided differences, error bounds & inverse interpolation', icon: '📈' },
+          { id: 'hon-na-3', num: 'Unit 03', title: 'Numerical Differentiation & Quadrature (Trapezoidal, Simpson’s 1/3, 3/8 & Weddle)', eng: 'Newton-Cotes derivation, Romberg integration & Gaussian quadrature', icon: '∫' },
+          { id: 'hon-na-4', num: 'Unit 04', title: 'Numerical Linear Algebra: Jacobi, Gauss-Seidel Iterative & Power Method', eng: 'Diagonal dominance convergence & dominant eigenvalue computation', icon: '🧮' },
+          { id: 'hon-na-5', num: 'Unit 05', title: 'Numerical Solutions of ODEs: Euler, Modified Euler, Picard & 4th-Order Runge-Kutta (RK4)', eng: 'Milne’s & Adams-Bashforth predictor-corrector methods + Python/C code', icon: '💻' }
+        ],
+        lectureBlueprint: [
+          'Error Analysis, Convergence Rate Proofs & Tabular Hand Calculations',
+          'Step-by-Step Casio fx-991EX CALC/TABLE Mode Verification',
+          'C & Python (NumPy/SciPy) Lab Implementation Walkthrough',
+          'Honours 3rd/4th Year Final Exam Archive Solutions',
+          'Numerical Methods Self-Test'
+        ]
+      },
+      {
+        id: 'hon-or-tsp',
+        code: 'COURSE 06 • OR, LP & TSP',
+        name: 'Operations Research, Linear Programming & Combinatorial Optimization (TSP)',
+        sub: 'Simplex, Big-M, Duality, Transportation, Assignment & Travelling Salesman Problem',
+        icon: '🏆',
+        grad: 'from-purple-400 via-fuchsia-500 to-rose-600',
+        chapters: [
+          { id: 'hon-or-1', num: 'Unit 01', title: 'Convex Sets, Extreme Points & Graphical Linear Programming Formulation', eng: 'Hyperplanes, supporting planes & fundamental theorem of LPP', icon: '📐' },
+          { id: 'hon-or-2', num: 'Unit 02', title: 'Simplex Method, Two-Phase Method & Charnes Big-M Method', eng: 'Slack, surplus, artificial variables, degeneracy & cycling resolution', icon: '📉' },
+          { id: 'hon-or-3', num: 'Unit 03', title: 'Duality in Linear Programming, Dual Simplex & Sensitivity Analysis', eng: 'Weak & strong duality theorems, complementary slackness & shadow prices', icon: '🔄' },
+          { id: 'hon-or-4', num: 'Unit 04', title: 'Transportation (NWCR, Least Cost, VAM, MODI) & Hungarian Assignment', eng: 'Unbalanced transportation, degeneracy & travelling routing reduction', icon: '🚚' },
+          { id: 'hon-or-5', num: 'Unit 05', title: 'Combinatorial Optimization & Travelling Salesman Problem (TSP)', eng: 'Exact branch-and-bound, Improved Nearest Neighbour & Genetic Algorithms (M.Sc. Thesis Link)', icon: '🏆' }
+        ],
+        lectureBlueprint: [
+          'Mathematical Formulation, Convexity Proofs & Algorithmic Steps',
+          'Step-by-Step Tableau Hand Calculation & Optimality Checks',
+          'Honours & M.Sc. Examination Archive Solutions',
+          'Research Linkage: Lecturer Emran Islam’s Published TSP Monograph',
+          'Optimization Self-Test & Problem Sheet'
+        ]
+      }
+];
+const HONOURS_GENERIC_BLUEPRINT = [
+  'মূল ধারণা, সংজ্ঞা ও উপপাদ্যের প্রমাণ',
+  'সমাধান করা উদাহরণ ও অনুশীলনী',
+  'পরীক্ষার প্রশ্ন সমাধান',
+  'রিভিশন ও সেলফ টেস্ট'
+];
+const HONOURS_MODULES = HONOURS_COURSE_LIST.map(([year, code, name, legacyId, lab]) => {
+  const y = HONOURS_YEAR_BY_ID[year];
+  const old = legacyId ? HONOURS_LEGACY.find((m) => m.id === legacyId) : null;
+  const units = lab ? 4 : 6;
+  return {
+    ...(old || {}),
+    id: old ? old.id : `hon-${code}`,
+    year,
+    courseCode: code,
+    code: `${code} • ${y.short}`,
+    name,
+    sub: old ? old.sub : `${y.short} • কোর্স কোড ${code}`,
+    icon: old ? old.icon : lab ? '💻' : '📘',
+    grad: old ? old.grad : y.grad,
+    chapters: old
+      ? old.chapters
+      : Array.from({ length: units }, (_, k) => ({
+          id: `hon-${code}-${k + 1}`,
+          num: `Unit ${String(k + 1).padStart(2, '0')}`,
+          title: `ইউনিট ${toBn_(k + 1)}`,
+          eng: `${name} — Unit ${k + 1}`,
+          icon: '📖'
+        })),
+    lectureBlueprint: old ? old.lectureBlueprint : HONOURS_GENERIC_BLUEPRINT
+  };
+});
+
 const PART3_ACADEMIC_TRACKS = {
   'HSC English Version': {
     id: 'HSC English Version',
@@ -855,147 +1065,11 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'B.Sc. Honours Math': {
     id: 'B.Sc. Honours Math',
-    badge: 'B.SC. (HONOURS) IN MATHEMATICS (6 CORE COURSES)',
-    title: 'B.Sc. (Honours) & Undergraduate Mathematics Portal',
-    subtitle: 'Rigorous theorem proofs, lecture notes, and solved problem sets for Major & Non-Major undergraduate courses (Public Universities, NU & 7-College).',
+    badge: 'B.SC. (HONOURS) IN MATHEMATICS — YEARWISE COURSES',
+    title: 'B.Sc. (Honours) in Mathematics — ১ম থেকে ৪র্থ বর্ষের কোর্স',
+    subtitle: 'উপপাদ্যের প্রমাণ, লেকচার নোট ও সমাধানসহ ১ম, ২য়, ৩য় ও ৪র্থ বর্ষের সব কোর্স।',
     unlockFee: 50,
-    modules: [
-      {
-        id: 'hon-calc',
-        code: 'COURSE 01 • CALCULUS I',
-        name: 'Calculus I',
-        sub: 'ε-δ Limits, Mean Value Theorems, Improper Integrals, Partial Derivatives',
-        icon: '∫',
-        grad: 'from-emerald-400 via-green-500 to-teal-700',
-        chapters: [
-          { id: 'hon-c-1', num: 'Unit 01', title: 'Real-Valued Functions, ε-δ Definition of Limit & Continuity', eng: 'Sequential criterion, uniform continuity & Intermediate Value Theorem', icon: '♾️' },
-          { id: 'hon-c-2', num: 'Unit 02', title: 'Rolle’s Theorem, Lagrange & Cauchy’s Mean Value Theorems', eng: 'Taylor’s & Maclaurin’s theorem with Lagrange/Cauchy form of remainder', icon: '⚡' },
-          { id: 'hon-c-3', num: 'Unit 03', title: 'Successive Differentiation (Leibnitz’s Theorem) & Indeterminate Forms', eng: 'nth derivatives of standard functions & L’Hôpital’s rigorous proof', icon: '📈' },
-          { id: 'hon-c-4', num: 'Unit 04', title: 'Asymptotes, Envelopes, Curvature & Tracing of Curves', eng: 'Cartesian, polar & parametric radius of curvature, Folium of Descartes', icon: '🪐' },
-          { id: 'hon-c-5', num: 'Unit 05', title: 'Reduction Formulas, Beta & Gamma Functions & Improper Integrals', eng: 'Legendre duplication, Dirichlet integrals & arc length/surface area', icon: '∫' },
-          { id: 'hon-c-6', num: 'Unit 06', title: 'Functions of Several Variables, Euler’s Theorem & Jacobians', eng: 'Partial differentiation, homogeneous functions & Lagrange multipliers', icon: '🧭' }
-        ],
-        lectureBlueprint: [
-          'Rigorous Statement & Step-by-Step Proof of Core Theorems',
-          'Classic Text Problem Solutions (Anton, Apostol, Das & Mukherjee)',
-          'University Honours Final Examination Past Question Solutions',
-          'Viva-Voce Conceptual Questions & Counter-Examples',
-          'Undergraduate Self-Test & Proof Writing Assessment'
-        ]
-      },
-      {
-        id: 'hon-fund',
-        code: 'COURSE 02 • FUNDAMENTALS',
-        name: 'Fundamentals of Mathematics',
-        sub: 'Mathematical Logic, Set Theory, Relations, Number Theory & Complex Analysis',
-        icon: '🧮',
-        grad: 'from-teal-400 via-cyan-500 to-blue-700',
-        chapters: [
-          { id: 'hon-f-1', num: 'Unit 01', title: 'Mathematical Logic, Truth Tables, Quantifiers & Proof Techniques', eng: 'Tautology, contrapositive, contradiction & mathematical induction', icon: '🧠' },
-          { id: 'hon-f-2', num: 'Unit 02', title: 'Set Theory, Binary Relations, Equivalence Classes & Partitions', eng: 'Reflexive, symmetric, transitive relations & partial orderings (Posets)', icon: '🔢' },
-          { id: 'hon-f-3', num: 'Unit 03', title: 'Functions, Cardinality, Countable & Uncountable Sets', eng: 'Injective/surjective proofs, Schroeder-Bernstein & Cantor’s theorem', icon: '♾️' },
-          { id: 'hon-f-4', num: 'Unit 04', title: 'Elementary Number Theory: Divisibility, Primes & Congruences', eng: 'Euclidean algorithm, Fermat’s Little Theorem, Euler’s φ & Chinese Remainder', icon: '🔑' },
-          { id: 'hon-f-5', num: 'Unit 05', title: 'De Moivre’s Theorem, Gregory’s Series & Hyperbolic Functions', eng: 'Summation of C + iS trigonometric series & complex logarithms', icon: '🌀' },
-          { id: 'hon-f-6', num: 'Unit 06', title: 'Theory of Equations: Sturm’s Theorem, Cardan’s & Ferrari’s Methods', eng: 'Descartes’ rule of signs, reciprocal equations & transformation of roots', icon: '📐' }
-        ],
-        lectureBlueprint: [
-          'Axiomatic Definitions, Lemmas & Formal Proof Construction',
-          'Step-by-Step Solutions of Standard Exercises',
-          'Honours 1st Year University Final Exam Archive Solutions',
-          'BCS / NTRCA Written Mathematics Linkage',
-          'Self-Test Quiz & Proof Verification'
-        ]
-      },
-      {
-        id: 'hon-linalg',
-        code: 'COURSE 03 • LINEAR ALGEBRA',
-        name: 'Linear Algebra & Analytical Geometry',
-        sub: 'Vector Spaces, Basis, Linear Transformations, Eigenvalues, 3D Quadric Surfaces',
-        icon: '🔢',
-        grad: 'from-indigo-400 via-blue-500 to-cyan-600',
-        chapters: [
-          { id: 'hon-la-1', num: 'Unit 01', title: 'Systems of Linear Equations, Gauss-Jordan & Echelon Forms', eng: 'Rank of matrix, consistency (Rouché–Capelli) & LU decomposition', icon: '🔢' },
-          { id: 'hon-la-2', num: 'Unit 02', title: 'Vector Spaces, Subspaces, Linear Independence, Basis & Dimension', eng: 'Span, sum & direct sum of subspaces, dimension theorem proofs', icon: '🧭' },
-          { id: 'hon-la-3', num: 'Unit 03', title: 'Linear Transformations, Kernel, Range & Rank-Nullity Theorem', eng: 'Matrix representation of linear operators & change of basis', icon: '🔄' },
-          { id: 'hon-la-4', num: 'Unit 04', title: 'Eigenvalues, Eigenvectors, Diagonalization & Cayley-Hamilton', eng: 'Characteristic/minimal polynomials, algebraic vs geometric multiplicity', icon: '⚡' },
-          { id: 'hon-la-5', num: 'Unit 05', title: 'Inner Product Spaces & Gram-Schmidt Orthonormalization', eng: 'Cauchy-Schwarz inequality, orthogonal complements & Spectral Theorem', icon: '📐' },
-          { id: 'hon-la-6', num: 'Unit 06', title: '3D Analytical Geometry: Planes, Straight Lines, Spheres & Conoids', eng: 'Shortest distance between skew lines, central conicoids & generating lines', icon: '🪐' }
-        ],
-        lectureBlueprint: [
-          'Theorem Proofs (Hoffman & Kunze / Howard Anton / Seymour Lipschutz)',
-          'Computational & Proof-Based Worked Examples',
-          'University Honours Exam Questions & Solutions',
-          'Applications in Machine Learning & 3D Geometry',
-          'Linear Algebra Self-Test & Assessment'
-        ]
-      },
-      {
-        id: 'hon-ode-pde',
-        code: 'COURSE 04 • ODE & PDE',
-        name: 'Ordinary & Partial Differential Equations (ODE & PDE)',
-        sub: 'Exact ODEs, Wronskian, Series Solutions (Frobenius), Bessel/Legendre, Wave & Heat PDEs',
-        icon: '🌊',
-        grad: 'from-sky-400 via-blue-500 to-indigo-700',
-        chapters: [
-          { id: 'hon-de-1', num: 'Unit 01', title: 'First-Order ODEs: Exact Equations, Integrating Factors & Clairaut’s Form', eng: 'Existence-uniqueness theorem, orthogonal trajectories & singular solutions', icon: '📈' },
-          { id: 'hon-de-2', num: 'Unit 02', title: 'Higher-Order Linear ODEs: Wronskian, Undetermined Coefficients & Variation of Parameters', eng: 'Cauchy-Euler homogeneous equations & operator methods', icon: '⚡' },
-          { id: 'hon-de-3', num: 'Unit 03', title: 'Power Series Solutions (Frobenius Method), Bessel & Legendre Functions', eng: 'Generating functions, recurrence relations & orthogonality properties', icon: '🌀' },
-          { id: 'hon-de-4', num: 'Unit 04', title: 'First-Order PDEs: Lagrange’s Linear Equation & Charpit’s Method', eng: 'Complete, particular & singular integrals, Monge’s method', icon: '🧭' },
-          { id: 'hon-de-5', num: 'Unit 05', title: 'Second-Order PDEs: Classification (Elliptic, Parabolic, Hyperbolic) & Canonical Forms', eng: 'D’Alembert’s solution, 1D Wave, Heat & Laplace boundary value problems', icon: '🌊' }
-        ],
-        lectureBlueprint: [
-          'Rigorous Analytical Derivation & Boundary Value Modeling',
-          'Worked Solutions from Ross, Sneddon & Raisinghania',
-          'University Honours 2nd/3rd Year Final Archive Solutions',
-          'Physical & Geophysical Wave Modeling Applications',
-          'ODE & PDE Timed Self-Test'
-        ]
-      },
-      {
-        id: 'hon-numerical',
-        code: 'COURSE 05 • NUMERICAL & SCI-COMP',
-        name: 'Numerical Analysis & Scientific Computing',
-        sub: 'Root Finding, Interpolation, Numerical Integration, RK4 & Python/C Implementation',
-        icon: '💻',
-        grad: 'from-amber-400 via-orange-500 to-rose-600',
-        chapters: [
-          { id: 'hon-na-1', num: 'Unit 01', title: 'Transcendental & Polynomial Equations: Bisection, False Position & Newton-Raphson', eng: 'Order of convergence proof, Secant method & fixed-point iteration', icon: '🔢' },
-          { id: 'hon-na-2', num: 'Unit 02', title: 'Finite Differences & Polynomial Interpolation (Newton, Gauss, Stirling & Lagrange)', eng: 'Divided differences, error bounds & inverse interpolation', icon: '📈' },
-          { id: 'hon-na-3', num: 'Unit 03', title: 'Numerical Differentiation & Quadrature (Trapezoidal, Simpson’s 1/3, 3/8 & Weddle)', eng: 'Newton-Cotes derivation, Romberg integration & Gaussian quadrature', icon: '∫' },
-          { id: 'hon-na-4', num: 'Unit 04', title: 'Numerical Linear Algebra: Jacobi, Gauss-Seidel Iterative & Power Method', eng: 'Diagonal dominance convergence & dominant eigenvalue computation', icon: '🧮' },
-          { id: 'hon-na-5', num: 'Unit 05', title: 'Numerical Solutions of ODEs: Euler, Modified Euler, Picard & 4th-Order Runge-Kutta (RK4)', eng: 'Milne’s & Adams-Bashforth predictor-corrector methods + Python/C code', icon: '💻' }
-        ],
-        lectureBlueprint: [
-          'Error Analysis, Convergence Rate Proofs & Tabular Hand Calculations',
-          'Step-by-Step Casio fx-991EX CALC/TABLE Mode Verification',
-          'C & Python (NumPy/SciPy) Lab Implementation Walkthrough',
-          'Honours 3rd/4th Year Final Exam Archive Solutions',
-          'Numerical Methods Self-Test'
-        ]
-      },
-      {
-        id: 'hon-or-tsp',
-        code: 'COURSE 06 • OR, LP & TSP',
-        name: 'Operations Research, Linear Programming & Combinatorial Optimization (TSP)',
-        sub: 'Simplex, Big-M, Duality, Transportation, Assignment & Travelling Salesman Problem',
-        icon: '🏆',
-        grad: 'from-purple-400 via-fuchsia-500 to-rose-600',
-        chapters: [
-          { id: 'hon-or-1', num: 'Unit 01', title: 'Convex Sets, Extreme Points & Graphical Linear Programming Formulation', eng: 'Hyperplanes, supporting planes & fundamental theorem of LPP', icon: '📐' },
-          { id: 'hon-or-2', num: 'Unit 02', title: 'Simplex Method, Two-Phase Method & Charnes Big-M Method', eng: 'Slack, surplus, artificial variables, degeneracy & cycling resolution', icon: '📉' },
-          { id: 'hon-or-3', num: 'Unit 03', title: 'Duality in Linear Programming, Dual Simplex & Sensitivity Analysis', eng: 'Weak & strong duality theorems, complementary slackness & shadow prices', icon: '🔄' },
-          { id: 'hon-or-4', num: 'Unit 04', title: 'Transportation (NWCR, Least Cost, VAM, MODI) & Hungarian Assignment', eng: 'Unbalanced transportation, degeneracy & travelling routing reduction', icon: '🚚' },
-          { id: 'hon-or-5', num: 'Unit 05', title: 'Combinatorial Optimization & Travelling Salesman Problem (TSP)', eng: 'Exact branch-and-bound, Improved Nearest Neighbour & Genetic Algorithms (M.Sc. Thesis Link)', icon: '🏆' }
-        ],
-        lectureBlueprint: [
-          'Mathematical Formulation, Convexity Proofs & Algorithmic Steps',
-          'Step-by-Step Tableau Hand Calculation & Optimality Checks',
-          'Honours & M.Sc. Examination Archive Solutions',
-          'Research Linkage: Lecturer Emran Islam’s Published TSP Monograph',
-          'Optimization Self-Test & Problem Sheet'
-        ]
-      }
-    ]
+    modules: HONOURS_MODULES
   }
 };
 
@@ -2874,6 +2948,7 @@ const navStateToPath = (st) => {
   if (!slug) return '/';
   const o = st.options || {};
   if (o.admUniv) return `/${slug}/${o.admUniv}/`;
+  if (o.honYear) return `/${slug}/${o.honYear}/`;
   if (o.researchCardId) return `/${slug}/${o.researchCardId}/`;
   if (o.bvPaperKey) return `/${slug}/${o.bvPaperKey}/`;
   return `/${slug}/`;
@@ -2900,6 +2975,10 @@ const partsToNavState = (parts) => {
 
   if (page === 'Admission Test (BUET/DU)' && a && !b && ADMISSION_UNIVERSITY_BY_ID[a]) {
     return { page, options: { admUniv: a } };
+  }
+
+  if (page === 'B.Sc. Honours Math' && a && !b && HONOURS_YEAR_BY_ID[a]) {
+    return { page, options: { honYear: a } };
   }
 
   const track = PART3_ACADEMIC_TRACKS[page];
@@ -3015,14 +3094,21 @@ const routeInfo = (st) => {
       const track = PART3_ACADEMIC_TRACKS[c.trackId];
       const mod = track && track.modules[c.moduleIdx];
       if (!mod) return null;
-      const modLink = link({ page: 'COURSE', course: { kind: 'track', trackId: c.trackId, moduleIdx: c.moduleIdx, parent } }, mod.name);
+      // Honours courses repeat names across years (e.g. Math Lab), so their pages carry the course code.
+      const modName = mod.courseCode ? `${mod.courseCode} ${mod.name}` : mod.name;
+      const modLink = link({ page: 'COURSE', course: { kind: 'track', trackId: c.trackId, moduleIdx: c.moduleIdx, parent } }, modName);
       const admU = c.trackId === 'Admission Test (BUET/DU)' && mod.univ && ADMISSION_UNIVERSITY_BY_ID[mod.univ];
-      const univCrumb = admU ? [link({ page: c.trackId, options: { admUniv: admU.id } }, admU.name)] : [];
+      const honY = c.trackId === 'B.Sc. Honours Math' && mod.year && HONOURS_YEAR_BY_ID[mod.year];
+      const univCrumb = admU
+        ? [link({ page: c.trackId, options: { admUniv: admU.id } }, admU.name)]
+        : honY
+        ? [link({ page: c.trackId, options: { honYear: honY.id } }, honY.name)]
+        : [];
       if (c.kind === 'track') {
         return make({
-          title: `${mod.name} — ${track.id}${suffix}`,
-          heading: mod.name,
-          summary: `${mod.name}: ${mod.sub}. অধ্যায়: ${mod.chapters.map((x) => x.title).join(', ')}।`,
+          title: `${modName} — ${track.id}${suffix}`,
+          heading: modName,
+          summary: `${modName}: ${mod.sub}. অধ্যায়: ${mod.chapters.map((x) => x.title).join(', ')}।`,
           crumbs: [home, parentLink, ...univCrumb],
           children: mod.chapters.map((ch, i) => link({ page: 'COURSE', course: { kind: 'trackChapter', trackId: c.trackId, moduleIdx: c.moduleIdx, chapterIdx: i, parent } }, `${ch.num} — ${ch.title}`))
         });
@@ -3030,10 +3116,10 @@ const routeInfo = (st) => {
       const ch = mod.chapters[c.chapterIdx];
       if (!ch) return null;
       return make({
-        title: `${ch.title} (${ch.eng}) — ${mod.name}${suffix}`,
-        heading: `${mod.name} — ${ch.num}: ${ch.title}`,
-        summary: `${ch.title}: ${ch.eng}. ${mod.name} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
-        description: `${ch.title} (${ch.eng}) — ${mod.name}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
+        title: `${ch.title} (${ch.eng}) — ${modName}${suffix}`,
+        heading: `${modName} — ${ch.num}: ${ch.title}`,
+        summary: `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
+        description: `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
         crumbs: [home, parentLink, ...univCrumb, modLink]
       });
     }
@@ -3093,6 +3179,27 @@ const routeInfo = (st) => {
       heading: 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষার গণিত প্রস্তুতি',
       summary: `প্রতিটি বিশ্ববিদ্যালয়ের জন্য অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট — ${ADMISSION_UNIVERSITIES.map((u) => u.full).join(', ')}।`,
       children: ADMISSION_UNIVERSITIES.map((u) => link({ page, options: { admUniv: u.id } }, u.name))
+    });
+  }
+  if (page === 'B.Sc. Honours Math') {
+    const honT = PART3_ACADEMIC_TRACKS[page];
+    if (o.honYear) {
+      const y = HONOURS_YEAR_BY_ID[o.honYear];
+      if (!y) return null;
+      const courses = honT.modules.map((m, i) => ({ m, i })).filter(({ m }) => m.year === y.id);
+      return make({
+        title: `B.Sc. Honours গণিত — ${y.name}${suffix}`,
+        heading: `B.Sc. (Honours) Mathematics — ${y.name}`,
+        summary: `${y.full}: ${courses.map(({ m }) => `${m.courseCode} ${m.name}`).join(', ')}।`,
+        crumbs: [home, pageLink(page)],
+        children: courses.map(({ m, i }) => link({ page: 'COURSE', course: { kind: 'track', trackId: page, moduleIdx: i, parent: page } }, `${m.courseCode}: ${m.name}`))
+      });
+    }
+    return make({
+      title: `B.Sc. (Honours) গণিত — ১ম, ২য়, ৩য় ও ৪র্থ বর্ষের কোর্স${suffix}`,
+      heading: 'B.Sc. (Honours) in Mathematics',
+      summary: `১ম, ২য়, ৩য় ও ৪র্থ বর্ষের সব কোর্স — ${HONOURS_YEARS.map((y) => y.name).join(', ')}।`,
+      children: HONOURS_YEARS.map((y) => link({ page, options: { honYear: y.id } }, y.name))
     });
   }
   const track = PART3_ACADEMIC_TRACKS[page];
@@ -3155,6 +3262,7 @@ const listRoutes = () => {
   });
   SPECIAL_COURSES_WITH_BOOKS.forEach((c) => sts.push({ page: 'COURSE', course: { kind: 'bv', id: c.id, parent: 'HSC Bangla Version' } }));
   ADMISSION_UNIVERSITIES.forEach((u) => sts.push({ page: 'Admission Test (BUET/DU)', options: { admUniv: u.id } }));
+  HONOURS_YEARS.forEach((y) => sts.push({ page: 'B.Sc. Honours Math', options: { honYear: y.id } }));
   Object.values(PART3_ACADEMIC_TRACKS).forEach((t) =>
     t.modules.forEach((m, mi) => {
       sts.push({ page: 'COURSE', course: { kind: 'track', trackId: t.id, moduleIdx: mi, parent: t.id } });
@@ -5027,6 +5135,7 @@ export default function App() {
   const [thesisLevel, setThesisLevel] = useState('M.Sc. Thesis');
 
   const [part3ModuleIdx, setPart3ModuleIdx] = useState(0);
+  const [honYear, setHonYear] = useState(null); // selected year on the B.Sc. Honours page (null = show the 4 year cards)
   const [admUniv, setAdmUniv] = useState(null); // selected university on the Admission page (null = show the 7 cards)
   const [part3ChapterIdx, setPart3ChapterIdx] = useState(0);
 
@@ -5200,6 +5309,7 @@ export default function App() {
       setActiveResearchCardId(options.researchCardId);
     }
     setAdmUniv(trackId === 'Admission Test (BUET/DU)' ? options.admUniv || null : null);
+    setHonYear(trackId === 'B.Sc. Honours Math' ? options.honYear || null : null);
     setSelectedTrack(trackId);
     setActiveSubPage(trackId);
   };
@@ -5222,6 +5332,10 @@ export default function App() {
       if (course.trackId === 'Admission Test (BUET/DU)') {
         const m = PART3_ACADEMIC_TRACKS['Admission Test (BUET/DU)'].modules[course.moduleIdx];
         setAdmUniv((m && m.univ) || null);
+      }
+      if (course.trackId === 'B.Sc. Honours Math') {
+        const m = PART3_ACADEMIC_TRACKS['B.Sc. Honours Math'].modules[course.moduleIdx];
+        setHonYear((m && m.year) || null);
       }
     }
     setActiveCourse(course);
@@ -5309,9 +5423,10 @@ export default function App() {
   const part3TrackKey = isTrackCourse ? activeCourse.trackId : activeSubPage;
   // The Admission landing (7 university cards, or one university's 2 section cards) has its own view.
   const admissionHubView = activeSubPage === 'Admission Test (BUET/DU)' && !isCourseView;
+  const honoursHubView = activeSubPage === 'B.Sc. Honours Math' && !isCourseView;
   // Friendly Bengali page labels for the breadcrumb (menu already uses these).
   const pageLabelBn = (id) =>
-    ({ 'Admission Test (BUET/DU)': 'ভর্তি পরীক্ষার প্রস্তুতি', 'Job Math': 'JOB MATH', 'Class Routine': 'লাইভ ক্লাসের রুটিন', 'Private Batch': 'প্রাইভেট ব্যাচ' }[id] || id);
+    ({ 'Admission Test (BUET/DU)': 'ভর্তি পরীক্ষার প্রস্তুতি', 'B.Sc. Honours Math': 'B.Sc. Honours', 'Job Math': 'JOB MATH', 'Class Routine': 'লাইভ ক্লাসের রুটিন', 'Private Batch': 'প্রাইভেট ব্যাচ' }[id] || id);
 
   // Browser tab title follows the page.
   useEffect(() => {
@@ -5861,20 +5976,16 @@ export default function App() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {PART3_ACADEMIC_TRACKS['B.Sc. Honours Math'].modules.map((mod, mIdx) => (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {HONOURS_YEARS.map((y) => (
                 <PremiumCard
-                  key={mod.id}
-                  person
-                  poster={shortTag(mod.code)}
-                  grad={mod.grad}
-                  icon={mod.icon}
-                  title={mod.name}
-                  sub={mod.sub}
-                  chips={[`${mod.chapters.length} Core Units`, 'Theorem Proofs + PDF']}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'B.Sc. Honours Math', parent: 'B.Sc. Honours Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
-                  }
+                  key={y.id}
+                  poster={y.short}
+                  grad={y.grad}
+                  icon={y.icon}
+                  title={y.name}
+                  sub={y.full}
+                  onClick={() => openSubPage('B.Sc. Honours Math', { honYear: y.id })}
                 />
               ))}
             </div>
@@ -6621,6 +6732,68 @@ export default function App() {
       )}
 
       {/* VIEW 3: DEDICATED SUB-PAGE FOR PART 3 TRACKS (HSC EV, O/A-LEVEL, ADMISSION, B.SC. HONOURS) */}
+      {honoursHubView && (
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-emerald-500/30 p-5 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(168,85,247,0.10),_transparent_55%)]" />
+          {(() => {
+            const honTrack = PART3_ACADEMIC_TRACKS['B.Sc. Honours Math'];
+            const yr = honYear && HONOURS_YEAR_BY_ID[honYear];
+            if (yr) {
+              const courses = honTrack.modules.map((m, mIdx) => ({ m, mIdx })).filter(({ m }) => m.year === yr.id);
+              return (
+                <div className="relative space-y-6">
+                  <div className="flex items-center gap-4 border-b border-slate-800 pb-5">
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br ${yr.grad} flex items-center justify-center text-3xl sm:text-4xl shadow-lg`}>
+                      {yr.icon}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-emerald-300">B.Sc. Honours Math</span>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">{yr.name}</h3>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1">{toBnDigits(courses.length)}টি কোর্স</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                    {courses.map(({ m, mIdx }) => (
+                      <PremiumCard
+                        key={m.id}
+                        person
+                        poster={m.courseCode}
+                        grad={m.grad}
+                        icon={m.icon}
+                        title={m.name}
+                        sub={m.sub}
+                        chips={[`${toBnDigits(m.chapters.length)}টি ইউনিট`, '১ম লেকচার ফ্রি']}
+                        onClick={() =>
+                          openCourse({ kind: 'track', trackId: honTrack.id, parent: honTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: `${yr.short} • কোর্স কোড ${m.courseCode}`, icon: m.icon, grad: m.grad })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="relative grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 max-w-5xl mx-auto">
+                {HONOURS_YEARS.map((y) => (
+                  <PremiumCard
+                    key={y.id}
+                    poster={y.short}
+                    grad={y.grad}
+                    icon={y.icon}
+                    title={y.name}
+                    sub={y.full}
+                    chips={[`${toBnDigits(honTrack.modules.filter((m) => m.year === y.id).length)}টি কোর্স`]}
+                    onClick={() => openSubPage('B.Sc. Honours Math', { honYear: y.id })}
+                  />
+                ))}
+              </div>
+            );
+          })()}
+        </section>
+      </main>
+      )}
+
       {admissionHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-cyan-500/30 p-5 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
@@ -6683,7 +6856,7 @@ export default function App() {
       </main>
       )}
 
-      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && (
+      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && !honoursHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section
           id="part3-academic-hub"
