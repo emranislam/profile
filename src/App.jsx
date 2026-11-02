@@ -805,19 +805,19 @@ const PART3_ACADEMIC_TRACKS = {
           { id: 'job-gl-4', num: 'পাটিগণিত ৪', title: 'সরল ও যৌগিক মুনাফা', eng: 'Simple and Compound Interest', icon: '💰', group: 'পাটিগণিত (Arithmetic)', img: 'arith-4' },
           { id: 'job-gl-5', num: 'পাটিগণিত ৫', title: 'অনুপাত ও সমানুপাত', eng: 'Ratio and Proportion', icon: '⚖️', group: 'পাটিগণিত (Arithmetic)', img: 'arith-5' },
           { id: 'job-gl-6', num: 'পাটিগণিত ৬', title: 'লাভ ও ক্ষতি', eng: 'Profit and Loss', icon: '📈', group: 'পাটিগণিত (Arithmetic)', img: 'arith-6' },
-          { id: 'job-gl-7', num: 'বীজগণিত ১', title: 'বীজগাণিতিক সূত্রাবলি', eng: 'Algebraic Formulas', icon: '🔣', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-8', num: 'বীজগণিত ২', title: 'বহুপদী উৎপাদক', eng: 'Factorization of Polynomials', icon: '🧩', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-9', num: 'বীজগণিত ৩', title: 'সরল ও দ্বিঘাত সমীকরণ এবং অসমতা', eng: 'Linear and Quadratic Equations and Inequalities', icon: '🟰', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-10', num: 'বীজগণিত ৪', title: 'সরল সহসমীকরণ', eng: 'Systems of Linear Equations', icon: '🔗', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-11', num: 'বীজগণিত ৫', title: 'সূচক ও লগারিদম', eng: 'Exponents and Logarithms', icon: '✖️', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-12', num: 'বীজগণিত ৬', title: 'সমান্তর ও গুণোত্তর অনুক্রম ও ধারা', eng: 'Arithmetic and Geometric Sequences and Series', icon: '🪜', group: 'বীজগাণিতিক যুক্তি (Algebra)' },
-          { id: 'job-gl-13', num: 'জ্যামিতি ১', title: 'রেখা, কোণ, ত্রিভুজ ও চতুর্ভুজ সংক্রান্ত উপপাদ্য', eng: 'Theorems on Lines, Angles, Triangles and Quadrilaterals', icon: '📐', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
-          { id: 'job-gl-14', num: 'জ্যামিতি ২', title: 'পিথাগোরাসের উপপাদ্য ও বৃত্ত সংক্রান্ত উপপাদ্য', eng: 'Pythagoras Theorem and Circle Theorems', icon: '⭕', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
-          { id: 'job-gl-15', num: 'জ্যামিতি ৩', title: 'ক্ষেত্রফল সম্পর্কিত উপপাদ্য ও পরিমিতি', eng: 'Area Theorems and Mensuration', icon: '📏', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)' },
-          { id: 'job-gl-16', num: 'অন্যান্য ১', title: 'ত্রিকোণমিতিক অনুপাত ও দূরত্ব-উচ্চতা', eng: 'Trigonometric Ratios, Distance and Height', icon: '🗼', group: 'ত্রিকোণমিতি ও অন্যান্য' },
-          { id: 'job-gl-17', num: 'অন্যান্য ২', title: 'সেট তত্ত্ব ও ভেনচিত্র', eng: 'Set Theory & Venn Diagram', icon: '🔵', group: 'ত্রিকোণমিতি ও অন্যান্য' },
-          { id: 'job-gl-18', num: 'অন্যান্য ৩', title: 'বিন্যাস ও সমাবেশ', eng: 'Permutations and Combinations', icon: '🎲', group: 'ত্রিকোণমিতি ও অন্যান্য' },
-          { id: 'job-gl-19', num: 'অন্যান্য ৪', title: 'সম্ভাবনা', eng: 'Probability', icon: '🎯', group: 'ত্রিকোণমিতি ও অন্যান্য' }
+          { id: 'job-gl-7', num: 'বীজগণিত ১', title: 'বীজগাণিতিক সূত্রাবলি', eng: 'Algebraic Formulas', icon: '🔣', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-1' },
+          { id: 'job-gl-8', num: 'বীজগণিত ২', title: 'বহুপদী উৎপাদক', eng: 'Factorization of Polynomials', icon: '🧩', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-2' },
+          { id: 'job-gl-9', num: 'বীজগণিত ৩', title: 'সরল ও দ্বিঘাত সমীকরণ এবং অসমতা', eng: 'Linear and Quadratic Equations and Inequalities', icon: '🟰', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-3' },
+          { id: 'job-gl-10', num: 'বীজগণিত ৪', title: 'সরল সহসমীকরণ', eng: 'Systems of Linear Equations', icon: '🔗', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-4' },
+          { id: 'job-gl-11', num: 'বীজগণিত ৫', title: 'সূচক ও লগারিদম', eng: 'Exponents and Logarithms', icon: '✖️', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-5' },
+          { id: 'job-gl-12', num: 'বীজগণিত ৬', title: 'সমান্তর ও গুণোত্তর অনুক্রম ও ধারা', eng: 'Arithmetic and Geometric Sequences and Series', icon: '🪜', group: 'বীজগাণিতিক যুক্তি (Algebra)', img: 'alg-6' },
+          { id: 'job-gl-13', num: 'জ্যামিতি ১', title: 'রেখা, কোণ, ত্রিভুজ ও চতুর্ভুজ সংক্রান্ত উপপাদ্য', eng: 'Theorems on Lines, Angles, Triangles and Quadrilaterals', icon: '📐', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)', img: 'geo-1' },
+          { id: 'job-gl-14', num: 'জ্যামিতি ২', title: 'পিথাগোরাসের উপপাদ্য ও বৃত্ত সংক্রান্ত উপপাদ্য', eng: 'Pythagoras Theorem and Circle Theorems', icon: '⭕', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)', img: 'geo-2' },
+          { id: 'job-gl-15', num: 'জ্যামিতি ৩', title: 'ক্ষেত্রফল সম্পর্কিত উপপাদ্য ও পরিমিতি', eng: 'Area Theorems and Mensuration', icon: '📏', group: 'জ্যামিতি ও পরিমিতি (Geometry & Mensuration)', img: 'geo-3' },
+          { id: 'job-gl-16', num: 'অন্যান্য ১', title: 'ত্রিকোণমিতিক অনুপাত ও দূরত্ব-উচ্চতা', eng: 'Trigonometric Ratios, Distance and Height', icon: '🗼', group: 'ত্রিকোণমিতি ও অন্যান্য', img: 'oth-1' },
+          { id: 'job-gl-17', num: 'অন্যান্য ২', title: 'সেট তত্ত্ব ও ভেনচিত্র', eng: 'Set Theory & Venn Diagram', icon: '🔵', group: 'ত্রিকোণমিতি ও অন্যান্য', img: 'oth-2' },
+          { id: 'job-gl-18', num: 'অন্যান্য ৩', title: 'বিন্যাস ও সমাবেশ', eng: 'Permutations and Combinations', icon: '🎲', group: 'ত্রিকোণমিতি ও অন্যান্য', img: 'oth-3' },
+          { id: 'job-gl-19', num: 'অন্যান্য ৪', title: 'সম্ভাবনা', eng: 'Probability', icon: '🎯', group: 'ত্রিকোণমিতি ও অন্যান্য', img: 'oth-4' }
         ],
         lectureBlueprint: [
           'মৌলিক ধারণা ও সূত্র (শূন্য থেকে শুরু)',
@@ -6791,7 +6791,7 @@ export default function App() {
                       return (
                         <div key={`${blk.group || 'all'}-${bi}`} className="space-y-3">
                           {blk.group && <h5 className="pt-2 text-sm font-extrabold text-amber-300">{blk.group}</h5>}
-                          <div className={pictures ? 'grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 max-w-5xl mx-auto' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3'}>
+                          <div className={pictures ? `grid grid-cols-2 ${blk.items.length === 4 ? 'lg:grid-cols-4 max-w-6xl' : 'lg:grid-cols-3 max-w-5xl'} gap-3 sm:gap-5 mx-auto` : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3'}>
                             {blk.items.map(({ ch, cIdx }) =>
                               ch.img ? (
                                 <ImageTile
