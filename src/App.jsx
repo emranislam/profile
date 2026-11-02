@@ -784,6 +784,103 @@ const PART3_ACADEMIC_TRACKS = {
       }
     ]
   },
+  'Job Math': {
+    id: 'Job Math',
+    badge: 'JOB MATH • BCS, BANK, TEACHER RECRUITMENT & MORE',
+    title: 'Job Exam Mathematics (BCS, Bank, Primary & NTRCA Teacher Recruitment)',
+    subtitle: 'চাকরির পরীক্ষার গণিত: পাটিগণিত, বীজগণিত, জ্যামিতি, মানসিক দক্ষতা ও মডেল টেস্ট। দ্রুত সমাধানের কৌশলসহ ধাপে ধাপে লেকচার।',
+    unlockFee: 30,
+    modules: [
+      {
+        id: 'job-arith',
+        code: 'JOB • ARITHMETIC',
+        name: 'পাটিগণিত (Arithmetic for Job Exams)',
+        sub: 'গড়, শতকরা, লাভ-ক্ষতি, অনুপাত, সময় ও কাজ, সুদকষা — সব পরীক্ষার সবচেয়ে বেশি আসা টপিক',
+        icon: '🧮',
+        grad: 'from-lime-400 via-green-500 to-emerald-600',
+        chapters: [
+          { id: 'job-ar-1', num: 'Unit 01', title: 'ল.সা.গু, গ.সা.গু ও ভগ্নাংশ', eng: 'LCM, HCF & Fractions', icon: '🔢' },
+          { id: 'job-ar-2', num: 'Unit 02', title: 'গড় ও শতকরা', eng: 'Average & Percentage', icon: '📊' },
+          { id: 'job-ar-3', num: 'Unit 03', title: 'লাভ-ক্ষতি ও সুদকষা', eng: 'Profit & Loss, Simple & Compound Interest', icon: '💰' },
+          { id: 'job-ar-4', num: 'Unit 04', title: 'অনুপাত, সমানুপাত ও অংশীদারি কারবার', eng: 'Ratio, Proportion & Partnership', icon: '⚖️' },
+          { id: 'job-ar-5', num: 'Unit 05', title: 'সময় ও কাজ, নল ও চৌবাচ্চা', eng: 'Time & Work, Pipes & Cisterns', icon: '⏱️' },
+          { id: 'job-ar-6', num: 'Unit 06', title: 'সময়, দূরত্ব ও গতি', eng: 'Time, Distance & Speed', icon: '🚆' },
+          { id: 'job-ar-7', num: 'Unit 07', title: 'বয়স ও সংখ্যা সম্পর্কিত সমস্যা', eng: 'Age & Number Problems', icon: '🎂' }
+        ],
+        lectureBlueprint: [
+          'মৌলিক ধারণা ও সূত্র (শূন্য থেকে শুরু)',
+          'বোর্ড-স্টাইল ও সাধারণ মানের অঙ্ক সমাধান',
+          'শর্টকাট কৌশল ও ক্যালকুলেটর ছাড়া দ্রুত সমাধান',
+          'বিগত বছরের BCS, ব্যাংক ও শিক্ষক নিয়োগ প্রশ্ন সমাধান',
+          'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
+        ]
+      },
+      {
+        id: 'job-algebra',
+        code: 'JOB • ALGEBRA & GEOMETRY',
+        name: 'বীজগণিত ও জ্যামিতি (Algebra & Geometry)',
+        sub: 'সূচক, লগারিদম, সমীকরণ, ক্ষেত্রফল, আয়তন, ত্রিভুজ ও বৃত্ত',
+        icon: '📐',
+        grad: 'from-sky-400 via-blue-500 to-indigo-600',
+        chapters: [
+          { id: 'job-al-1', num: 'Unit 01', title: 'সূচক, লগারিদম ও উৎপাদকে বিশ্লেষণ', eng: 'Indices, Logarithm & Factorization', icon: '✖️' },
+          { id: 'job-al-2', num: 'Unit 02', title: 'সরল ও দ্বিঘাত সমীকরণ', eng: 'Linear & Quadratic Equations', icon: '🟰' },
+          { id: 'job-al-3', num: 'Unit 03', title: 'ক্ষেত্রফল ও পরিসীমা', eng: 'Area & Perimeter', icon: '📏' },
+          { id: 'job-al-4', num: 'Unit 04', title: 'আয়তন ও ঘনবস্তু', eng: 'Volume & Solids', icon: '🧊' },
+          { id: 'job-al-5', num: 'Unit 05', title: 'ত্রিভুজ, বৃত্ত ও কোণ', eng: 'Triangles, Circles & Angles', icon: '⭕' },
+          { id: 'job-al-6', num: 'Unit 06', title: 'ত্রিকোণমিতির প্রাথমিক ধারণা', eng: 'Basic Trigonometry', icon: '📐' }
+        ],
+        lectureBlueprint: [
+          'মৌলিক ধারণা ও সূত্র',
+          'সাধারণ ও মাঝারি মানের অঙ্ক সমাধান',
+          'শর্টকাট কৌশল',
+          'বিগত বছরের প্রশ্ন সমাধান',
+          'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
+        ]
+      },
+      {
+        id: 'job-mental',
+        code: 'JOB • MENTAL ABILITY',
+        name: 'মানসিক দক্ষতা ও বিশ্লেষণ (Mental Ability & Data)',
+        sub: 'সংখ্যা ধারা, বিন্যাস-সমাবেশ, সম্ভাবনা ও ডেটা বিশ্লেষণ',
+        icon: '🧠',
+        grad: 'from-fuchsia-400 via-purple-500 to-violet-600',
+        chapters: [
+          { id: 'job-me-1', num: 'Unit 01', title: 'সংখ্যা ও অক্ষর ধারা', eng: 'Number & Letter Series', icon: '🔠' },
+          { id: 'job-me-2', num: 'Unit 02', title: 'বিন্যাস, সমাবেশ ও সম্ভাবনার প্রাথমিক ধারণা', eng: 'Permutation, Combination & Probability Basics', icon: '🎲' },
+          { id: 'job-me-3', num: 'Unit 03', title: 'ডেটা বিশ্লেষণ ও লেখচিত্র', eng: 'Data Interpretation & Graphs', icon: '📈' },
+          { id: 'job-me-4', num: 'Unit 04', title: 'যুক্তি ও ধাঁধার অঙ্ক', eng: 'Logical Reasoning & Puzzles', icon: '🧩' }
+        ],
+        lectureBlueprint: [
+          'ধরন চেনা ও মূল কৌশল',
+          'সাধারণ ও মাঝারি মানের সমস্যা সমাধান',
+          'দ্রুত সমাধানের কৌশল',
+          'বিগত বছরের প্রশ্ন সমাধান',
+          'টাইমড মডেল টেস্ট'
+        ]
+      },
+      {
+        id: 'job-model',
+        code: 'JOB • MODEL TEST',
+        name: 'মডেল টেস্ট ও প্রশ্নব্যাংক (Model Tests & Question Bank)',
+        sub: 'BCS প্রিলি, ব্যাংক নিয়োগ, প্রাথমিক ও NTRCA শিক্ষক নিয়োগের গণিত প্রশ্ন সমাধান',
+        icon: '📝',
+        grad: 'from-amber-400 via-orange-500 to-red-600',
+        chapters: [
+          { id: 'job-mt-1', num: 'Set 01', title: 'BCS প্রিলিমিনারি গণিত ও মানসিক দক্ষতা', eng: 'BCS Preliminary Math & Mental Ability', icon: '🏛️' },
+          { id: 'job-mt-2', num: 'Set 02', title: 'ব্যাংক নিয়োগ পরীক্ষার গণিত', eng: 'Bank Recruitment Math', icon: '🏦' },
+          { id: 'job-mt-3', num: 'Set 03', title: 'প্রাথমিক সহকারী শিক্ষক নিয়োগের গণিত', eng: 'Primary Assistant Teacher Recruitment Math', icon: '🎒' },
+          { id: 'job-mt-4', num: 'Set 04', title: 'NTRCA শিক্ষক নিবন্ধন গণিত', eng: 'NTRCA Teacher Registration Math', icon: '🎓' }
+        ],
+        lectureBlueprint: [
+          'পরীক্ষার ধরন ও প্রস্তুতির কৌশল',
+          'বিগত বছরের প্রশ্ন সমাধান — পর্ব ১',
+          'বিগত বছরের প্রশ্ন সমাধান — পর্ব ২',
+          'টাইমড মডেল টেস্ট ও ভুল বিশ্লেষণ'
+        ]
+      }
+    ]
+  },
   'B.Sc. Honours Math': {
     id: 'B.Sc. Honours Math',
     badge: 'B.SC. (HONOURS) IN MATHEMATICS (6 CORE COURSES)',
@@ -1161,7 +1258,7 @@ function ProgramTile({ grad, icon, top, big, label, onClick }) {
 }
 
 // ---------------------------------------------------------------- About Me (light editorial design)
-const ABOUT_PORTRAIT = 'assets/emran-portrait.webp';
+const ABOUT_PORTRAIT = '/assets/emran-portrait.webp';
 
 const ABOUT_ROLES = [
   {
@@ -1452,7 +1549,8 @@ const TEACHING_LEVELS = [
   { page: 'HSC Bangla Version', title: 'HSC বাংলা ভার্সন', sub: 'উচ্চতর গণিত ১ম ও ২য় পত্র + ৬টি স্পেশাল কোর্স', icon: '🏆' },
   { page: 'HSC English Version', title: 'HSC English Version', sub: 'Higher Math 1st & 2nd Paper + EV courses', icon: '🎯' },
   { page: 'O-Level & A-Level', title: 'O & A-Level Mathematics', sub: 'D-Math, Add-Math, P1–P4, M1, S1', icon: '📐' },
-  { page: 'Admission Test (BUET/DU)', title: 'Admission Test', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
+  { page: 'Admission Test (BUET/DU)', title: 'ভর্তি পরীক্ষার প্রস্তুতি', sub: 'Medi-Math, DU Ka, BUET/CKRUET & archive', icon: '🚀' },
+  { page: 'Job Math', title: 'JOB MATH', sub: 'BCS, ব্যাংক ও অন্যান্য চাকরির পরীক্ষার গণিত', icon: '💼' },
   { page: 'B.Sc. Honours Math', title: 'B.Sc. (Honours) Mathematics', sub: 'Calculus, Linear Algebra, ODE, Numerical, OR', icon: '🎓' }
 ];
 
@@ -2765,6 +2863,7 @@ const PAGE_SLUGS = {
   'HSC English Version': 'hsc-english',
   'O-Level & A-Level': 'o-a-level',
   'Admission Test (BUET/DU)': 'admission',
+  'Job Math': 'job-math',
   'B.Sc. Honours Math': 'honours',
   'Research & Papers': 'research',
   'About Me': 'about',
@@ -4675,7 +4774,7 @@ function AdminPaymentRow({ p, tone, label, act }) {
 
 export default function App() {
   const [lang, setLang] = useState('bn');
-  const [profilePhoto, setProfilePhoto] = useState('assets/emran-avatar.jpg');
+  const [profilePhoto, setProfilePhoto] = useState('/assets/emran-avatar.jpg');
   const [activeSubPage, setActiveSubPage] = useState('HOME');
   const [activeCourse, setActiveCourse] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState('HSC Bangla Version');
@@ -5045,55 +5144,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-teal-500 selection:text-slate-950 flex flex-col justify-between">
       <div>
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-[#030812] text-slate-300 border-b border-slate-800/80 text-xs">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-300">
-              Hamdard Public College, Dhaka • HSC (BV/EV) • O/A-Level • BUET/DU Admission • B.Sc. Honours Math
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {activeSubPage !== 'HOME' && (
-              <button
-                onClick={() => openSubPage('HOME')}
-                className="px-3 py-1 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold transition"
-              >
-                ← মূল হোমপেজ (Home)
-              </button>
-            )}
-            <button
-              onClick={() => openSubPage('Class Routine')}
-              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 font-semibold border border-slate-700"
-            >
-              🗓️ ক্লাস রুটিন
-            </button>
-            <button
-              onClick={() => openSubPage('Live Exam')}
-              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 font-semibold border border-slate-700"
-            >
-              📝 লাইভ এক্সাম
-            </button>
-            <button
-              onClick={() => setCvModalOpen(true)}
-              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-semibold border border-slate-700"
-            >
-              📄 Full Academic CV
-            </button>
-            <button
-              onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
-              className="px-3 py-1 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 font-semibold border border-teal-500/30 flex items-center gap-1.5"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              {lang === 'bn' ? 'English' : 'বাংলা'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* STICKY HEADER WITH SUBTLE PROFILE AVATAR */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
+      <header className="lg:sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <label
@@ -5132,7 +5184,35 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <button
+              onClick={() => openSubPage('Class Routine')}
+              className={`px-3 py-1.5 rounded-lg font-semibold border ${navActive === 'Class Routine' ? 'bg-cyan-400 text-slate-950 border-cyan-400' : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border-slate-700'}`}
+            >
+              🗓️ ক্লাস রুটিন
+            </button>
+            <button
+              onClick={() => openSubPage('Live Exam')}
+              className={`px-3 py-1.5 rounded-lg font-semibold border ${navActive === 'Live Exam' ? 'bg-rose-400 text-slate-950 border-rose-400' : 'bg-slate-900 hover:bg-slate-800 text-rose-300 border-slate-700'}`}
+            >
+              📝 লাইভ এক্সাম
+            </button>
+            <button
+              onClick={() => setCvModalOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-semibold border border-slate-700"
+            >
+              📄 Full Academic CV
+            </button>
+            <button
+              onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
+              className="px-3 py-1.5 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 font-semibold border border-teal-500/30 flex items-center gap-1.5"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              {lang === 'bn' ? 'English' : 'বাংলা'}
+            </button>
+          </div>
+
+          <div className="flex w-full flex-wrap items-center gap-2">
             <button
               onClick={() => openSubPage('HOME')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
@@ -5151,7 +5231,7 @@ export default function App() {
                   : 'bg-slate-900 hover:bg-slate-800 text-teal-300 border border-slate-800'
               }`}
             >
-              🏆 HSC বাংলা
+              🏆 HSC বাংলা ভার্সন
             </button>
             <button
               onClick={() => openSubPage('HSC English Version')}
@@ -5161,7 +5241,7 @@ export default function App() {
                   : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800'
               }`}
             >
-              🎯 HSC English
+              🎯 HSC English Version
             </button>
             <button
               onClick={() => openSubPage('O-Level & A-Level')}
@@ -5181,7 +5261,17 @@ export default function App() {
                   : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800'
               }`}
             >
-              🚀 Admission
+              🚀 ভর্তি পরীক্ষার প্রস্তুতি
+            </button>
+            <button
+              onClick={() => openSubPage('Job Math')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
+                navActive === 'Job Math'
+                  ? 'bg-lime-400 text-slate-950 shadow-sm'
+                  : 'bg-slate-900 hover:bg-slate-800 text-lime-300 border border-slate-800'
+              }`}
+            >
+              💼 JOB MATH
             </button>
             <button
               onClick={() => openSubPage('B.Sc. Honours Math')}
@@ -5269,10 +5359,11 @@ export default function App() {
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
               <span>অন্য সাব-পেজে যান:</span>
               {[
-                { id: 'HSC Bangla Version', label: 'HSC বাংলা' },
-                { id: 'HSC English Version', label: 'HSC EV' },
+                { id: 'HSC Bangla Version', label: 'HSC বাংলা ভার্সন' },
+                { id: 'HSC English Version', label: 'HSC English Version' },
                 { id: 'O-Level & A-Level', label: 'O/A-Level' },
-                { id: 'Admission Test (BUET/DU)', label: 'Admission' },
+                { id: 'Admission Test (BUET/DU)', label: 'ভর্তি পরীক্ষার প্রস্তুতি' },
+                { id: 'Job Math', label: 'JOB MATH' },
                 { id: 'B.Sc. Honours Math', label: 'Honours' },
                 { id: 'Research & Papers', label: 'Research' },
                 { id: 'About Me', label: 'About Me' },
@@ -5311,7 +5402,7 @@ export default function App() {
                 </span>
               </h2>
 
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-4xl">
+              <p className="w-full text-slate-300 text-sm sm:text-base leading-relaxed text-justify hyphens-auto [text-align-last:left]">
                 Mathematics educator with{' '}
                 <strong className="text-white">8+ years of college-level teaching</strong>{' '}
                 (including nearly 7 years at Ghatail Cantonment Public School & College, now at
@@ -5614,6 +5705,36 @@ export default function App() {
                   chips={[mIdx === 0 ? 'Medical + DU Ka' : `${mod.chapters.length} Modules`, '1st Lec Free']}
                   onClick={() =>
                     openCourse({ kind: 'track', trackId: 'Admission Test (BUET/DU)', parent: 'Admission Test (BUET/DU)', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* JOB MATH SHOWCASE */}
+          <div
+            id="home-step-job"
+            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-lime-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
+          >
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-lime-200 via-green-300 to-emerald-300 leading-snug pb-1">
+                Job Math — চাকরির পরীক্ষার গণিত
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {PART3_ACADEMIC_TRACKS['Job Math'].modules.map((mod, mIdx) => (
+                <PremiumCard
+                  key={mod.id}
+                  person
+                  poster={shortTag(mod.code)}
+                  grad={mod.grad}
+                  icon={mod.icon}
+                  title={mod.name}
+                  sub={mod.sub}
+                  chips={[`${mod.chapters.length} Units`, '1st Lec Free']}
+                  onClick={() =>
+                    openCourse({ kind: 'track', trackId: 'Job Math', parent: 'Job Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
                   }
                 />
               ))}
