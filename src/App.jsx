@@ -396,75 +396,6 @@ const EV_SPECIAL_COURSES = [
   }
 ];
 
-const OA_LEVEL_SHOWCASE_CARDS = [
-  {
-    id: 'oa-card-dmath',
-    code: 'CAIE 4024',
-    bigTag: 'D-MATH',
-    title: 'O-Level Mathematics (D-Math 4024)',
-    sub: 'Algebra, Mensuration, Trigonometry, Matrices, Vectors & Transformations',
-    icon: '📏',
-    grad: 'from-sky-400 via-blue-500 to-indigo-600',
-    moduleIdx: 2,
-    chapterIdx: 6
-  },
-  {
-    id: 'oa-card-addmath',
-    code: 'CAIE 4037',
-    bigTag: 'ADD-MATH',
-    title: 'O-Level Additional Mathematics (4037)',
-    sub: 'Indices, Surds, Logarithms, Coordinate Geometry, Kinematics & Calculus',
-    icon: '🧭',
-    grad: 'from-teal-400 via-emerald-500 to-green-700',
-    moduleIdx: 2,
-    chapterIdx: 7
-  },
-  {
-    id: 'oa-card-p1p2',
-    code: 'AS-LEVEL',
-    bigTag: 'P1 & P2',
-    title: 'AS-Level Pure Math (P1 & P2)',
-    sub: 'CAIE 9709 / Edexcel IAL: Quadratics, Functions, Circular Measure & Calculus',
-    icon: '📐',
-    grad: 'from-violet-400 via-purple-500 to-indigo-700',
-    moduleIdx: 0,
-    chapterIdx: 0
-  },
-  {
-    id: 'oa-card-p3p4',
-    code: 'A2-LEVEL',
-    bigTag: 'P3 & P4',
-    title: 'A2-Level Pure Math (P3 & P4)',
-    sub: 'Parametric/Implicit Calculus, Differential Equations, 3D Vectors & Complex Loci',
-    icon: '🌀',
-    grad: 'from-fuchsia-400 via-purple-500 to-indigo-700',
-    moduleIdx: 1,
-    chapterIdx: 0
-  },
-  {
-    id: 'oa-card-m1',
-    code: 'MECHANICS',
-    bigTag: 'M1',
-    title: 'A-Level Mechanics (M1)',
-    sub: 'Kinematics, Coplanar Forces, Friction, Connected Particles, Work & Energy',
-    icon: '🚀',
-    grad: 'from-amber-400 via-orange-500 to-red-600',
-    moduleIdx: 2,
-    chapterIdx: 0
-  },
-  {
-    id: 'oa-card-s1',
-    code: 'STATISTICS',
-    bigTag: 'S1',
-    title: 'A-Level Probability & Statistics (S1)',
-    sub: 'Permutations, Conditional Probability, Binomial, Geometric & Normal Distributions',
-    icon: '📊',
-    grad: 'from-rose-400 via-pink-500 to-purple-700',
-    moduleIdx: 2,
-    chapterIdx: 3
-  }
-];
-
 const RESEARCH_SHOWCASE_CARDS = [
   {
     id: 'thesis-consultation',
@@ -811,6 +742,104 @@ const HONOURS_MODULES = HONOURS_COURSE_LIST.map(([year, code, name, legacyId, la
   };
 });
 
+// ---------------------------------------------------------------- O Level (4024) and A Level (9709) syllabus
+// Six sections, each a module of the O-Level & A-Level track. A chapter's topics are its lectures
+// (Topic 1 is the free one); the lists come from the developer list supplied by the owner.
+const OA_SYLLABUS = [
+  {
+    id: "oa-o4024", code: "O LEVEL • 4024", name: "O Level (4024)", sub: "9 chapters, 88 topics", icon: "📘", grad: "from-violet-400 via-purple-500 to-indigo-700",
+    chapters: [
+      { title: "Number", topics: ["Types of number", "Highest common factor and lowest common multiple", "Set language and notation", "Venn diagrams (up to three sets) and number of elements", "Squares, square roots, cubes and cube roots", "Directed numbers (negative numbers in real life)", "Fractions, decimals and percentages", "The four operations and order of operations (BIDMAS)", "Indices I", "Standard form", "Estimation and rounding", "Limits of accuracy (upper and lower bounds)", "Ratio and proportion", "Rates", "Percentages", "Money", "Time", "Exponential growth and decay (repeated percentage change)", "Surds", "Using a calculator effectively (exam technique topic)"] },
+      { title: "Algebra and Graphs", topics: ["Algebraic manipulation", "Algebraic fractions", "Indices II", "Algebraic formulae", "Forming equations from word problems", "Linear equations", "Simultaneous equations", "Quadratic equations", "Linear inequalities", "Graphical representation of inequalities (shading regions)", "Sequences", "Variation", "Graphs in practical situations", "Graphs of functions", "Sketching curves", "Functions and function notation"] },
+      { title: "Coordinate Geometry", topics: ["Coordinates and drawing straight line graphs", "Gradient of a line", "Length of a line segment and midpoint of a line segment", "Equation of a straight line", "Parallel and perpendicular lines and their gradients"] },
+      { title: "Geometry", topics: ["Geometrical terms", "Angle rules", "Angles with parallel lines", "Polygon angles", "Geometrical constructions", "Scale drawings and bearings (measuring and drawing)", "Similarity", "Congruence", "Symmetry", "Circle theorems I", "Circle theorems II"] },
+      { title: "Mensuration", topics: ["Units of measure", "Perimeter and area", "Circles", "Surface area and volume I", "Surface area and volume II", "Compound solids and problems combining shapes"] },
+      { title: "Trigonometry", topics: ["Pythagoras theorem in 2D and 3D, and its converse", "Trigonometric ratios in right-angled triangles", "Angles of elevation and depression", "Bearings with Pythagoras and trigonometry", "Sine rule, including the ambiguous case", "Cosine rule", "Area of a triangle", "Trigonometry in three dimensions (angle between a line and a plane, simple cases)"] },
+      { title: "Transformations and Vectors", topics: ["Reflection", "Rotation", "Translation by a vector", "Enlargement", "Describing a transformation fully, and combined transformations", "Vectors in two dimensions", "Position vectors and the magnitude of a vector", "Vector geometry"] },
+      { title: "Probability", topics: ["Probability basics", "Relative frequency and expected frequency from experiments", "Combined events I", "Combined events II", "Combined events III"] },
+      { title: "Statistics", topics: ["Types of data and reading statistical tables", "Mean, median and mode; range", "Mean of grouped data (estimated mean), modal class, median class", "Quartiles and interquartile range", "Bar charts, pictograms, pie charts and line graphs", "Stem-and-leaf diagrams", "Scatter diagrams", "Cumulative frequency diagrams", "Histograms"] }
+    ]
+  },
+  {
+    id: "oa-p1", code: "A LEVEL • PURE 1", name: "A Level Pure 1", sub: "8 chapters, 37 topics", icon: "📐", grad: "from-sky-400 via-blue-500 to-indigo-700",
+    chapters: [
+      { title: "Quadratics", topics: ["Solving quadratic equations", "The discriminant and the nature of roots", "Quadratic inequalities", "Simultaneous equations", "Graphs of quadratic functions"] },
+      { title: "Functions", topics: ["Functions, domain and range; one-one and many-one", "Composite functions", "Inverse functions and the reflection in the line y = x", "The modulus function"] },
+      { title: "Coordinate Geometry", topics: ["Equation of a straight line; gradient, midpoint, length", "Parallel and perpendicular lines; intersection of lines", "Equation of a circle", "Line and circle problems", "Two circles"] },
+      { title: "Circular Measure", topics: ["Radian measure", "Arc length and sector area", "Area of a segment and combined shape problems"] },
+      { title: "Trigonometry", topics: ["Graphs of sin, cos and tan", "Exact values of special angles", "Basic identities", "Solving trigonometric equations in a given interval"] },
+      { title: "Series", topics: ["Binomial theorem for positive integer powers", "Arithmetic progressions", "Geometric progressions", "Proof-style and modelling problems with sequences"] },
+      { title: "Differentiation", topics: ["The gradient of a curve and the derivative from first ideas", "Differentiating powers of x, sums and products by a constant", "The chain rule for simple composite functions", "Tangents and normals", "Rates of change and connected rates (basic)", "Stationary points", "Increasing and decreasing functions; optimisation problems"] },
+      { title: "Integration", topics: ["Integration as the reverse of differentiation", "Indefinite integrals of powers of x", "Definite integrals", "Area under a curve and between a curve and a line", "Area between two curves"] }
+    ]
+  },
+  {
+    id: "oa-p23", code: "A LEVEL • PURE 2 & 3", name: "A Level Pure 2 and 3", sub: "11 chapters, 50 topics", icon: "🧮", grad: "from-cyan-400 via-teal-500 to-emerald-700",
+    chapters: [
+      { title: "Algebra", topics: ["Modulus equations and inequalities", "Polynomials", "The factor theorem and the remainder theorem", "Division of polynomials"] },
+      { title: "Logarithmic and Exponential Functions", topics: ["Laws of logarithms", "The functions e to the x and ln x, and their graphs", "Solving exponential and logarithmic equations, including hidden quadratics", "Change of base and logarithmic modelling of growth and decay"] },
+      { title: "Trigonometry (Further)", topics: ["Secant, cosecant and cotangent", "Compound angle formulae (addition formulae)", "Double angle formulae", "The R-form", "Factor formulae (Paper 3) and proving identities", "Solving harder trigonometric equations"] },
+      { title: "Differentiation (Further)", topics: ["Differentiating sin, cos, tan, e to the x and ln x", "Product rule and quotient rule", "Implicit differentiation", "Parametric differentiation", "Logarithmic differentiation", "Connected rates of change (further problems)"] },
+      { title: "Integration (Further)", topics: ["Standard integrals", "Integration by substitution", "Integration by parts", "Integration using partial fractions", "The trapezium rule for approximate area"] },
+      { title: "Numerical Solution of Equations", topics: ["Locating roots by change of sign", "Fixed-point iteration", "Staircase and cobweb diagrams; convergence and divergence"] },
+      { title: "Further Algebra (Paper 3 only)", topics: ["Partial fractions", "Partial fractions", "Binomial series for rational powers, and the range of validity"] },
+      { title: "Further Calculus (Paper 3 only)", topics: ["Maclaurin series for standard functions", "Maclaurin series of composite and product functions", "Integration problems combining partial fractions, substitution and parts", "Improper integrals (basic cases)"] },
+      { title: "Vectors (Paper 3 only)", topics: ["Vectors in three dimensions; the scalar (dot) product and angle between vectors", "Equation of a straight line in 3D", "Equation of a plane", "Intersections", "Distances"] },
+      { title: "Differential Equations (Paper 3 only)", topics: ["Forming a differential equation from a real situation", "Solving by separation of variables", "General and particular solutions", "Interpreting solutions; exponential growth and decay models"] },
+      { title: "Complex Numbers (Paper 3 only)", topics: ["Imaginary numbers and arithmetic with complex numbers", "The Argand diagram", "Modulus and argument; modulus-argument (polar) form", "Quadratic equations with complex roots; conjugate root pairs", "Square roots of a complex number", "Simple loci and inequalities in the Argand diagram (circles and half-planes)"] }
+    ]
+  },
+  {
+    id: "oa-mech", code: "A LEVEL • MECHANICS", name: "A Level Mechanics", sub: "5 chapters, 20 topics", icon: "⚙️", grad: "from-amber-400 via-orange-500 to-red-600",
+    chapters: [
+      { title: "Forces and Equilibrium", topics: ["Types of force", "Force diagrams and the resultant of coplanar forces", "Resolving forces into components", "Equilibrium of a particle", "Friction"] },
+      { title: "Kinematics of Motion in a Straight Line", topics: ["Displacement, velocity and acceleration; graphs of motion", "Constant acceleration formulae (suvat), including vertical motion under gravity", "Velocity-time graphs", "Variable acceleration"] },
+      { title: "Momentum", topics: ["Momentum and impulse", "Conservation of linear momentum in collisions", "Direct collisions and Newton's experimental law (coefficient of restitution)"] },
+      { title: "Newton's Laws of Motion", topics: ["Newton's laws and F equals ma in one and two dimensions", "Connected particles", "Motion on inclined planes, with and without friction", "Lifts, and systems with several forces"] },
+      { title: "Energy, Work and Power", topics: ["Work done by a constant force", "Kinetic energy and gravitational potential energy", "The work-energy principle and conservation of energy problems", "Power, including driving force with constant resistance"] }
+    ]
+  },
+  {
+    id: "oa-s1", code: "A LEVEL • P&S 1", name: "A Level Probability and Statistics 1", sub: "5 chapters, 20 topics", icon: "🎲", grad: "from-fuchsia-400 via-pink-500 to-rose-600",
+    chapters: [
+      { title: "Representation of Data", topics: ["Types of data; organising data, stem-and-leaf diagrams", "Histograms and cumulative frequency graphs", "Box-and-whisker plots and outliers", "Mean, median and mode; quartiles", "Variance and standard deviation (raw and grouped data)", "Comparing two distributions; coding data"] },
+      { title: "Permutations and Combinations", topics: ["The multiplication and addition principles of counting", "Permutations", "Combinations"] },
+      { title: "Probability", topics: ["Addition and multiplication rules; mutually exclusive and independent events", "Conditional probability", "Tree diagrams, Venn diagrams and two-way tables in problems"] },
+      { title: "Discrete Random Variables", topics: ["Probability distributions; expectation E(X) and variance Var(X)", "Expectation and variance of aX plus b", "The binomial distribution", "The geometric distribution"] },
+      { title: "The Normal Distribution", topics: ["Properties of the normal curve; standardisation to Z values", "Finding probabilities and using tables / calculator functions", "Finding a value, the mean or the standard deviation from a probability", "Normal approximation to the binomial, with continuity correction"] }
+    ]
+  },
+  {
+    id: "oa-s2", code: "A LEVEL • P&S 2", name: "A Level Probability and Statistics 2", sub: "5 chapters, 21 topics", icon: "📊", grad: "from-emerald-400 via-green-500 to-lime-600",
+    chapters: [
+      { title: "The Poisson Distribution", topics: ["Conditions for a Poisson model; probabilities from the Poisson distribution", "Mean equals variance; addition of independent Poisson variables", "Poisson approximation to the binomial; normal approximation to the Poisson"] },
+      { title: "Linear Combinations of Random Variables", topics: ["Expectation and variance of aX plus bY for independent variables", "Linear combinations of normal variables", "Sums of Poisson and normal variables in context problems"] },
+      { title: "Continuous Random Variables", topics: ["Probability density functions and their properties", "The cumulative distribution function; median and mode of a continuous distribution", "Expectation and variance from a pdf", "The uniform (rectangular) distribution as the standard example"] },
+      { title: "Sampling and Estimation", topics: ["Population and sample; random sampling and bias", "The sampling distribution of the sample mean; the Central Limit Theorem", "Unbiased estimates of the population mean and variance", "Confidence intervals for a population mean", "Confidence intervals for a population proportion (large samples)"] },
+      { title: "Hypothesis Tests", topics: ["Hypotheses, test statistic, significance level; one-tail and two-tail tests", "Critical values, critical regions and p-values", "Tests for a population mean (normal distribution and Central Limit Theorem)", "Tests for a population proportion (exact binomial and normal approximation)", "Tests for a Poisson mean", "Type I and Type II errors (ideas and interpretation)"] }
+    ]
+  }
+];
+const OA_MODULES = OA_SYLLABUS.map((m) => ({
+  id: m.id,
+  code: m.code,
+  name: m.name,
+  sub: m.sub,
+  icon: m.icon,
+  grad: m.grad,
+  chapters: m.chapters.map((c, i) => ({
+    id: `${m.id}-${i + 1}`,
+    num: `Chapter ${String(i + 1).padStart(2, '0')}`,
+    title: c.title,
+    eng: `${c.topics.length} topics`,
+    icon: m.icon,
+    topics: c.topics
+  })),
+  // Used only for a chapter without its own topic list.
+  lectureBlueprint: ['Concepts and worked examples', 'Exam-style practice', 'Past paper questions', 'Revision and self test']
+}));
+
+
 const PART3_ACADEMIC_TRACKS = {
   'HSC English Version': {
     id: 'HSC English Version',
@@ -883,89 +912,11 @@ const PART3_ACADEMIC_TRACKS = {
   },
   'O-Level & A-Level': {
     id: 'O-Level & A-Level',
-    badge: 'CAMBRIDGE (CAIE) & EDEXCEL IAL',
-    title: 'O-Level & A-Level Mathematics Hub (CAIE 9709 / 4024 / 4037 & Edexcel)',
-    subtitle: 'Topical past paper solutions, examiner report insights, formula sheets, and 1-on-1/batch lecture modules.',
+    badge: 'CAMBRIDGE O LEVEL (4024) & A LEVEL (9709)',
+    title: 'O Level & A Level Mathematics — Chapters and Topics',
+    subtitle: 'Cambridge O Level (4024) and A Level (9709): Pure 1, Pure 2 and 3, Mechanics, Probability and Statistics 1 and 2.',
     unlockFee: 50,
-    modules: [
-      {
-        id: 'oa-pure12',
-        code: 'CAIE 9709 / IAL',
-        name: 'AS-Level Pure Math (P1 & P2)',
-        sub: 'Quadratics, Functions, Coordinate Geometry, Circular Measure, Calculus',
-        icon: '📐',
-        grad: 'from-violet-400 via-purple-500 to-indigo-700',
-        chapters: [
-          { id: 'oa-p1-1', num: 'Topic 01', title: 'Quadratics, Discriminant & Simultaneous Equations', eng: 'Completing the square, hidden quadratics & line-curve intersection', icon: '🧮' },
-          { id: 'oa-p1-2', num: 'Topic 02', title: 'Functions, Domain-Range & Transformations', eng: 'Composite, one-one inverse & graphical reflections/stretches', icon: '📈' },
-          { id: 'oa-p1-3', num: 'Topic 03', title: 'Coordinate Geometry & Circles', eng: 'Perpendicular bisectors, circle equations & tangent intersections', icon: '⭕' },
-          { id: 'oa-p1-4', num: 'Topic 04', title: 'Circular Measure (Radians, Arc & Sector Area)', eng: 'Shaded segment geometry & compound trig perimeter problems', icon: '🧭' },
-          { id: 'oa-p1-5', num: 'Topic 05', title: 'Trigonometry & Factor Formulas', eng: 'Identities, exact values & general solutions in given intervals', icon: '📊' },
-          { id: 'oa-p1-6', num: 'Topic 06', title: 'Binomial Expansion & Arithmetic/Geometric Series', eng: 'Convergence of infinite GP, sigma notation & term-independent of x', icon: '🔺' },
-          { id: 'oa-p1-7', num: 'Topic 07', title: 'Differentiation & Connected Rates of Change', eng: 'Stationary points, second derivative test & optimization', icon: '⚡' },
-          { id: 'oa-p1-8', num: 'Topic 08', title: 'Integration & Volume of Revolution', eng: 'Definite area between curves, improper integrals & 360° rotation', icon: '∫' }
-        ],
-        lectureBlueprint: [
-          'Syllabus Objectives, Proof of Formulas & Key Geometrical Intuition',
-          'Cambridge CAIE 9709 Summer/Winter Variant-1 & Variant-2 Walkthrough',
-          'Edexcel IAL P1/P2 High-Scoring Structured Questions',
-          'Examiner Report Analysis: Common Pitfalls & Marking Scheme Keywords',
-          'Challenging 8–10 Mark Multi-Part Problem Breakdown',
-          'Topical Timed Worksheet & Instant Self-Test Assessment'
-        ]
-      },
-      {
-        id: 'oa-pure34',
-        code: 'CAIE P3 / IAL P3-P4',
-        name: 'A2-Level Pure Math (P3 & P4)',
-        sub: 'Logarithmic/Parametric Calculus, Differential Equations, Vectors, Complex Numbers',
-        icon: '🌀',
-        grad: 'from-fuchsia-400 via-purple-500 to-indigo-700',
-        chapters: [
-          { id: 'oa-p3-1', num: 'Topic 01', title: 'Modulus, Polynomials, Logarithmic & Exponential Functions', eng: 'Graphical linearization, factor theorem & quotient remainder', icon: '♾️' },
-          { id: 'oa-p3-2', num: 'Topic 02', title: 'Harmonic Form R cos(θ - α) & Double Angle Identities', eng: 'Maximum/minimum values & solving R sin(θ + α) = c', icon: '📐' },
-          { id: 'oa-p3-3', num: 'Topic 03', title: 'Implicit & Parametric Differentiation', eng: 'Tangents/normals to parametric curves & product/quotient rules', icon: '⚡' },
-          { id: 'oa-p3-4', num: 'Topic 04', title: 'Integration by Parts, Substitution & Partial Fractions', eng: '∫ u dv, f\'(x)/f(x) recognition & trapezium rule bounds', icon: '∫' },
-          { id: 'oa-p3-5', num: 'Topic 05', title: 'Numerical Solutions of Equations (Iterative Methods)', eng: 'Sign-change locating roots, cobweb/staircase diagrams & convergence', icon: '🔢' },
-          { id: 'oa-p3-6', num: 'Topic 06', title: '3D Vectors: Lines, Planes & Skew Distances', eng: 'Vector equation r = a + λb, angle between lines & foot of perpendicular', icon: '🧭' },
-          { id: 'oa-p3-7', num: 'Topic 07', title: 'First-Order Differential Equations (Separable Variables)', eng: 'Newton’s law of cooling, population growth & rate modeling', icon: '📉' },
-          { id: 'oa-p3-8', num: 'Topic 08', title: 'Complex Numbers & Argand Loci', eng: 'Polar/exponential form re^(iθ), circle & perpendicular bisector loci', icon: '🌀' }
-        ],
-        lectureBlueprint: [
-          'Rigorous Concept Derivation & Visual Argand/3D Vector Mapping',
-          'CAIE 9709 Paper 3 Recent 5-Year Past Paper Deep Dive',
-          'Edexcel IAL P3/P4 Synoptic Calculus & Differential Equation Modeling',
-          'Step-by-Step Method Marks (M1/A1) Strategy from Official Mark Schemes',
-          'Advanced A* Grade Target Problem Set',
-          'Timed Topical Self-Test & Solution Key'
-        ]
-      },
-      {
-        id: 'oa-mech-stat',
-        code: 'M1 • S1 • ADD-MATH',
-        name: 'Mechanics (M1), Statistics (S1) & O-Level Add-Math',
-        sub: 'Kinematics, Newton’s Laws, Probability Distributions, O-Level 4037/4024',
-        icon: '🚀',
-        grad: 'from-amber-400 via-orange-500 to-rose-600',
-        chapters: [
-          { id: 'oa-ms-1', num: 'M1-01', title: 'Velocity-Time Graphs, Constant Acceleration & Kinematics', eng: 'SUVAT equations, multi-stage motion & vertical free fall', icon: '🚀' },
-          { id: 'oa-ms-2', num: 'M1-02', title: 'Forces, Coplanar Equilibrium, Friction & Inclined Planes', eng: 'Limiting equilibrium F = μR, connected particles & pulleys', icon: '⚖️' },
-          { id: 'oa-ms-3', num: 'M1-03', title: 'Work, Energy, Power & Momentum Collisions', eng: 'Conservation of mechanical energy, work-energy principle & impulse', icon: '⚡' },
-          { id: 'oa-ms-4', num: 'S1-01', title: 'Permutations, Combinations & Conditional Probability', eng: 'Tree diagrams, independent/mutually exclusive events & arrangements', icon: '🎲' },
-          { id: 'oa-ms-5', num: 'S1-02', title: 'Discrete Random Variables, Binomial & Geometric Distributions', eng: 'Expectation E(X), Var(X) & cumulative probability tables', icon: '📊' },
-          { id: 'oa-ms-6', num: 'S1-03', title: 'The Normal Distribution & Continuity Correction', eng: 'Standardization Z = (X - μ)/σ, inverse normal & binomial approximation', icon: '🎯' },
-          { id: 'oa-ms-7', num: '4037-01', title: 'O-Level Add-Math: Indices, Surds, Log & Coordinate Geometry', eng: 'CAIE 4037 Paper 1 & 2 core algebraic & geometric mastery', icon: '📏' },
-          { id: 'oa-ms-8', num: '4037-02', title: 'O-Level Add-Math: Kinematics, Vectors & Calculus', eng: 'Displacement-velocity-acceleration calculus & relative velocity vectors', icon: '🧭' }
-        ],
-        lectureBlueprint: [
-          'Free-Body Diagram / Statistical Distribution Concept Modeling',
-          'CAIE 9709 Paper 4 (M1) & Paper 5 (S1) Past Paper Solutions',
-          'O-Level Additional Mathematics (4037) High-Yield Exam Questions',
-          'Step-by-Step Formula Sheet & Calculator Statistical Mode Guide',
-          'A* Target Timed Mock Quiz & Self-Test'
-        ]
-      }
-    ]
+    modules: OA_MODULES
   },
   'Admission Test (BUET/DU)': {
     id: 'Admission Test (BUET/DU)',
@@ -3189,8 +3140,12 @@ const routeInfo = (st) => {
       return make({
         title: `${ch.title} (${ch.eng}) — ${modName}${suffix}`,
         heading: `${modName} — ${ch.num}: ${ch.title}`,
-        summary: `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
-        description: `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
+        summary: ch.topics
+          ? `${modName}, ${ch.num}: ${ch.title}. Topics: ${ch.topics.join('; ')}. প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`
+          : `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
+        description: ch.topics
+          ? `${modName} — ${ch.title}: ${ch.topics.join(', ')}.`
+          : `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
         crumbs: [home, parentLink, ...univCrumb, modLink]
       });
     }
@@ -3509,10 +3464,10 @@ const adminCatalog = (content) => {
           label: `${ch.num} — ${ch.title}`,
           quizKey: ch.id,
           countKey: `p3-${m.id}-${ch.id}`,
-          count: lectureCountFor(content, `p3-${m.id}-${ch.id}`, m.lectureBlueprint.length),
-          lectures: Array.from({ length: lectureCountFor(content, `p3-${m.id}-${ch.id}`, m.lectureBlueprint.length) }, (_, i) => ({
+          count: lectureCountFor(content, `p3-${m.id}-${ch.id}`, (ch.topics || m.lectureBlueprint).length),
+          lectures: Array.from({ length: lectureCountFor(content, `p3-${m.id}-${ch.id}`, (ch.topics || m.lectureBlueprint).length) }, (_, i) => ({
             key: `p3-${m.id}-${ch.id}-lec-${i + 1}`,
-            label: `Lecture ${i + 1} — ${m.lectureBlueprint[i] || EXTRA_TOPIC}`
+            label: `Lecture ${i + 1} — ${(ch.topics || m.lectureBlueprint)[i] || EXTRA_TOPIC}`
           }))
         }))
       })
@@ -5235,7 +5190,7 @@ export default function App() {
 
   const activePart3Lectures = useMemo(() => {
     if (!activePart3Track || !activePart3Module || !activePart3Chapter) return [];
-    const blueprint = activePart3Module.lectureBlueprint;
+    const blueprint = activePart3Chapter.topics || activePart3Module.lectureBlueprint;
     const total = lectureCountFor(siteContent, `p3-${activePart3Module.id}-${activePart3Chapter.id}`, blueprint.length);
     return Array.from({ length: total }, (_, idx) => {
       const topicDesc = blueprint[idx] || EXTRA_TOPIC;
@@ -5512,6 +5467,7 @@ export default function App() {
   const admissionHubView = activeSubPage === 'Admission Test (BUET/DU)' && !isCourseView;
   const honoursHubView = activeSubPage === 'B.Sc. Honours Math' && !isCourseView;
   const evHubView = activeSubPage === 'HSC English Version' && !isCourseView;
+  const oaHubView = activeSubPage === 'O-Level & A-Level' && !isCourseView;
   // Friendly Bengali page labels for the breadcrumb (menu already uses these).
   const pageLabelBn = (id) =>
     ({ 'Admission Test (BUET/DU)': 'ভর্তি পরীক্ষার প্রস্তুতি', 'B.Sc. Honours Math': 'B.Sc. Honours', 'Job Math': 'JOB MATH', 'Class Routine': 'লাইভ ক্লাসের রুটিন', 'Private Batch': 'প্রাইভেট ব্যাচ' }[id] || id);
@@ -5925,24 +5881,23 @@ export default function App() {
           >
             <div className="text-center">
               <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 leading-snug pb-1">
-                O-Level (4024 / 4037) & A-Level (P1–P4, M1, S1)
+                O Level (4024) & A Level (9709)
               </h3>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {OA_LEVEL_SHOWCASE_CARDS.map((oa) => (
+              {OA_MODULES.map((m, mIdx) => (
                 <PremiumCard
-                  key={oa.id}
+                  key={m.id}
                   person
-                  grad={oa.grad}
-                  icon={oa.icon}
-                  code={oa.code}
-                  bigTag={oa.bigTag}
-                  title={oa.title}
-                  sub={oa.sub}
-                  chips={['Topical Past Papers']}
+                  poster={m.name}
+                  grad={m.grad}
+                  icon={m.icon}
+                  code={m.code}
+                  title={m.name}
+                  sub={m.sub}
                   onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: oa.moduleIdx, chapterIdx: oa.chapterIdx, title: oa.title, sub: oa.sub, icon: oa.icon, grad: oa.grad })
+                    openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: m.sub, icon: m.icon, grad: m.grad })
                   }
                 />
               ))}
@@ -6711,6 +6666,31 @@ export default function App() {
       )}
 
       {/* VIEW 3: DEDICATED SUB-PAGE FOR PART 3 TRACKS (HSC EV, O/A-LEVEL, ADMISSION, B.SC. HONOURS) */}
+      {oaHubView && (
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-purple-500/30 p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(168,85,247,0.14),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(6,182,212,0.10),_transparent_55%)]" />
+          <div className="relative grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 max-w-5xl mx-auto">
+            {OA_MODULES.map((m, mIdx) => (
+              <PremiumCard
+                key={m.id}
+                person
+                poster={m.name}
+                grad={m.grad}
+                icon={m.icon}
+                code={m.code}
+                title={m.name}
+                sub={m.sub}
+                onClick={() =>
+                  openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: m.sub, icon: m.icon, grad: m.grad })
+                }
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+      )}
+
       {evHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section className="rounded-[32px] bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-950 text-white border border-cyan-500/30 p-5 sm:p-8 shadow-2xl relative overflow-hidden">
@@ -6860,7 +6840,7 @@ export default function App() {
       </main>
       )}
 
-      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && !honoursHubView && !evHubView && (
+      {PART3_ACADEMIC_TRACKS[part3TrackKey] && !admissionHubView && !honoursHubView && !evHubView && !oaHubView && (
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section
           id="part3-academic-hub"
@@ -6917,9 +6897,9 @@ export default function App() {
             const currentChapter =
               currentModule.chapters[part3ChapterIdx] || currentModule.chapters[0];
             const lectures = Array.from(
-              { length: lectureCountFor(siteContent, `p3-${currentModule.id}-${currentChapter.id}`, currentModule.lectureBlueprint.length) },
+              { length: lectureCountFor(siteContent, `p3-${currentModule.id}-${currentChapter.id}`, (currentChapter.topics || currentModule.lectureBlueprint).length) },
               (_, idx) => {
-              const topicDesc = currentModule.lectureBlueprint[idx] || EXTRA_TOPIC;
+              const topicDesc = (currentChapter.topics || currentModule.lectureBlueprint)[idx] || EXTRA_TOPIC;
               const lecNum = idx + 1;
               const lecKey = `p3-${currentModule.id}-${currentChapter.id}-lec-${lecNum}`;
               const isFree = lecNum === 1;
@@ -7021,7 +7001,7 @@ export default function App() {
                                   poster={ch.num}
                                   title={ch.title}
                                   sub={ch.eng}
-                                  chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, currentModule.lectureBlueprint.length)} Lectures`]}
+                                  chips={[`${lectureCountFor(siteContent, `p3-${currentModule.id}-${ch.id}`, (ch.topics || currentModule.lectureBlueprint).length)} ${ch.topics ? 'Topics' : 'Lectures'}`]}
                                   onClick={() => openTrackChapter(currentTrack, currentModule, currentTrack.modules.indexOf(currentModule), ch, cIdx)}
                                 />
                               )

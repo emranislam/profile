@@ -77,3 +77,7 @@ Apps Script এ কোড বদলালে **Deploy → Manage deployments →
 ## পেমেন্ট দিয়ে স্বয়ংক্রিয় আনলক
 শিক্ষার্থীরা Transaction ID দিয়ে নিজে পেইড লেকচার আনলক করতে পারে, সেটা সেটআপের জন্য
 [PAYMENTS.md](PAYMENTS.md) দেখুন। আনলক হলে লিংকগুলো Sheet থেকেই আসে, তাই এই পেজেই লিংক বসাতে হবে।
+
+## O Level / A Level
+
+The six O/A cards (O Level 4024, A Level Pure 1, Pure 2 and 3, Mechanics, Probability and Statistics 1 and 2) come from `OA_SYLLABUS` in `src/App.jsx`. Each topic in a chapter is one lecture (Topic 1 free), so lecture titles, counts and durations in Admin are per topic.
