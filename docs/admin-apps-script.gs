@@ -10,6 +10,7 @@
  *   slots    – day, time, for, mode, status
  *   payments – trxId, amount, sender, received, status, usedBy, usedFor, usedAt, raw
  *   orders   – book orders (paid by bKash, delivered by hand; status new / delivered / cancelled)
+ *   books    – the book shelf as edited on the admin page (key, title, series, author, badge, price, meta, icon, cover, status)
  *   exams, examq, attempts – paid live MCQ exams (questions are never in the public GET)
  *
  * GET  → public content as JSON (only the free first lecture of each chapter).
@@ -34,6 +35,7 @@ const SHEETS = {
   titles: ['key', 'title'],
   durations: ['key', 'minutes'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
+  books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status'],
   orders: ['orderedAt', 'book', 'title', 'name', 'address', 'phone', 'trxId', 'amount', 'status'],
   exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
   examq: ['exam', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
@@ -148,8 +150,27 @@ function outline_() {
   return out;
 }
 
+// The book shelf as edited on the admin page (public). A row whose key is a built-in book changes that
+// book (or hides it, status 'hidden'); any other key is a book added on the admin page.
+function books_() {
+  return rows_('books')
+    .filter((r) => r[0])
+    .map((r) => ({
+      key: String(r[0]),
+      title: String(r[1] || ''),
+      series: String(r[2] || ''),
+      author: String(r[3] || ''),
+      badge: String(r[4] || ''),
+      price: Number(r[5]) || 0,
+      meta: String(r[6] || ''),
+      icon: String(r[7] || ''),
+      cover: Math.floor(Number(r[8])) || 0,
+      status: String(r[9] || '')
+    }));
+}
+
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -393,8 +414,16 @@ function priceFor_(scope, key) {
   } catch (err) {
     rules = null;
   }
-  if (!rules) return null;
   key = String(key || '');
+  if (scope === 'book') {
+    // The admin page's book shelf decides first: a hidden book cannot be bought, a priced row sets the price.
+    const row = rows_('books').find((r) => String(r[0]) === key);
+    if (row) {
+      if (String(row[9]) === 'hidden') return null;
+      if (Number(row[5]) > 0) return Number(row[5]);
+    }
+  }
+  if (!rules) return null;
   if (scope === 'book') return rules.book && Number(rules.book[key]) > 0 ? Number(rules.book[key]) : null;
   if (scope === 'course') return rules.course && Number(rules.course[key]) > 0 ? Number(rules.course[key]) : null;
   if (scope === 'lecture') {
@@ -754,6 +783,38 @@ function adminAction_(body) {
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, SHEETS.slots.length).clearContent();
     const rows = (body.slots || []).map((s) => [safe_(s.day), safe_(s.time), safe_(s.for), safe_(s.mode), safe_(s.status)]);
     if (rows.length) sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+    return { ok: true };
+  }
+
+  if (body.action === 'saveBook') {
+    const key = String(body.key || '');
+    if (!/^[A-Za-z0-9_-]{1,40}$/.test(key)) return { ok: false, error: 'bad-input' };
+    const clean = (v, n) => safe_(String(v || '').replace(/[\r\n]+/g, ' ').trim().slice(0, n));
+    const price = Math.floor(Number(body.price)) || 0;
+    if (price < 0 || price > 100000) return { ok: false, error: 'bad-input' };
+    const row = [
+      key,
+      clean(body.title, 160),
+      clean(body.series, 80),
+      clean(body.author, 80),
+      clean(body.badge, 30),
+      price,
+      clean(body.meta, 160),
+      clean(body.icon, 8),
+      Math.max(0, Math.min(7, Math.floor(Number(body.cover)) || 0)),
+      body.status === 'hidden' ? 'hidden' : ''
+    ];
+    const sh = sheet_('books');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === key);
+    if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+    else sh.appendRow(row);
+    return { ok: true };
+  }
+
+  if (body.action === 'deleteBook') {
+    const sh = sheet_('books');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === String(body.key));
+    if (i > 0) sh.deleteRow(i + 1);
     return { ok: true };
   }
 

@@ -1059,6 +1059,55 @@ const CV_SHOP_BOOKS = CV_CREDENTIALS.books.map((b, i) => ({
   meta: b.isbn
 }));
 
+// ---- The book shelf can be edited on the admin page (sheet 'books'): built-in books can be
+// re-priced, renamed or hidden, and new books can be added.
+const BOOK_GRADS = [
+  'from-amber-400 via-orange-500 to-red-600',
+  'from-violet-400 via-purple-500 to-indigo-700',
+  'from-sky-600 via-blue-700 to-indigo-900',
+  'from-slate-700 via-slate-800 to-slate-950',
+  'from-emerald-400 via-teal-500 to-cyan-700',
+  'from-rose-400 via-pink-500 to-fuchsia-700',
+  'from-lime-400 via-green-500 to-emerald-700',
+  'from-yellow-300 via-amber-500 to-orange-700'
+];
+const bookPriceText = (n) => `৳ ${Number(n).toLocaleString('bn-BD', { useGrouping: false })}`;
+const COURSE_BOOK_ORIGINAL = SPECIAL_COURSES_WITH_BOOKS.map((c) => ({ bookTitle: c.bookTitle, bookPriceBdt: c.bookPriceBdt, badge: c.badge, author: c.author }));
+let bookRows = {};
+let customBookRows = [];
+const applyBooks = (list) => {
+  const rows = Array.isArray(list) ? list : [];
+  bookRows = Object.fromEntries(rows.map((r) => [r.key, r]));
+  SPECIAL_COURSES_WITH_BOOKS.forEach((c, i) => {
+    const o = COURSE_BOOK_ORIGINAL[i];
+    const r = bookRows[c.id];
+    c.bookTitle = (r && r.title) || o.bookTitle;
+    c.bookPriceBdt = r && r.price > 0 ? bookPriceText(r.price) : o.bookPriceBdt;
+    c.badge = (r && r.badge) || o.badge;
+    c.author = (r && r.author) || o.author;
+  });
+  const builtIn = new Set([...SPECIAL_COURSES_WITH_BOOKS.map((c) => c.id), ...CV_SHOP_BOOKS.map((b) => b.key)]);
+  customBookRows = rows.filter((r) => !builtIn.has(r.key));
+};
+const bookHidden = (key) => !!(bookRows[key] && bookRows[key].status === 'hidden');
+const visibleCourseBooks = () => SPECIAL_COURSES_WITH_BOOKS.filter((c) => !bookHidden(c.id));
+const rowToShopBook = (r, base = {}) => ({
+  key: r.key,
+  series: r.series !== undefined && r.series !== '' ? r.series : base.series || '',
+  title: r.title || base.title || '',
+  author: r.author || base.author || CV_CREDENTIALS.fullName,
+  grad: BOOK_GRADS[r.cover] || base.grad || BOOK_GRADS[0],
+  icon: r.icon || base.icon || '📖',
+  badge: r.badge || base.badge || '',
+  price: r.price > 0 ? bookPriceText(r.price) : base.price || null,
+  meta: r.meta || base.meta || ''
+});
+// Published books shelf: the built-in ones (with admin changes) followed by books added on the admin page.
+const shopBooks = () => [
+  ...CV_SHOP_BOOKS.filter((b) => !bookHidden(b.key)).map((b) => (bookRows[b.key] ? rowToShopBook(bookRows[b.key], b) : b)),
+  ...customBookRows.filter((r) => r.status !== 'hidden' && r.title).map((r) => rowToShopBook(r))
+];
+
 const bookOrderHref = (book) =>
   `mailto:${CV_CREDENTIALS.email}?subject=${encodeURIComponent(
     `বই অর্ডার: ${book.series ? `${book.series}: ` : ''}${book.title}`
@@ -1727,7 +1776,7 @@ function AboutAuthorPage({ onBookDetails }) {
       <div className="space-y-5">
         <AboutSectionTitle sub="HSC কোর্স-ভিত্তিক বই — প্রতিটি স্পেশাল কোর্সের জন্য একটি করে।">The Fuel of Higher Math</AboutSectionTitle>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+          {visibleCourseBooks().map((item) => (
             <BookShopCard key={`author-${item.id}`} light book={courseBookToShop(item)} onDetails={() => onBookDetails(item)} />
           ))}
         </div>
@@ -1735,7 +1784,7 @@ function AboutAuthorPage({ onBookDetails }) {
       <div className="space-y-5">
         <AboutSectionTitle sub="আন্তর্জাতিক মনোগ্রাফ ও পাঠ্যবই">Published Books</AboutSectionTitle>
         <div className="grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
-          {CV_SHOP_BOOKS.map((book) => (
+          {shopBooks().map((book) => (
             <BookShopCard key={`author-${book.key}`} light book={book} />
           ))}
         </div>
@@ -3365,8 +3414,9 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], ...data };
       applyOutline(contentCache.outline);
+      applyBooks(contentCache.books);
       contentListeners.forEach((fn) => fn(contentCache));
       return contentCache;
     });
@@ -4013,9 +4063,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books' }[v])}
         />
         <button
           type="button"
@@ -4082,6 +4132,8 @@ function AdminPage() {
       {tab === 'payments' && <AdminPaymentsTab password={password} />}
 
       {tab === 'orders' && <AdminOrdersTab password={password} />}
+
+      {tab === 'books' && <AdminBooksTab password={password} content={content} />}
     </>
   );
 }
@@ -4365,6 +4417,189 @@ function AdminOrdersTab({ password }) {
             ))}
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Book shelf editor
+// Built-in books can be re-priced, renamed or hidden; new books can be added or removed.
+function AdminBookCard({ item, password, onChanged }) {
+  const row = item.row || {};
+  const [f, setF] = useState({
+    title: row.title || item.title,
+    series: row.series !== undefined && row.series !== '' ? row.series : item.series || '',
+    author: row.author || item.author || '',
+    badge: row.badge || item.badge || '',
+    price: String(row.price > 0 ? row.price : item.price || ''),
+    meta: row.meta || item.meta || '',
+    icon: row.icon || item.icon || '📖',
+    cover: row.cover || item.cover || 0,
+    hidden: row.status === 'hidden'
+  });
+  const [state, setState] = useState('idle');
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const run = (payload) => {
+    setState('busy');
+    return adminPost(password, payload).then((r) => {
+      setState(r.ok ? 'done' : 'error');
+      if (r.ok) onChanged();
+    });
+  };
+  const save = (hidden = f.hidden) =>
+    run({
+      action: 'saveBook',
+      key: item.key,
+      title: f.title.trim(),
+      series: f.series.trim(),
+      author: f.author.trim(),
+      badge: f.badge.trim(),
+      price: priceNumber(f.price),
+      meta: f.meta.trim(),
+      icon: f.icon.trim(),
+      cover: f.cover,
+      status: hidden ? 'hidden' : ''
+    });
+  const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
+  return (
+    <div className={`space-y-3 rounded-2xl border p-4 ${f.hidden ? 'border-slate-800 bg-slate-900/40 opacity-70' : 'border-slate-800 bg-slate-900/70'}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm font-bold text-white">
+          {item.builtIn ? '📚' : '✨'} {f.title || 'নতুন বই'}
+          {f.hidden && <span className="ml-2 rounded bg-slate-700 px-1.5 py-0.5 text-[10px]">লুকানো</span>}
+        </div>
+        <span className="font-mono text-[10px] text-slate-500">{item.key}</span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="sm:col-span-2">
+          <span className={label}>বইয়ের নাম</span>
+          <input className={adminInput} value={f.title} onChange={set('title')} placeholder="বইয়ের নাম" />
+        </label>
+        {!item.course && (
+          <label>
+            <span className={label}>সিরিজ / প্রকাশক (ছোট লেখা)</span>
+            <input className={adminInput} value={f.series} onChange={set('series')} />
+          </label>
+        )}
+        <label>
+          <span className={label}>লেখক</span>
+          <input className={adminInput} value={f.author} onChange={set('author')} />
+        </label>
+        <label>
+          <span className={label}>ব্যাজ (যেমন Best Seller)</span>
+          <input className={adminInput} value={f.badge} onChange={set('badge')} />
+        </label>
+        <label>
+          <span className={label}>PDF কপির দাম (৳) — ফাঁকা থাকলে অর্ডার বাটনের বদলে ইমেইল লিংক</span>
+          <input className={adminInput} inputMode="numeric" value={f.price} onChange={set('price')} />
+        </label>
+        {!item.course && (
+          <label className="sm:col-span-2">
+            <span className={label}>এক লাইনের বিবরণ</span>
+            <input className={adminInput} value={f.meta} onChange={set('meta')} />
+          </label>
+        )}
+        {!item.course && (
+          <label>
+            <span className={label}>কভারের ইমোজি</span>
+            <input className={adminInput} value={f.icon} onChange={set('icon')} maxLength={4} />
+          </label>
+        )}
+        {!item.course && (
+          <div>
+            <span className={label}>কভারের রং</span>
+            <div className="flex flex-wrap gap-2">
+              {BOOK_GRADS.map((g, i) => (
+                <button
+                  key={g}
+                  type="button"
+                  aria-label={`রং ${i + 1}`}
+                  onClick={() => setF((x) => ({ ...x, cover: i }))}
+                  className={`h-8 w-8 rounded-lg bg-gradient-to-br ${g} ${f.cover === i ? 'ring-2 ring-white' : ''}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={state === 'busy' || !f.title.trim()}
+          onClick={() => save()}
+          className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          disabled={state === 'busy'}
+          onClick={() => {
+            setF((x) => ({ ...x, hidden: !x.hidden }));
+            save(!f.hidden);
+          }}
+          className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white hover:bg-slate-700"
+        >
+          {f.hidden ? 'আবার দেখান' : 'সাইট থেকে লুকান'}
+        </button>
+        {item.builtIn && item.row && (
+          <button
+            type="button"
+            disabled={state === 'busy'}
+            onClick={() => window.confirm('আগের ডিফল্ট তথ্যে ফিরে যাবে। ঠিক আছে?') && run({ action: 'deleteBook', key: item.key })}
+            className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700"
+          >
+            ডিফল্টে ফিরুন
+          </button>
+        )}
+        {!item.builtIn && (
+          <button
+            type="button"
+            disabled={state === 'busy'}
+            onClick={() => window.confirm('বইটি মুছে ফেলবেন?') && run({ action: 'deleteBook', key: item.key })}
+            className="rounded-lg bg-rose-500/20 px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/30"
+          >
+            বই মুছুন
+          </button>
+        )}
+        <span className="text-[11px] text-slate-400">
+          {state === 'busy' ? 'সেভ হচ্ছে…' : state === 'done' ? '✓ সেভ হয়েছে' : state === 'error' ? 'সেভ হয়নি (Apps Script পুরনো কি না দেখুন)' : ''}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function AdminBooksTab({ password, content }) {
+  const [drafts, setDrafts] = useState([]); // new books not saved yet
+  const rows = Object.fromEntries(((content && content.books) || []).map((r) => [r.key, r]));
+  const reload = () => loadContent();
+  const items = [
+    ...COURSE_BOOK_ORIGINAL.map((o, i) => {
+      const c = SPECIAL_COURSES_WITH_BOOKS[i];
+      return { key: c.id, builtIn: true, course: true, title: o.bookTitle, author: o.author, badge: o.badge, price: priceNumber(o.bookPriceBdt), row: rows[c.id] };
+    }),
+    ...CV_SHOP_BOOKS.map((b) => ({ ...b, builtIn: true, price: 0, row: rows[b.key] })),
+    ...((content && content.books) || []).filter((r) => !SPECIAL_COURSES_WITH_BOOKS.some((c) => c.id === r.key) && !CV_SHOP_BOOKS.some((b) => b.key === r.key)).map((r) => ({ key: r.key, builtIn: false, title: r.title, row: r })),
+    ...drafts.filter((key) => !rows[key]).map((key) => ({ key, builtIn: false, title: '', row: null }))
+  ];
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-slate-400">সাইটের সব বই এখান থেকে বদলানো যাবে: নাম, দাম, ব্যাজ, লুকানো, আর নতুন বই যোগ করা। বদলানোর পর সাইটে রিফ্রেশ করলে দেখা যাবে।</p>
+      <button
+        type="button"
+        onClick={() => setDrafts((d) => [...d, `bk-${Date.now().toString(36)}`])}
+        className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-extrabold text-slate-950"
+      >
+        + নতুন বই যোগ করুন
+      </button>
+      {items.map((it) => (
+        <AdminBookCard
+          key={it.key}
+          item={it}
+          password={password}
+          onChanged={reload}
+        />
       ))}
     </div>
   );
@@ -5831,7 +6066,7 @@ export default function App() {
                 </button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                {visibleCourseBooks().map((item) => (
                   <BookShopCard
                     key={`home-book-${item.id}`}
                     book={courseBookToShop(item)}
@@ -6018,7 +6253,7 @@ export default function App() {
                 <BookMarked className="w-4 h-4 text-amber-400" /> প্রকাশিত বই
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
-                {CV_SHOP_BOOKS.map((book) => (
+                {shopBooks().map((book) => (
                   <BookShopCard key={book.key} book={book} />
                 ))}
               </div>
@@ -6148,7 +6383,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                  {visibleCourseBooks().map((item) => (
                     <BookShopCard key={`book-${item.id}`} book={courseBookToShop(item)} onDetails={() => setSelectedSpecialCourseModal(item)} />
                   ))}
                 </div>
@@ -7675,7 +7910,7 @@ export default function App() {
             <div className="space-y-3">
               <div className="text-sm font-extrabold text-teal-300">The Fuel of Higher Math — HSC কোর্স-ভিত্তিক বই</div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                {SPECIAL_COURSES_WITH_BOOKS.map((item) => (
+                {visibleCourseBooks().map((item) => (
                   <BookShopCard
                     key={`modal-book-${item.id}`}
                     book={courseBookToShop(item)}
@@ -7690,7 +7925,7 @@ export default function App() {
             <div className="space-y-3 pt-2 border-t border-slate-800">
               <div className="text-sm font-extrabold text-teal-300 pt-3">প্রকাশিত বই ও আন্তর্জাতিক মনোগ্রাফ</div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
-                {CV_SHOP_BOOKS.map((book) => (
+                {shopBooks().map((book) => (
                   <BookShopCard key={`modal-${book.key}`} book={book} />
                 ))}
               </div>
