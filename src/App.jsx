@@ -5407,6 +5407,7 @@ export default function App() {
   const [selfTestAnswers, setSelfTestAnswers] = useState({});
   const [selfTestSubmitted, setSelfTestSubmitted] = useState(false);
   const [activeResearchCardId, setActiveResearchCardId] = useState('thesis-consultation');
+  const navRowRef = useRef(null);
   const [thesisLevel, setThesisLevel] = useState('M.Sc. Thesis');
 
   const [part3ModuleIdx, setPart3ModuleIdx] = useState(0);
@@ -5738,13 +5739,19 @@ export default function App() {
       grad: mod.grad
     }, replace);
   const navActive = isCourseView ? activeCourse.parent : activeSubPage;
+  // On phones the menu is one swipeable row: keep the current page's button in view.
+  useEffect(() => {
+    const row = navRowRef.current;
+    const on = row && row.querySelector('button.shadow-sm');
+    if (on && row.scrollWidth > row.clientWidth) row.scrollTo({ left: Math.max(0, on.offsetLeft - 16), behavior: 'auto' });
+  }, [navActive]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-teal-500 selection:text-slate-950 flex flex-col justify-between">
       <div>
       {/* STICKY HEADER WITH SUBTLE PROFILE AVATAR */}
       <header className="lg:sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 shrink-0 rounded-2xl overflow-hidden bg-slate-900 border-2 border-teal-400/70 shadow-md">
               <img src="/assets/emran-avatar.jpg" alt="Emran Islam" className="w-full h-full object-cover object-top" draggable="false" />
@@ -5759,12 +5766,15 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Lecturer in Mathematics (Hamdard Public College, Dhaka) • Optimization & ML Researcher • Author
+                Lecturer in Mathematics<span className="hidden sm:inline"> (Hamdard Public College, Dhaka) • Optimization & ML Researcher • Author</span>
               </p>
             </div>
           </div>
 
-          <div className="flex w-full flex-wrap items-center gap-2">
+          <div
+            ref={navRowRef}
+            className="main-nav -mx-4 flex w-[calc(100%+2rem)] items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:w-full sm:px-0 lg:flex-wrap lg:gap-1.5 lg:overflow-visible lg:pb-0 lg:[&>button]:px-2.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap"
+          >
             <button
               onClick={() => openSubPage('HOME')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
@@ -5918,31 +5928,6 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-              <span>অন্য সাব-পেজে যান:</span>
-              {[
-                { id: 'HSC Bangla Version', label: 'HSC বাংলা ভার্সন' },
-                { id: 'HSC English Version', label: 'HSC English Version' },
-                { id: 'O-Level & A-Level', label: 'O/A-Level' },
-                { id: 'Admission Test (BUET/DU)', label: 'ভর্তি পরীক্ষার প্রস্তুতি' },
-                { id: 'Job Math', label: 'JOB MATH' },
-                { id: 'B.Sc. Honours Math', label: 'Honours' },
-                { id: 'Research & Papers', label: 'Research' },
-                { id: 'About Me', label: 'About Me' },
-                { id: 'Private Batch', label: 'প্রাইভেট ব্যাচ' },
-                { id: 'Class Routine', label: 'লাইভ ক্লাসের রুটিন' }
-              ]
-                .filter((t) => t.id !== navActive)
-                .map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => openSubPage(t.id)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 text-teal-300 border border-slate-800 font-semibold transition"
-                  >
-                    {t.label}
-                  </button>
-                ))}
-            </div>
           </div>
         </div>
       )}
@@ -5955,26 +5940,53 @@ export default function App() {
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
           {/* MAIN FIELD (full width; the profile lives on the dedicated About Me sub-page) */}
           <div className="lg:col-span-12 flex flex-col justify-between space-y-6 py-1">
-            <div className="space-y-3.5">
-              <h2 className="text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight">
-                <span className="text-white">Emran Islam —</span>{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-emerald-200 to-amber-300">
-                  Where Mathematical Rigor, Teaching Excellence & Scientific Research Meet.
+            <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto] lg:gap-10">
+              <div className="space-y-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300 sm:text-xs">
+                  🎁 প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি
                 </span>
-              </h2>
-
-              <p className="w-full text-slate-300 text-sm sm:text-base leading-relaxed text-justify hyphens-auto [text-align-last:left]">
-                Mathematics educator with{' '}
-                <strong className="text-white">8+ years of college-level teaching</strong>{' '}
-                (including nearly 7 years at Ghatail Cantonment Public School & College, now at
-                Hamdard Public College, Dhaka) and an active{' '}
-                <strong className="text-teal-300">
-                  PhD researcher in Combinatorial Optimization & Scientific Machine Learning
-                </strong>
-                . Explore chapter-wise PDF hand notes, solved derivations, live/recorded classes,
-                and peer-reviewed research.
-              </p>
+                <h2 className="text-[26px] font-black leading-[1.25] tracking-tight sm:text-4xl xl:text-5xl xl:leading-[1.2]">
+                  <span className="text-white">গণিত শিখুন বুঝে,</span>{' '}
+                  <span className="bg-gradient-to-r from-teal-300 via-emerald-200 to-amber-300 bg-clip-text text-transparent">মুখস্থ করে নয়।</span>
+                </h2>
+                <p className="max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                  HSC, O/A Level, ভর্তি পরীক্ষা, Job Math ও B.Sc. Honours এর অধ্যায়ভিত্তিক ক্লাস, PDF হ্যান্ডনোট ও MCQ কুইজ। পড়াচ্ছেন{' '}
+                  <strong className="text-white">Emran Islam</strong>, Lecturer in Mathematics, Hamdard Public College, Dhaka।
+                </p>
+                <div className="flex flex-wrap gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => openSubPage('HSC Bangla Version')}
+                    className="rounded-2xl bg-gradient-to-r from-teal-400 to-emerald-400 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-teal-500/20 transition hover:from-teal-300 hover:to-emerald-300"
+                  >
+                    ▶ ফ্রি ক্লাস দেখুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openSubPage('Private Batch')}
+                    className="rounded-2xl border border-amber-400/50 bg-amber-400/10 px-5 py-3 text-sm font-extrabold text-amber-200 transition hover:bg-amber-400/20"
+                  >
+                    📅 প্রাইভেট ব্যাচ
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 text-xs text-slate-400 sm:text-sm">
+                  <span><b className="text-base font-black text-white sm:text-lg">৮+</b> বছর কলেজে শিক্ষকতা</span>
+                  <span><b className="text-base font-black text-white sm:text-lg">{toBnDigits(SPECIAL_COURSES_WITH_BOOKS.length + CV_SHOP_BOOKS.length)}</b>টি বইয়ের লেখক</span>
+                  <span><b className="text-base font-black text-white sm:text-lg">M.Sc.</b> জাহাঙ্গীরনগর বিশ্ববিদ্যালয়</span>
+                </div>
+              </div>
+              <div className="relative mx-auto hidden w-56 shrink-0 lg:block xl:w-64">
+                <div className="absolute -inset-3 rounded-[36px] bg-gradient-to-br from-teal-400/30 via-transparent to-amber-400/30 blur-2xl" />
+                <img
+                  src={ABOUT_PORTRAIT}
+                  alt="Emran Islam"
+                  className="relative aspect-[4/5] w-full rounded-[28px] border border-white/10 object-cover object-top shadow-2xl"
+                  draggable="false"
+                />
+              </div>
             </div>
+
+            <div className="pt-1 text-center text-sm font-extrabold text-slate-200 sm:text-base">কোন বিভাগে পড়তে চান?</div>
 
             {/* PROGRAM CARDS (each opens its own page) */}
             <div className="space-y-3 pt-1">
@@ -6024,239 +6036,27 @@ export default function App() {
 
         {}
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-14 space-y-12">
-          {/* STEP 1: HSC BANGLA VERSION SHOWCASE (8 CARDS + 6 BOOKS) */}
-          <div
-            id="home-step-1"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-sky-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-cyan-200 to-teal-200 leading-snug pb-1">
-                HSC উচ্চতর গণিত বাংলা ভার্সন
+          {/* BOOK SHELF */}
+          <div id="home-books" className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-amber-500/30 p-5 sm:p-7 space-y-5 shadow-xl">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                <BookMarked className="w-5 h-5 text-amber-400" /> লেখকের বই
               </h3>
+              <button onClick={() => setBookModalOpen(true)} className="text-xs font-bold text-amber-300 hover:underline">
+                সব বই দেখুন →
+              </button>
             </div>
-
-            {/* 2 Paper Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto w-full">
-              {Object.values(HSC_BV_PAPERS).map((paper) => (
-                <PremiumCard
-                  key={paper.id}
-                  person
-                  grad={paper.tileGrad}
-                  icon={paper.icon}
-                  code={paper.code}
-                  bigTag={paper.bigTag}
-                  title={`${paper.title}ের অধ্যায় সমূহ`}
-                  sub={`${toBnDigits(paper.chapters.length)}টি অধ্যায়`}
-                  onClick={() => openSubPage('HSC Bangla Version', { bvPaperKey: paper.id })}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {visibleCourseBooks().map((item) => (
+                <BookShopCard
+                  key={`home-book-${item.id}`}
+                  book={courseBookToShop(item)}
+                  onDetails={() => setSelectedSpecialCourseModal(item)}
                 />
               ))}
-            </div>
-
-            {/* Authored Books (shop style) */}
-            <div className="space-y-3 pt-4 border-t border-slate-800/80">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <BookMarked className="w-4 h-4 text-amber-400" /> লেখকের বই
-                </div>
-                <button
-                  onClick={() => setBookModalOpen(true)}
-                  className="text-xs font-bold text-amber-300 hover:underline"
-                >
-                  সব বই দেখুন →
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                {visibleCourseBooks().map((item) => (
-                  <BookShopCard
-                    key={`home-book-${item.id}`}
-                    book={courseBookToShop(item)}
-                    onDetails={() => setSelectedSpecialCourseModal(item)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* STEP 2: HSC ENGLISH VERSION SHOWCASE (8 CARDS) */}
-          <div
-            id="home-step-2"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-teal-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-200 via-emerald-200 to-lime-200 leading-snug pb-1">
-                HSC Higher Mathematics (English Version)
-              </h3>
-            </div>
-
-            {/* 2 EV Paper Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto w-full">
-              {PART3_ACADEMIC_TRACKS['HSC English Version'].modules.map((mod, mIdx) => (
-                <PremiumCard
-                  key={mod.id}
-                  person
-                  poster={mod.name.replace(/Higher Math | \(EV\)/g, '')}
-                  grad={mod.grad}
-                  icon={mod.icon}
-                  code={mod.code}
-                  title={mod.name}
-                  sub={mod.sub}
-                  chips={['NCTB English Version', '10 Chapters']}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'HSC English Version', parent: 'HSC English Version', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
-                  }
-                />
+              {shopBooks().filter((book) => book.price).map((book) => (
+                <BookShopCard key={`home-${book.key}`} book={book} />
               ))}
-            </div>
-          </div>
-
-          {/* STEP 3: O-LEVEL & A-LEVEL SHOWCASE (6 CARDS) */}
-          <div
-            id="home-step-3"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-purple-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 leading-snug pb-1">
-                O Level (4024) & A Level (9709)
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {OA_MODULES.map((m, mIdx) => (
-                <PremiumCard
-                  key={m.id}
-                  person
-                  poster={m.name}
-                  grad={m.grad}
-                  icon={m.icon}
-                  code={m.code}
-                  title={m.name}
-                  sub={m.sub}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'O-Level & A-Level', parent: 'O-Level & A-Level', moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: m.sub, icon: m.icon, grad: m.grad })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* STEP 4: ADMISSION TEST SHOWCASE (4 CARDS INCLUDING MEDI-MATH) */}
-          <div
-            id="home-step-4"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-amber-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 leading-snug pb-1">
-                বিশ্ববিদ্যালয় ভর্তি পরীক্ষার প্রস্তুতি
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {ADMISSION_UNIVERSITIES.map((u) => (
-                <PremiumCard
-                  key={u.id}
-                  poster={u.short}
-                  grad={u.grad}
-                  icon={u.icon}
-                  title={u.name}
-                  sub={u.full}
-                  onClick={() => openSubPage('Admission Test (BUET/DU)', { admUniv: u.id })}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* JOB MATH SHOWCASE */}
-          <div
-            id="home-step-job"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-lime-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-lime-200 via-green-300 to-emerald-300 leading-snug pb-1">
-                Job Math — চাকরির পরীক্ষার গণিত
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 max-w-4xl mx-auto">
-              {PART3_ACADEMIC_TRACKS['Job Math'].modules.map((mod, mIdx) => (
-                <PremiumCard
-                  key={mod.id}
-                  person
-                  poster={shortTag(mod.code)}
-                  grad={mod.grad}
-                  icon={mod.icon}
-                  title={mod.name}
-                  sub={mod.sub}
-                  chips={[`${mod.chapters.length} Topics`, '1st Lec Free']}
-                  onClick={() =>
-                    openCourse({ kind: 'track', trackId: 'Job Math', parent: 'Job Math', moduleIdx: mIdx, chapterIdx: 0, title: mod.name, sub: mod.sub, icon: mod.icon, grad: mod.grad })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* STEP 5: B.SC. HONOURS MATHEMATICS SHOWCASE (6 CARDS) */}
-          <div
-            id="home-step-5"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-emerald-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 leading-snug pb-1">
-                B.Sc. (Honours) in Mathematics
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {HONOURS_YEARS.map((y) => (
-                <PremiumCard
-                  key={y.id}
-                  poster={y.short}
-                  grad={y.grad}
-                  icon={y.icon}
-                  title={y.name}
-                  sub={y.full}
-                  onClick={() => openSubPage('B.Sc. Honours Math', { honYear: y.id })}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* STEP 6: RESEARCH, THESIS CONSULTATION & PUBLICATIONS SHOWCASE (6 CARDS) */}
-          <div
-            id="home-step-6"
-            className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-rose-500/30 p-5 sm:p-7 space-y-6 shadow-xl"
-          >
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-300 to-amber-200 leading-snug pb-1">
-                Thesis Consultation, Ongoing Research & Publications
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {RESEARCH_SHOWCASE_CARDS.map((rc) => (
-                <PremiumCard
-                  key={rc.id}
-                  grad={rc.grad}
-                  icon={rc.icon}
-                  code={rc.code}
-                  bigTag={rc.bigTag}
-                  title={rc.title}
-                  sub={rc.sub}
-                  chips={[rc.badge]}
-                  onClick={() => openSubPage('Research & Papers', { researchCardId: rc.id, anchorId: 'research-detail' })}
-                />
-              ))}
-            </div>
-
-            <div className="space-y-3 pt-4 border-t border-slate-800/80">
-              <div className="text-sm font-extrabold text-white flex items-center gap-2">
-                <BookMarked className="w-4 h-4 text-amber-400" /> প্রকাশিত বই
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl">
-                {shopBooks().map((book) => (
-                  <BookShopCard key={book.key} book={book} />
-                ))}
-              </div>
             </div>
           </div>
 
