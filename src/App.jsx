@@ -1801,6 +1801,7 @@ const SITE_LINKS = {
   whatsapp: '8801966631211',
   telegram: '', // e.g. 'https://t.me/yourchannel'
   facebook: 'https://www.facebook.com/share/1Mz2tgnjDX/',
+  facebookReviews: '', // the Facebook Page's Reviews link (e.g. 'https://www.facebook.com/yourpage/reviews'); empty uses `facebook`
   email: CV_CREDENTIALS.email,
   liveClass: '', // default Zoom / Google Meet link for live classes
   contentApi: 'https://script.google.com/macros/s/AKfycbwze1cSDh1p0TYdlATTGosYhn9b8qRn6jiG9tUW1ioofV4c0dQHVizIrhRVneK5mKdd1Q/exec', // admin panel backend (docs/ADMIN.md)
@@ -2671,19 +2672,59 @@ function FaqSection() {
   );
 }
 
-// Student reviews and results. The section stays hidden until these lists have entries.
-const TESTIMONIALS = [
-  // { name: 'শিক্ষার্থীর নাম', info: 'HSC 2025, ঢাকা কলেজ', text: 'মতামত' },
-];
+// Results typed here; student reviews come from Facebook and are chosen on the admin page (⭐ মতামত).
 const RESULT_STATS = [
   // { value: '১২০+', label: 'HSC তে A+' },
 ];
+const FB_REVIEW_LINK = () => SITE_LINKS.facebookReviews || SITE_LINKS.facebook;
+
+function ReviewCard({ r }) {
+  const initial = (r.name || '?').trim().charAt(0);
+  return (
+    <figure className="flex flex-col rounded-2xl border border-slate-800 bg-slate-950 p-5">
+      <div className="text-sm tracking-widest text-amber-300" aria-hidden="true">★★★★★</div>
+      <blockquote className="mt-2 flex-1 whitespace-pre-line text-sm leading-relaxed text-slate-200">“{r.text}”</blockquote>
+      <figcaption className="mt-4 flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-sky-500 text-sm font-black text-slate-950">{initial}</span>
+        <span className="min-w-0 flex-1 text-xs">
+          <span className="block truncate font-bold text-white">{r.name || 'শিক্ষার্থী'}</span>
+          {r.info && <span className="block truncate text-slate-400">{r.info}</span>}
+        </span>
+        {r.link && (
+          <a href={r.link} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[11px] font-bold text-[#6ea8ff] hover:underline">
+            Facebook ↗
+          </a>
+        )}
+      </figcaption>
+    </figure>
+  );
+}
 
 function ProofSection() {
-  if (TESTIMONIALS.length === 0 && RESULT_STATS.length === 0) return null;
+  const content = useContent();
+  const reviews = (content && content.reviews) || [];
+  const [showAll, setShowAll] = useState(false);
+  const fb = FB_REVIEW_LINK();
+  if (!fb && reviews.length === 0 && RESULT_STATS.length === 0) return null;
+  const shown = showAll ? reviews : reviews.slice(0, 6);
   return (
-    <div className="rounded-[30px] border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-6">
-      <h3 className="text-xl sm:text-2xl font-extrabold text-white">শিক্ষার্থীদের ফলাফল ও মতামত</h3>
+    <div id="reviews" className="rounded-[30px] border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-white">শিক্ষার্থীদের মতামত</h3>
+          <p className="mt-1 text-xs text-slate-400 sm:text-sm">শিক্ষার্থীরা Facebook এ যা লিখেছে।</p>
+        </div>
+        {fb && (
+          <a
+            href={fb}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#1877F2] px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2d86ff]"
+          >
+            <Facebook className="h-4 w-4" /> Facebook এ মতামত দিন
+          </a>
+        )}
+      </div>
       {RESULT_STATS.length > 0 && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {RESULT_STATS.map((r) => (
@@ -2694,17 +2735,24 @@ function ProofSection() {
           ))}
         </div>
       )}
-      {TESTIMONIALS.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {TESTIMONIALS.map((t) => (
-            <figure key={t.name + t.text} className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <blockquote className="text-sm leading-relaxed text-slate-200">“{t.text}”</blockquote>
-              <figcaption className="mt-3 text-xs">
-                <span className="font-bold text-white">{t.name}</span>
-                <span className="text-slate-400"> • {t.info}</span>
-              </figcaption>
-            </figure>
-          ))}
+      {reviews.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {shown.map((r) => (
+              <ReviewCard key={r.id} r={r} />
+            ))}
+          </div>
+          {reviews.length > 6 && (
+            <div className="text-center">
+              <button type="button" onClick={() => setShowAll((v) => !v)} className="text-xs font-bold text-emerald-300 hover:underline">
+                {showAll ? 'কম দেখান' : `সব ${toBnDigits(reviews.length)}টি মতামত দেখুন`}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/60 p-5 text-center text-sm text-slate-300">
+          আমার কাছে পড়েছেন? আপনার অভিজ্ঞতা Facebook এ লিখুন, এখানে দেখানো হবে।
         </div>
       )}
     </div>
@@ -3414,7 +3462,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], ...data };
       applyOutline(contentCache.outline);
       applyBooks(contentCache.books);
       contentListeners.forEach((fn) => fn(contentCache));
@@ -4063,9 +4111,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই', '⭐ মতামত']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই', reviews: '⭐ মতামত' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books', '⭐ মতামত': 'reviews' }[v])}
         />
         <button
           type="button"
@@ -4134,6 +4182,8 @@ function AdminPage() {
       {tab === 'orders' && <AdminOrdersTab password={password} />}
 
       {tab === 'books' && <AdminBooksTab password={password} content={content} />}
+
+      {tab === 'reviews' && <AdminReviewsTab password={password} content={content} />}
     </>
   );
 }
@@ -4415,6 +4465,101 @@ function AdminOrdersTab({ password }) {
                 {ORDER_STATUS[s][0]} করুন
               </button>
             ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Student reviews (from Facebook)
+const FB_LINK_RE = /^https:\/\/((www|m|web|business)\.)?(facebook\.com|fb\.com|fb\.me)\/[^\s"'<>]*$/i;
+
+function AdminReviewsTab({ password, content }) {
+  const blank = { id: '', name: '', info: '', text: '', link: '' };
+  const [f, setF] = useState(blank);
+  const [state, setState] = useState('idle');
+  const reviews = (content && content.reviews) || [];
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const linkOk = !f.link.trim() || FB_LINK_RE.test(f.link.trim());
+  const save = () => {
+    setState('busy');
+    adminPost(password, { action: 'saveReview', ...f, id: f.id || `rv-${Date.now().toString(36)}`, link: f.link.trim() }).then((r) => {
+      setState(r.ok ? 'done' : r.error === 'bad-link' ? 'bad-link' : 'error');
+      if (r.ok) {
+        setF(blank);
+        loadContent();
+      }
+    });
+  };
+  const remove = (id) => window.confirm('মতামতটি সাইট থেকে সরাবেন?') && adminPost(password, { action: 'deleteReview', id }).then(() => loadContent());
+  const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-xs leading-relaxed text-slate-300">
+        শিক্ষার্থীরা সাইটের "Facebook এ মতামত দিন" বোতাম চেপে আপনার Facebook পেজে লেখে। যে মতামত সাইটে দেখাতে চান, তার লেখা ও লিংক এখানে বসান।
+        লিংক পেতে Facebook এ মতামতের তারিখে বা "…" মেনুতে "Copy link" চাপুন।
+      </div>
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="text-sm font-bold text-white">{f.id ? '✏️ মতামত বদলান' : '+ নতুন মতামত যোগ করুন'}</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label>
+            <span className={label}>শিক্ষার্থীর নাম</span>
+            <input className={adminInput} value={f.name} onChange={set('name')} placeholder="যেমন: রাফি আহমেদ" />
+          </label>
+          <label>
+            <span className={label}>পরিচয় (ঐচ্ছিক)</span>
+            <input className={adminInput} value={f.info} onChange={set('info')} placeholder="যেমন: HSC 2025, হামদর্দ পাবলিক কলেজ" />
+          </label>
+          <label className="sm:col-span-2">
+            <span className={label}>মতামত</span>
+            <textarea className={`${adminInput} min-h-[96px]`} value={f.text} onChange={set('text')} placeholder="Facebook এ যা লিখেছে, সেটা কপি করে দিন" />
+          </label>
+          <label className="sm:col-span-2">
+            <span className={label}>Facebook লিংক (ঐচ্ছিক)</span>
+            <input className={adminInput} value={f.link} onChange={set('link')} placeholder="https://www.facebook.com/..." />
+            {!linkOk && <span className="mt-1 block text-[11px] text-rose-300">শুধু facebook.com এর লিংক দেওয়া যাবে।</span>}
+          </label>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={state === 'busy' || f.text.trim().length < 3 || !linkOk}
+            onClick={save}
+            className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
+          >
+            Save
+          </button>
+          {f.id && (
+            <button type="button" onClick={() => setF(blank)} className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white">
+              বাতিল
+            </button>
+          )}
+          <span className="text-[11px] text-slate-400">
+            {state === 'busy' ? 'সেভ হচ্ছে…' : state === 'done' ? '✓ সেভ হয়েছে' : state === 'bad-link' ? 'লিংকটি Facebook এর নয়' : state === 'error' ? 'সেভ হয়নি (Apps Script পুরনো কি না দেখুন)' : ''}
+          </span>
+        </div>
+      </div>
+      {reviews.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-400">এখনো কোনো মতামত যোগ করা হয়নি।</div>}
+      {reviews.map((r) => (
+        <div key={r.id} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="text-sm text-slate-200">“{r.text}”</div>
+          <div className="text-xs text-slate-400">
+            <b className="text-white">{r.name || 'শিক্ষার্থী'}</b>
+            {r.info ? ` • ${r.info}` : ''}
+            {r.link && (
+              <a href={r.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#6ea8ff] hover:underline">
+                Facebook ↗
+              </a>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setF({ id: r.id, name: r.name, info: r.info, text: r.text, link: r.link })} className="rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-slate-700">
+              বদলান
+            </button>
+            <button type="button" onClick={() => remove(r.id)} className="rounded-lg bg-rose-500/20 px-3 py-1.5 text-[11px] font-bold text-rose-300 hover:bg-rose-500/30">
+              সরান
+            </button>
           </div>
         </div>
       ))}

@@ -85,3 +85,9 @@ The six O/A cards (O Level 4024, A Level Pure 1, Pure 2 and 3, Mechanics, Probab
 ## Books (📖 বই tab)
 
 The book shelf can be edited without changing code. For every built-in book you can change the name, author, badge and PDF price, hide it from the site, or press "ডিফল্টে ফিরুন" to undo your changes. "+ নতুন বই যোগ করুন" adds a new book (name, publisher line, author, badge, price, one-line description, cover emoji and colour); "বই মুছুন" removes a book you added. Books are stored in the `books` sheet. A book with a price shows the "PDF কপি নিন" button; the order form uses this price, and a hidden book cannot be bought. After pasting the new `admin-apps-script.gs`, deploy a New version.
+
+## Student reviews (⭐ মতামত tab)
+
+Students write reviews on Facebook: the home page has a "Facebook এ মতামত দিন" button. It opens `SITE_LINKS.facebookReviews` in `src/App.jsx`, or `SITE_LINKS.facebook` while that is empty. Set `facebookReviews` to your Facebook Page's Reviews link (for example `https://www.facebook.com/yourpage/reviews`). Reviews and recommendations only exist on a Facebook Page, not on a personal profile.
+
+To show a review on the site, open the ⭐ মতামত tab and paste the student's name, an optional line such as "HSC 2025, Hamdard Public College", the review text and, optionally, the Facebook link to the review ("Copy link" on Facebook). Only facebook.com links are accepted. Reviews are stored in the `reviews` sheet, newest first; the home page shows six with a "show all" button. "বদলান" edits a review and "সরান" removes it. After pasting the new `admin-apps-script.gs`, deploy a New version.
