@@ -10,7 +10,8 @@
  *   slots    – day, time, for, mode, status
  *   payments – trxId, amount, sender, received, status, usedBy, usedFor, usedAt, raw
  *   orders   – book orders (paid by bKash, delivered by hand; status new / delivered / cancelled)
- *   books    – the book shelf as edited on the admin page (key, title, series, author, badge, price, meta, icon, cover, status)
+ *   books    – the book shelf as edited on the admin page (key, title, series, author, badge, price, meta, icon, cover, status, image)
+ *   reviews  – student reviews chosen on the admin page (from Facebook): id, name, info, text, link, added
  *   exams, examq, attempts – paid live MCQ exams (questions are never in the public GET)
  *
  * GET  → public content as JSON (only the free first lecture of each chapter).
@@ -35,7 +36,8 @@ const SHEETS = {
   titles: ['key', 'title'],
   durations: ['key', 'minutes'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
-  books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status'],
+  books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status', 'image'],
+  reviews: ['id', 'name', 'info', 'text', 'link', 'added'],
   orders: ['orderedAt', 'book', 'title', 'name', 'address', 'phone', 'trxId', 'amount', 'status'],
   exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
   examq: ['exam', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
@@ -165,12 +167,50 @@ function books_() {
       meta: String(r[6] || ''),
       icon: String(r[7] || ''),
       cover: Math.floor(Number(r[8])) || 0,
-      status: String(r[9] || '')
+      status: String(r[9] || ''),
+      image: coverUrl_(r[10])
     }));
 }
 
+// A book cover picture: an https image link. A Google Drive share link becomes a direct picture link.
+function coverUrl_(v) {
+  const s = String(v || '').trim();
+  const drive = s.match(/^https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|thumbnail\?id=)([A-Za-z0-9_-]{10,})/);
+  if (drive) return 'https://lh3.googleusercontent.com/d/' + drive[1] + '=w800';
+  return /^https:\/\/[^\s"'<>()]+$/i.test(s) ? s.slice(0, 500) : '';
+}
+
+// Saves an uploaded cover picture (JPEG/PNG/WebP, base64) to the owner's Google Drive, readable by
+// anyone with the link, and returns its picture link.
+function saveCover_(body) {
+  const types = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const key = String(body.key || '');
+  const ext = types[String(body.mime || '')];
+  const data = String(body.data || '');
+  if (!/^[A-Za-z0-9_-]{1,40}$/.test(key) || !ext || !data || data.length > 4000000) return { ok: false, error: 'bad-input' };
+  const it = DriveApp.getFoldersByName('10takaschool book covers');
+  const folder = it.hasNext() ? it.next() : DriveApp.createFolder('10takaschool book covers');
+  const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(data), String(body.mime), key + '-' + Date.now() + '.' + ext));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { ok: true, url: 'https://lh3.googleusercontent.com/d/' + file.getId() + '=w800' };
+}
+
+// Student reviews the owner copied from Facebook on the admin page (public, newest first).
+function reviews_() {
+  return rows_('reviews')
+    .filter((r) => r[0] && r[3])
+    .map((r) => ({ id: String(r[0]), name: String(r[1] || ''), info: String(r[2] || ''), text: String(r[3]), link: String(r[4] || '') }))
+    .reverse();
+}
+
+// Only Facebook links are kept for a review.
+function fbLink_(v) {
+  const s = String(v || '').trim();
+  return /^https:\/\/((www|m|web|business)\.)?(facebook\.com|fb\.com|fb\.me)\/[^\s"'<>]*$/i.test(s) ? s.slice(0, 400) : '';
+}
+
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_(), reviews: reviews_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -802,14 +842,40 @@ function adminAction_(body) {
       clean(body.meta, 160),
       clean(body.icon, 8),
       Math.max(0, Math.min(7, Math.floor(Number(body.cover)) || 0)),
-      body.status === 'hidden' ? 'hidden' : ''
+      body.status === 'hidden' ? 'hidden' : '',
+      coverUrl_(body.image)
     ];
+    if (body.image && !row[10]) return { ok: false, error: 'bad-image' };
     const sh = sheet_('books');
+    if (sh.getLastColumn() < SHEETS.books.length) sh.getRange(1, 1, 1, SHEETS.books.length).setValues([SHEETS.books]);
     const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === key);
     if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
     else sh.appendRow(row);
     return { ok: true };
   }
+
+  if (body.action === 'saveReview') {
+    const id = String(body.id || '');
+    const clean = (v, n) => safe_(String(v || '').replace(/[\r\n]+/g, ' ').trim().slice(0, n));
+    const text = clean(body.text, 1000);
+    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id) || text.length < 3) return { ok: false, error: 'bad-input' };
+    if (body.link && !fbLink_(body.link)) return { ok: false, error: 'bad-link' };
+    const row = [id, clean(body.name, 60), clean(body.info, 80), text, fbLink_(body.link), new Date()];
+    const sh = sheet_('reviews');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === id);
+    if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+    else sh.appendRow(row);
+    return { ok: true };
+  }
+
+  if (body.action === 'deleteReview') {
+    const sh = sheet_('reviews');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === String(body.id));
+    if (i > 0) sh.deleteRow(i + 1);
+    return { ok: true };
+  }
+
+  if (body.action === 'uploadCover') return saveCover_(body);
 
   if (body.action === 'deleteBook') {
     const sh = sheet_('books');

@@ -1043,7 +1043,8 @@ const courseBookToShop = (item) => {
     icon: item.icon,
     badge: item.badge,
     price: item.bookPriceBdt,
-    meta: item.chaptersIncluded
+    meta: item.chaptersIncluded,
+    image: item.bookImage || ''
   };
 };
 
@@ -1085,6 +1086,7 @@ const applyBooks = (list) => {
     c.bookPriceBdt = r && r.price > 0 ? bookPriceText(r.price) : o.bookPriceBdt;
     c.badge = (r && r.badge) || o.badge;
     c.author = (r && r.author) || o.author;
+    c.bookImage = (r && r.image) || '';
   });
   const builtIn = new Set([...SPECIAL_COURSES_WITH_BOOKS.map((c) => c.id), ...CV_SHOP_BOOKS.map((b) => b.key)]);
   customBookRows = rows.filter((r) => !builtIn.has(r.key));
@@ -1100,7 +1102,8 @@ const rowToShopBook = (r, base = {}) => ({
   icon: r.icon || base.icon || '📖',
   badge: r.badge || base.badge || '',
   price: r.price > 0 ? bookPriceText(r.price) : base.price || null,
-  meta: r.meta || base.meta || ''
+  meta: r.meta || base.meta || '',
+  image: r.image || ''
 });
 // Published books shelf: the built-in ones (with admin changes) followed by books added on the admin page.
 const shopBooks = () => [
@@ -1141,27 +1144,37 @@ function BookCover({ book, large = false }) {
       <div
         className={`relative h-full w-full origin-left rounded-l-[4px] rounded-r-xl bg-gradient-to-br ${book.grad} overflow-hidden shadow-[8px_10px_24px_rgba(0,0,0,0.55)] transition-transform duration-500 group-hover:[transform:rotateY(-10deg)]`}
       >
-        <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
-        <div className="absolute inset-y-0 left-3.5 w-px bg-white/30" />
-        <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
-        <div className="absolute -left-6 bottom-10 h-20 w-20 rounded-full bg-black/10" />
-        <div className={`absolute inset-0 flex flex-col justify-between text-white ${large ? 'p-5 pl-8' : 'p-3 pl-6'}`}>
-          <div>
-            {book.series && (
-              <div className={`font-bold uppercase text-white/85 line-clamp-1 ${large ? 'text-xs tracking-[0.14em]' : 'text-[8px] tracking-[0.06em]'}`}>
-                {book.series}
+        {book.image ? (
+          <>
+            <img src={book.image} alt={book.title} loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" draggable="false" />
+            <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
+            <div className="absolute inset-y-0 left-3.5 w-px bg-white/25" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
+            <div className="absolute inset-y-0 left-3.5 w-px bg-white/30" />
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
+            <div className="absolute -left-6 bottom-10 h-20 w-20 rounded-full bg-black/10" />
+            <div className={`absolute inset-0 flex flex-col justify-between text-white ${large ? 'p-5 pl-8' : 'p-3 pl-6'}`}>
+              <div>
+                {book.series && (
+                  <div className={`font-bold uppercase text-white/85 line-clamp-1 ${large ? 'text-xs tracking-[0.14em]' : 'text-[8px] tracking-[0.06em]'}`}>
+                    {book.series}
+                  </div>
+                )}
+                <div className="mt-1.5 h-0.5 w-8 rounded bg-white/70" />
               </div>
-            )}
-            <div className="mt-1.5 h-0.5 w-8 rounded bg-white/70" />
-          </div>
-          <div className={`drop-shadow-lg ${large ? 'text-6xl' : 'text-4xl'}`}>{book.icon}</div>
-          <div>
-            <div className={`font-black leading-tight drop-shadow line-clamp-3 ${large ? 'text-2xl sm:text-3xl' : 'text-sm sm:text-base'}`}>
-              {book.title}
+              <div className={`drop-shadow-lg ${large ? 'text-6xl' : 'text-4xl'}`}>{book.icon}</div>
+              <div>
+                <div className={`font-black leading-tight drop-shadow line-clamp-3 ${large ? 'text-2xl sm:text-3xl' : 'text-sm sm:text-base'}`}>
+                  {book.title}
+                </div>
+                <div className={`mt-1 font-semibold text-white/90 ${large ? 'text-sm' : 'text-[10px]'}`}>{book.author}</div>
+              </div>
             </div>
-            <div className={`mt-1 font-semibold text-white/90 ${large ? 'text-sm' : 'text-[10px]'}`}>{book.author}</div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1801,6 +1814,7 @@ const SITE_LINKS = {
   whatsapp: '8801966631211',
   telegram: '', // e.g. 'https://t.me/yourchannel'
   facebook: 'https://www.facebook.com/share/1Mz2tgnjDX/',
+  facebookReviews: '', // the Facebook Page's Reviews link (e.g. 'https://www.facebook.com/yourpage/reviews'); empty uses `facebook`
   email: CV_CREDENTIALS.email,
   liveClass: '', // default Zoom / Google Meet link for live classes
   contentApi: 'https://script.google.com/macros/s/AKfycbwze1cSDh1p0TYdlATTGosYhn9b8qRn6jiG9tUW1ioofV4c0dQHVizIrhRVneK5mKdd1Q/exec', // admin panel backend (docs/ADMIN.md)
@@ -2671,19 +2685,59 @@ function FaqSection() {
   );
 }
 
-// Student reviews and results. The section stays hidden until these lists have entries.
-const TESTIMONIALS = [
-  // { name: 'শিক্ষার্থীর নাম', info: 'HSC 2025, ঢাকা কলেজ', text: 'মতামত' },
-];
+// Results typed here; student reviews come from Facebook and are chosen on the admin page (⭐ মতামত).
 const RESULT_STATS = [
   // { value: '১২০+', label: 'HSC তে A+' },
 ];
+const FB_REVIEW_LINK = () => SITE_LINKS.facebookReviews || SITE_LINKS.facebook;
+
+function ReviewCard({ r }) {
+  const initial = (r.name || '?').trim().charAt(0);
+  return (
+    <figure className="flex flex-col rounded-2xl border border-slate-800 bg-slate-950 p-5">
+      <div className="text-sm tracking-widest text-amber-300" aria-hidden="true">★★★★★</div>
+      <blockquote className="mt-2 flex-1 whitespace-pre-line text-sm leading-relaxed text-slate-200">“{r.text}”</blockquote>
+      <figcaption className="mt-4 flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-sky-500 text-sm font-black text-slate-950">{initial}</span>
+        <span className="min-w-0 flex-1 text-xs">
+          <span className="block truncate font-bold text-white">{r.name || 'শিক্ষার্থী'}</span>
+          {r.info && <span className="block truncate text-slate-400">{r.info}</span>}
+        </span>
+        {r.link && (
+          <a href={r.link} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[11px] font-bold text-[#6ea8ff] hover:underline">
+            Facebook ↗
+          </a>
+        )}
+      </figcaption>
+    </figure>
+  );
+}
 
 function ProofSection() {
-  if (TESTIMONIALS.length === 0 && RESULT_STATS.length === 0) return null;
+  const content = useContent();
+  const reviews = (content && content.reviews) || [];
+  const [showAll, setShowAll] = useState(false);
+  const fb = FB_REVIEW_LINK();
+  if (!fb && reviews.length === 0 && RESULT_STATS.length === 0) return null;
+  const shown = showAll ? reviews : reviews.slice(0, 6);
   return (
-    <div className="rounded-[30px] border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-6">
-      <h3 className="text-xl sm:text-2xl font-extrabold text-white">শিক্ষার্থীদের ফলাফল ও মতামত</h3>
+    <div id="reviews" className="rounded-[30px] border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-white">শিক্ষার্থীদের মতামত</h3>
+          <p className="mt-1 text-xs text-slate-400 sm:text-sm">শিক্ষার্থীরা Facebook এ যা লিখেছে।</p>
+        </div>
+        {fb && (
+          <a
+            href={fb}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#1877F2] px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2d86ff]"
+          >
+            <Facebook className="h-4 w-4" /> Facebook এ মতামত দিন
+          </a>
+        )}
+      </div>
       {RESULT_STATS.length > 0 && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {RESULT_STATS.map((r) => (
@@ -2694,17 +2748,24 @@ function ProofSection() {
           ))}
         </div>
       )}
-      {TESTIMONIALS.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {TESTIMONIALS.map((t) => (
-            <figure key={t.name + t.text} className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <blockquote className="text-sm leading-relaxed text-slate-200">“{t.text}”</blockquote>
-              <figcaption className="mt-3 text-xs">
-                <span className="font-bold text-white">{t.name}</span>
-                <span className="text-slate-400"> • {t.info}</span>
-              </figcaption>
-            </figure>
-          ))}
+      {reviews.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {shown.map((r) => (
+              <ReviewCard key={r.id} r={r} />
+            ))}
+          </div>
+          {reviews.length > 6 && (
+            <div className="text-center">
+              <button type="button" onClick={() => setShowAll((v) => !v)} className="text-xs font-bold text-emerald-300 hover:underline">
+                {showAll ? 'কম দেখান' : `সব ${toBnDigits(reviews.length)}টি মতামত দেখুন`}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/60 p-5 text-center text-sm text-slate-300">
+          আমার কাছে পড়েছেন? আপনার অভিজ্ঞতা Facebook এ লিখুন, এখানে দেখানো হবে।
         </div>
       )}
     </div>
@@ -3414,7 +3475,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], ...data };
       applyOutline(contentCache.outline);
       applyBooks(contentCache.books);
       contentListeners.forEach((fn) => fn(contentCache));
@@ -4063,9 +4124,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই', '⭐ মতামত']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই', reviews: '⭐ মতামত' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books', '⭐ মতামত': 'reviews' }[v])}
         />
         <button
           type="button"
@@ -4134,6 +4195,8 @@ function AdminPage() {
       {tab === 'orders' && <AdminOrdersTab password={password} />}
 
       {tab === 'books' && <AdminBooksTab password={password} content={content} />}
+
+      {tab === 'reviews' && <AdminReviewsTab password={password} content={content} />}
     </>
   );
 }
@@ -4422,6 +4485,101 @@ function AdminOrdersTab({ password }) {
   );
 }
 
+// ---------------------------------------------------------------- Student reviews (from Facebook)
+const FB_LINK_RE = /^https:\/\/((www|m|web|business)\.)?(facebook\.com|fb\.com|fb\.me)\/[^\s"'<>]*$/i;
+
+function AdminReviewsTab({ password, content }) {
+  const blank = { id: '', name: '', info: '', text: '', link: '' };
+  const [f, setF] = useState(blank);
+  const [state, setState] = useState('idle');
+  const reviews = (content && content.reviews) || [];
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const linkOk = !f.link.trim() || FB_LINK_RE.test(f.link.trim());
+  const save = () => {
+    setState('busy');
+    adminPost(password, { action: 'saveReview', ...f, id: f.id || `rv-${Date.now().toString(36)}`, link: f.link.trim() }).then((r) => {
+      setState(r.ok ? 'done' : r.error === 'bad-link' ? 'bad-link' : 'error');
+      if (r.ok) {
+        setF(blank);
+        loadContent();
+      }
+    });
+  };
+  const remove = (id) => window.confirm('মতামতটি সাইট থেকে সরাবেন?') && adminPost(password, { action: 'deleteReview', id }).then(() => loadContent());
+  const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-xs leading-relaxed text-slate-300">
+        শিক্ষার্থীরা সাইটের "Facebook এ মতামত দিন" বোতাম চেপে আপনার Facebook পেজে লেখে। যে মতামত সাইটে দেখাতে চান, তার লেখা ও লিংক এখানে বসান।
+        লিংক পেতে Facebook এ মতামতের তারিখে বা "…" মেনুতে "Copy link" চাপুন।
+      </div>
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="text-sm font-bold text-white">{f.id ? '✏️ মতামত বদলান' : '+ নতুন মতামত যোগ করুন'}</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label>
+            <span className={label}>শিক্ষার্থীর নাম</span>
+            <input className={adminInput} value={f.name} onChange={set('name')} placeholder="যেমন: রাফি আহমেদ" />
+          </label>
+          <label>
+            <span className={label}>পরিচয় (ঐচ্ছিক)</span>
+            <input className={adminInput} value={f.info} onChange={set('info')} placeholder="যেমন: HSC 2025, হামদর্দ পাবলিক কলেজ" />
+          </label>
+          <label className="sm:col-span-2">
+            <span className={label}>মতামত</span>
+            <textarea className={`${adminInput} min-h-[96px]`} value={f.text} onChange={set('text')} placeholder="Facebook এ যা লিখেছে, সেটা কপি করে দিন" />
+          </label>
+          <label className="sm:col-span-2">
+            <span className={label}>Facebook লিংক (ঐচ্ছিক)</span>
+            <input className={adminInput} value={f.link} onChange={set('link')} placeholder="https://www.facebook.com/..." />
+            {!linkOk && <span className="mt-1 block text-[11px] text-rose-300">শুধু facebook.com এর লিংক দেওয়া যাবে।</span>}
+          </label>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={state === 'busy' || f.text.trim().length < 3 || !linkOk}
+            onClick={save}
+            className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
+          >
+            Save
+          </button>
+          {f.id && (
+            <button type="button" onClick={() => setF(blank)} className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white">
+              বাতিল
+            </button>
+          )}
+          <span className="text-[11px] text-slate-400">
+            {state === 'busy' ? 'সেভ হচ্ছে…' : state === 'done' ? '✓ সেভ হয়েছে' : state === 'bad-link' ? 'লিংকটি Facebook এর নয়' : state === 'error' ? 'সেভ হয়নি (Apps Script পুরনো কি না দেখুন)' : ''}
+          </span>
+        </div>
+      </div>
+      {reviews.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-400">এখনো কোনো মতামত যোগ করা হয়নি।</div>}
+      {reviews.map((r) => (
+        <div key={r.id} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="text-sm text-slate-200">“{r.text}”</div>
+          <div className="text-xs text-slate-400">
+            <b className="text-white">{r.name || 'শিক্ষার্থী'}</b>
+            {r.info ? ` • ${r.info}` : ''}
+            {r.link && (
+              <a href={r.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#6ea8ff] hover:underline">
+                Facebook ↗
+              </a>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setF({ id: r.id, name: r.name, info: r.info, text: r.text, link: r.link })} className="rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-slate-700">
+              বদলান
+            </button>
+            <button type="button" onClick={() => remove(r.id)} className="rounded-lg bg-rose-500/20 px-3 py-1.5 text-[11px] font-bold text-rose-300 hover:bg-rose-500/30">
+              সরান
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- Book shelf editor
 // Built-in books can be re-priced, renamed or hidden; new books can be added or removed.
 function AdminBookCard({ item, password, onChanged }) {
@@ -4435,8 +4593,10 @@ function AdminBookCard({ item, password, onChanged }) {
     meta: row.meta || item.meta || '',
     icon: row.icon || item.icon || '📖',
     cover: row.cover || item.cover || 0,
+    image: row.image || '',
     hidden: row.status === 'hidden'
   });
+  const [upload, setUpload] = useState(''); // '' | busy | error message
   const [state, setState] = useState('idle');
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
   const run = (payload) => {
@@ -4446,7 +4606,7 @@ function AdminBookCard({ item, password, onChanged }) {
       if (r.ok) onChanged();
     });
   };
-  const save = (hidden = f.hidden) =>
+  const save = (hidden = f.hidden, image = f.image) =>
     run({
       action: 'saveBook',
       key: item.key,
@@ -4458,8 +4618,43 @@ function AdminBookCard({ item, password, onChanged }) {
       meta: f.meta.trim(),
       icon: f.icon.trim(),
       cover: f.cover,
+      image: image.trim(),
       status: hidden ? 'hidden' : ''
     });
+  // Shrinks the picture in the browser (longest side 900px, JPEG), uploads it to the owner's Drive and saves it.
+  const pickCover = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\//.test(file.type)) return setUpload('শুধু ছবি (JPG, PNG, WebP) দেওয়া যাবে।');
+    setUpload('busy');
+    const img = new Image();
+    const src = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(src);
+      const data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+      adminPost(password, { action: 'uploadCover', key: item.key, mime: 'image/jpeg', data }).then((r) => {
+        if (!r.ok) return setUpload('আপলোড হয়নি। Apps Script নতুন version এ deploy করা আছে কি না দেখুন।');
+        setUpload('');
+        setF((x) => ({ ...x, image: r.url }));
+        if (f.title.trim()) save(f.hidden, r.url);
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(src);
+      setUpload('ছবিটি পড়া যায়নি।');
+    };
+    img.src = src;
+  };
+  const coverOk = !f.image.trim() || /^https:\/\/[^\s"'<>()]+$/i.test(f.image.trim());
   const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
   return (
     <div className={`space-y-3 rounded-2xl border p-4 ${f.hidden ? 'border-slate-800 bg-slate-900/40 opacity-70' : 'border-slate-800 bg-slate-900/70'}`}>
@@ -4469,6 +4664,36 @@ function AdminBookCard({ item, password, onChanged }) {
           {f.hidden && <span className="ml-2 rounded bg-slate-700 px-1.5 py-0.5 text-[10px]">লুকানো</span>}
         </div>
         <span className="font-mono text-[10px] text-slate-500">{item.key}</span>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="w-24 shrink-0">
+          <BookCover book={{ ...item, title: f.title, series: f.series, author: f.author, icon: f.icon, grad: item.course ? item.grad : BOOK_GRADS[f.cover] || item.grad || BOOK_GRADS[0], image: coverOk ? f.image.trim() : '' }} />
+        </div>
+        <div className="min-w-0 flex-1 space-y-2">
+          <span className={label}>কভারের ছবি</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className={`cursor-pointer rounded-lg bg-sky-500/20 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/30 ${upload === 'busy' ? 'pointer-events-none opacity-60' : ''}`}>
+              {upload === 'busy' ? 'আপলোড হচ্ছে…' : '📷 ছবি আপলোড করুন'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={pickCover} />
+            </label>
+            {f.image && (
+              <button
+                type="button"
+                onClick={() => {
+                  setF((x) => ({ ...x, image: '' }));
+                  if (f.title.trim()) save(f.hidden, '');
+                }}
+                className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700"
+              >
+                ছবি সরান
+              </button>
+            )}
+          </div>
+          <input className={adminInput} value={f.image} onChange={set('image')} placeholder="অথবা ছবির লিংক (Google Drive লিংকও চলবে)" />
+          {!coverOk && <span className="block text-[11px] text-rose-300">লিংক https:// দিয়ে শুরু হতে হবে।</span>}
+          {upload && upload !== 'busy' && <span className="block text-[11px] text-rose-300">{upload}</span>}
+          <span className="block text-[11px] text-slate-500">ছবি না দিলে রং ও ইমোজির কভার দেখাবে। খাড়া (৩:৪) ছবি সবচেয়ে ভালো দেখায়।</span>
+        </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="sm:col-span-2">
@@ -4525,7 +4750,7 @@ function AdminBookCard({ item, password, onChanged }) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={state === 'busy' || !f.title.trim()}
+          disabled={state === 'busy' || !f.title.trim() || !coverOk}
           onClick={() => save()}
           className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
         >
@@ -4577,7 +4802,7 @@ function AdminBooksTab({ password, content }) {
   const items = [
     ...COURSE_BOOK_ORIGINAL.map((o, i) => {
       const c = SPECIAL_COURSES_WITH_BOOKS[i];
-      return { key: c.id, builtIn: true, course: true, title: o.bookTitle, author: o.author, badge: o.badge, price: priceNumber(o.bookPriceBdt), row: rows[c.id] };
+      return { key: c.id, builtIn: true, course: true, title: o.bookTitle, author: o.author, badge: o.badge, price: priceNumber(o.bookPriceBdt), grad: c.grad, icon: c.icon, row: rows[c.id] };
     }),
     ...CV_SHOP_BOOKS.map((b) => ({ ...b, builtIn: true, price: 0, row: rows[b.key] })),
     ...((content && content.books) || []).filter((r) => !SPECIAL_COURSES_WITH_BOOKS.some((c) => c.id === r.key) && !CV_SHOP_BOOKS.some((b) => b.key === r.key)).map((r) => ({ key: r.key, builtIn: false, title: r.title, row: r })),
