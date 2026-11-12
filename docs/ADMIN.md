@@ -91,3 +91,9 @@ The book shelf can be edited without changing code. For every built-in book you 
 Students write reviews on Facebook: the home page has a "Facebook এ মতামত দিন" button. It opens `SITE_LINKS.facebookReviews` in `src/App.jsx`, or `SITE_LINKS.facebook` while that is empty. Set `facebookReviews` to your Facebook Page's Reviews link (for example `https://www.facebook.com/yourpage/reviews`). Reviews and recommendations only exist on a Facebook Page, not on a personal profile.
 
 To show a review on the site, open the ⭐ মতামত tab and paste the student's name, an optional line such as "HSC 2025, Hamdard Public College", the review text and, optionally, the Facebook link to the review ("Copy link" on Facebook). Only facebook.com links are accepted. Reviews are stored in the `reviews` sheet, newest first; the home page shows six with a "show all" button. "বদলান" edits a review and "সরান" removes it. After pasting the new `admin-apps-script.gs`, deploy a New version.
+
+### Book cover pictures
+
+Each book in the 📖 বই tab has a "কভারের ছবি" box. "📷 ছবি আপলোড করুন" picks a picture from your phone or computer; the page shrinks it (longest side 900px) and saves it to a Google Drive folder named "10takaschool book covers", shared as "anyone with the link can view", then saves the book. You can instead paste a picture link: a Google Drive share link (the file must be shared as "anyone with the link") or any https picture link. "ছবি সরান" goes back to the colour and emoji cover. Upright (3:4) pictures look best.
+
+The first time you deploy this version, Google asks you to allow the script to use Google Drive: allow it, or uploads will fail (pasting a link still works).

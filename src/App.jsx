@@ -1043,7 +1043,8 @@ const courseBookToShop = (item) => {
     icon: item.icon,
     badge: item.badge,
     price: item.bookPriceBdt,
-    meta: item.chaptersIncluded
+    meta: item.chaptersIncluded,
+    image: item.bookImage || ''
   };
 };
 
@@ -1085,6 +1086,7 @@ const applyBooks = (list) => {
     c.bookPriceBdt = r && r.price > 0 ? bookPriceText(r.price) : o.bookPriceBdt;
     c.badge = (r && r.badge) || o.badge;
     c.author = (r && r.author) || o.author;
+    c.bookImage = (r && r.image) || '';
   });
   const builtIn = new Set([...SPECIAL_COURSES_WITH_BOOKS.map((c) => c.id), ...CV_SHOP_BOOKS.map((b) => b.key)]);
   customBookRows = rows.filter((r) => !builtIn.has(r.key));
@@ -1100,7 +1102,8 @@ const rowToShopBook = (r, base = {}) => ({
   icon: r.icon || base.icon || '📖',
   badge: r.badge || base.badge || '',
   price: r.price > 0 ? bookPriceText(r.price) : base.price || null,
-  meta: r.meta || base.meta || ''
+  meta: r.meta || base.meta || '',
+  image: r.image || ''
 });
 // Published books shelf: the built-in ones (with admin changes) followed by books added on the admin page.
 const shopBooks = () => [
@@ -1141,27 +1144,37 @@ function BookCover({ book, large = false }) {
       <div
         className={`relative h-full w-full origin-left rounded-l-[4px] rounded-r-xl bg-gradient-to-br ${book.grad} overflow-hidden shadow-[8px_10px_24px_rgba(0,0,0,0.55)] transition-transform duration-500 group-hover:[transform:rotateY(-10deg)]`}
       >
-        <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
-        <div className="absolute inset-y-0 left-3.5 w-px bg-white/30" />
-        <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
-        <div className="absolute -left-6 bottom-10 h-20 w-20 rounded-full bg-black/10" />
-        <div className={`absolute inset-0 flex flex-col justify-between text-white ${large ? 'p-5 pl-8' : 'p-3 pl-6'}`}>
-          <div>
-            {book.series && (
-              <div className={`font-bold uppercase text-white/85 line-clamp-1 ${large ? 'text-xs tracking-[0.14em]' : 'text-[8px] tracking-[0.06em]'}`}>
-                {book.series}
+        {book.image ? (
+          <>
+            <img src={book.image} alt={book.title} loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" draggable="false" />
+            <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
+            <div className="absolute inset-y-0 left-3.5 w-px bg-white/25" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-y-0 left-0 w-3.5 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
+            <div className="absolute inset-y-0 left-3.5 w-px bg-white/30" />
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
+            <div className="absolute -left-6 bottom-10 h-20 w-20 rounded-full bg-black/10" />
+            <div className={`absolute inset-0 flex flex-col justify-between text-white ${large ? 'p-5 pl-8' : 'p-3 pl-6'}`}>
+              <div>
+                {book.series && (
+                  <div className={`font-bold uppercase text-white/85 line-clamp-1 ${large ? 'text-xs tracking-[0.14em]' : 'text-[8px] tracking-[0.06em]'}`}>
+                    {book.series}
+                  </div>
+                )}
+                <div className="mt-1.5 h-0.5 w-8 rounded bg-white/70" />
               </div>
-            )}
-            <div className="mt-1.5 h-0.5 w-8 rounded bg-white/70" />
-          </div>
-          <div className={`drop-shadow-lg ${large ? 'text-6xl' : 'text-4xl'}`}>{book.icon}</div>
-          <div>
-            <div className={`font-black leading-tight drop-shadow line-clamp-3 ${large ? 'text-2xl sm:text-3xl' : 'text-sm sm:text-base'}`}>
-              {book.title}
+              <div className={`drop-shadow-lg ${large ? 'text-6xl' : 'text-4xl'}`}>{book.icon}</div>
+              <div>
+                <div className={`font-black leading-tight drop-shadow line-clamp-3 ${large ? 'text-2xl sm:text-3xl' : 'text-sm sm:text-base'}`}>
+                  {book.title}
+                </div>
+                <div className={`mt-1 font-semibold text-white/90 ${large ? 'text-sm' : 'text-[10px]'}`}>{book.author}</div>
+              </div>
             </div>
-            <div className={`mt-1 font-semibold text-white/90 ${large ? 'text-sm' : 'text-[10px]'}`}>{book.author}</div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -4580,8 +4593,10 @@ function AdminBookCard({ item, password, onChanged }) {
     meta: row.meta || item.meta || '',
     icon: row.icon || item.icon || '📖',
     cover: row.cover || item.cover || 0,
+    image: row.image || '',
     hidden: row.status === 'hidden'
   });
+  const [upload, setUpload] = useState(''); // '' | busy | error message
   const [state, setState] = useState('idle');
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
   const run = (payload) => {
@@ -4591,7 +4606,7 @@ function AdminBookCard({ item, password, onChanged }) {
       if (r.ok) onChanged();
     });
   };
-  const save = (hidden = f.hidden) =>
+  const save = (hidden = f.hidden, image = f.image) =>
     run({
       action: 'saveBook',
       key: item.key,
@@ -4603,8 +4618,43 @@ function AdminBookCard({ item, password, onChanged }) {
       meta: f.meta.trim(),
       icon: f.icon.trim(),
       cover: f.cover,
+      image: image.trim(),
       status: hidden ? 'hidden' : ''
     });
+  // Shrinks the picture in the browser (longest side 900px, JPEG), uploads it to the owner's Drive and saves it.
+  const pickCover = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\//.test(file.type)) return setUpload('শুধু ছবি (JPG, PNG, WebP) দেওয়া যাবে।');
+    setUpload('busy');
+    const img = new Image();
+    const src = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(src);
+      const data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+      adminPost(password, { action: 'uploadCover', key: item.key, mime: 'image/jpeg', data }).then((r) => {
+        if (!r.ok) return setUpload('আপলোড হয়নি। Apps Script নতুন version এ deploy করা আছে কি না দেখুন।');
+        setUpload('');
+        setF((x) => ({ ...x, image: r.url }));
+        if (f.title.trim()) save(f.hidden, r.url);
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(src);
+      setUpload('ছবিটি পড়া যায়নি।');
+    };
+    img.src = src;
+  };
+  const coverOk = !f.image.trim() || /^https:\/\/[^\s"'<>()]+$/i.test(f.image.trim());
   const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
   return (
     <div className={`space-y-3 rounded-2xl border p-4 ${f.hidden ? 'border-slate-800 bg-slate-900/40 opacity-70' : 'border-slate-800 bg-slate-900/70'}`}>
@@ -4614,6 +4664,36 @@ function AdminBookCard({ item, password, onChanged }) {
           {f.hidden && <span className="ml-2 rounded bg-slate-700 px-1.5 py-0.5 text-[10px]">লুকানো</span>}
         </div>
         <span className="font-mono text-[10px] text-slate-500">{item.key}</span>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="w-24 shrink-0">
+          <BookCover book={{ ...item, title: f.title, series: f.series, author: f.author, icon: f.icon, grad: item.course ? item.grad : BOOK_GRADS[f.cover] || item.grad || BOOK_GRADS[0], image: coverOk ? f.image.trim() : '' }} />
+        </div>
+        <div className="min-w-0 flex-1 space-y-2">
+          <span className={label}>কভারের ছবি</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className={`cursor-pointer rounded-lg bg-sky-500/20 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/30 ${upload === 'busy' ? 'pointer-events-none opacity-60' : ''}`}>
+              {upload === 'busy' ? 'আপলোড হচ্ছে…' : '📷 ছবি আপলোড করুন'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={pickCover} />
+            </label>
+            {f.image && (
+              <button
+                type="button"
+                onClick={() => {
+                  setF((x) => ({ ...x, image: '' }));
+                  if (f.title.trim()) save(f.hidden, '');
+                }}
+                className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700"
+              >
+                ছবি সরান
+              </button>
+            )}
+          </div>
+          <input className={adminInput} value={f.image} onChange={set('image')} placeholder="অথবা ছবির লিংক (Google Drive লিংকও চলবে)" />
+          {!coverOk && <span className="block text-[11px] text-rose-300">লিংক https:// দিয়ে শুরু হতে হবে।</span>}
+          {upload && upload !== 'busy' && <span className="block text-[11px] text-rose-300">{upload}</span>}
+          <span className="block text-[11px] text-slate-500">ছবি না দিলে রং ও ইমোজির কভার দেখাবে। খাড়া (৩:৪) ছবি সবচেয়ে ভালো দেখায়।</span>
+        </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="sm:col-span-2">
@@ -4670,7 +4750,7 @@ function AdminBookCard({ item, password, onChanged }) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={state === 'busy' || !f.title.trim()}
+          disabled={state === 'busy' || !f.title.trim() || !coverOk}
           onClick={() => save()}
           className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
         >
@@ -4722,7 +4802,7 @@ function AdminBooksTab({ password, content }) {
   const items = [
     ...COURSE_BOOK_ORIGINAL.map((o, i) => {
       const c = SPECIAL_COURSES_WITH_BOOKS[i];
-      return { key: c.id, builtIn: true, course: true, title: o.bookTitle, author: o.author, badge: o.badge, price: priceNumber(o.bookPriceBdt), row: rows[c.id] };
+      return { key: c.id, builtIn: true, course: true, title: o.bookTitle, author: o.author, badge: o.badge, price: priceNumber(o.bookPriceBdt), grad: c.grad, icon: c.icon, row: rows[c.id] };
     }),
     ...CV_SHOP_BOOKS.map((b) => ({ ...b, builtIn: true, price: 0, row: rows[b.key] })),
     ...((content && content.books) || []).filter((r) => !SPECIAL_COURSES_WITH_BOOKS.some((c) => c.id === r.key) && !CV_SHOP_BOOKS.some((b) => b.key === r.key)).map((r) => ({ key: r.key, builtIn: false, title: r.title, row: r })),
