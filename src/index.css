@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* The phone menu is a single swipeable row: hide its scrollbar. */
+.main-nav { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.main-nav::-webkit-scrollbar { display: none; }
