@@ -178,6 +178,97 @@ const HSC_BV_PAPERS = {
   }
 };
 
+// What each HSC chapter covers (shown on the chapter page and in its search description).
+// Keys: Bangla Version chapter ids; the English Version chapters (ev1-chN / ev2-chN) use the `en` lines.
+const HSC_CHAPTER_NOTES = {
+  'p1-ch1': {
+    bn: ['ম্যাট্রিক্সের প্রকারভেদ, যোগ, বিয়োগ ও গুণ', 'নির্ণায়কের মান ও ধর্ম', 'অনুবন্ধী ও বিপরীত ম্যাট্রিক্স: A⁻¹ = adj(A) / |A|', 'ক্র্যামারের নিয়মে সমীকরণ জোটের সমাধান'],
+    en: ['Types of matrices; addition and multiplication', 'Determinants and their properties', 'Adjoint and inverse: A⁻¹ = adj(A) / |A|', 'Solving linear systems by Cramer’s rule']
+  },
+  'p1-ch2': {
+    bn: ['ভেক্টরের যোগ, বিয়োগ ও একক ভেক্টর', 'ডট গুণন: a·b = |a||b| cos θ', 'ক্রস গুণন: |a×b| = |a||b| sin θ', 'অভিক্ষেপ, লম্ব ও সমান্তরাল হওয়ার শর্ত'],
+    en: ['Vector addition, subtraction and unit vectors', 'Dot product: a·b = |a||b| cos θ', 'Cross product: |a×b| = |a||b| sin θ', 'Projection; conditions for perpendicular and parallel vectors']
+  },
+  'p1-ch3': {
+    bn: ['দূরত্ব ও বিভক্তিকরণ সূত্র', 'ঢাল: m = (y₂ − y₁) / (x₂ − x₁)', 'রেখার সমীকরণ: y = mx + c, x/a + y/b = 1', 'দুই রেখার মধ্যবর্তী কোণ ও লম্ব দূরত্ব |ax₁ + by₁ + c| / √(a² + b²)'],
+    en: ['Distance and section formulas', 'Slope: m = (y₂ − y₁) / (x₂ − x₁)', 'Forms of a line: y = mx + c, x/a + y/b = 1', 'Angle between two lines; perpendicular distance |ax₁ + by₁ + c| / √(a² + b²)']
+  },
+  'p1-ch4': {
+    bn: ['কেন্দ্র ও ব্যাসার্ধ দিয়ে বৃত্ত: (x − h)² + (y − k)² = r²', 'সাধারণ সমীকরণ x² + y² + 2gx + 2fy + c = 0: কেন্দ্র (−g, −f), ব্যাসার্ধ √(g² + f² − c)', 'স্পর্শক ও অভিলম্বের সমীকরণ', 'বহিঃস্থ বিন্দু থেকে স্পর্শকের দৈর্ঘ্য'],
+    en: ['Centre-radius form: (x − h)² + (y − k)² = r²', 'General form x² + y² + 2gx + 2fy + c = 0: centre (−g, −f), radius √(g² + f² − c)', 'Equations of tangents and normals', 'Length of a tangent from an external point']
+  },
+  'p1-ch5': {
+    bn: ['গণনার মূলনীতি ও ফ্যাক্টোরিয়াল', 'বিন্যাস: ⁿPᵣ = n! / (n − r)!', 'সমাবেশ: ⁿCᵣ = n! / (r!(n − r)!)', 'পুনরাবৃত্তিসহ বিন্যাস, চক্র বিন্যাস ও শর্তাধীন বাছাই'],
+    en: ['Counting principle and factorials', 'Permutations: ⁿPᵣ = n! / (n − r)!', 'Combinations: ⁿCᵣ = n! / (r!(n − r)!)', 'Arrangements with repetition, circular permutations and restricted selections']
+  },
+  'p1-ch6': {
+    bn: ['ডিগ্রি ও রেডিয়ান পরিমাপ, চাপের দৈর্ঘ্য s = rθ', 'মৌলিক অভেদ: sin²θ + cos²θ = 1, 1 + tan²θ = sec²θ', 'চতুর্ভাগ অনুযায়ী অনুপাতের চিহ্ন', 'আদর্শ কোণের মান ও লেখচিত্র'],
+    en: ['Degree and radian measure; arc length s = rθ', 'Basic identities: sin²θ + cos²θ = 1, 1 + tan²θ = sec²θ', 'Signs of the ratios in each quadrant', 'Values at standard angles and graphs']
+  },
+  'p1-ch7': {
+    bn: ['যৌগিক কোণ: sin(A ± B), cos(A ± B), tan(A ± B)', 'গুণিতক কোণ: sin 2A = 2 sin A cos A, cos 2A = cos²A − sin²A', 'গুণফল ও যোগফলের রূপান্তর সূত্র', 'ত্রিভুজের সাইন ও কোসাইন সূত্র'],
+    en: ['Compound angles: sin(A ± B), cos(A ± B), tan(A ± B)', 'Multiple angles: sin 2A = 2 sin A cos A, cos 2A = cos²A − sin²A', 'Product-to-sum and sum-to-product formulas', 'Sine and cosine rules for a triangle']
+  },
+  'p1-ch8': {
+    bn: ['ফাংশন, ডোমেন ও রেঞ্জ', 'এক-এক ও সার্বিক ফাংশন', 'বিপরীত ফাংশন ও সংযোজিত ফাংশন', 'লেখচিত্র আঁকা ও লেখচিত্রের রূপান্তর'],
+    en: ['Functions, domain and range', 'One-one and onto functions', 'Inverse and composite functions', 'Sketching graphs and transformations of graphs']
+  },
+  'p1-ch9': {
+    bn: ['লিমিট ও অবিচ্ছিন্নতা', 'মৌলিক সূত্র: d/dx (xⁿ) = n xⁿ⁻¹', 'গুণ, ভাগ ও চেইন নিয়ম', 'স্পর্শকের ঢাল, গুরুমান ও লঘুমান'],
+    en: ['Limits and continuity', 'Basic rule: d/dx (xⁿ) = n xⁿ⁻¹', 'Product, quotient and chain rules', 'Slope of a tangent; maxima and minima']
+  },
+  'p1-ch10': {
+    bn: ['মৌলিক সূত্র: ∫xⁿ dx = xⁿ⁺¹ / (n + 1) + c', 'প্রতিস্থাপন পদ্ধতি', 'অংশায়ন: ∫u dv = uv − ∫v du', 'নির্দিষ্ট যোগজ ও ক্ষেত্রফল নির্ণয়'],
+    en: ['Basic rule: ∫xⁿ dx = xⁿ⁺¹ / (n + 1) + c', 'Integration by substitution', 'Integration by parts: ∫u dv = uv − ∫v du', 'Definite integrals and area under a curve']
+  },
+  'p2-ch1': {
+    bn: ['বাস্তব সংখ্যার শ্রেণিবিভাগ ও স্বীকার্য', 'পরম মান |x| ও এর ধর্ম', 'অসমতার সমাধান ও সংখ্যারেখায় প্রকাশ', '|x − a| < b হলে a − b < x < a + b'],
+    en: ['Classification and axioms of real numbers', 'Absolute value |x| and its properties', 'Solving inequalities and showing them on the number line', '|x − a| < b means a − b < x < a + b']
+  },
+  'p2-ch2': {
+    bn: ['সীমাবদ্ধতা ও অভীষ্ট ফাংশন গঠন', 'লেখচিত্রে সম্ভাব্য সমাধান অঞ্চল', 'কৌণিক বিন্দুতে সর্বোচ্চ ও সর্বনিম্ন মান', 'বাস্তব সমস্যাকে যোগাশ্রয়ী প্রোগ্রামে রূপ দেওয়া'],
+    en: ['Forming constraints and the objective function', 'Feasible region on a graph', 'Maximum and minimum values at corner points', 'Modelling real problems as linear programmes']
+  },
+  'p2-ch3': {
+    bn: ['কাল্পনিক একক i, i² = −1', 'মডুলাস |z| = √(x² + y²), আর্গুমেন্ট ও অনুবন্ধী', 'আর্গন্ড চিত্র ও পোলার আকার', 'এককের ঘনমূল: 1 + ω + ω² = 0, ω³ = 1'],
+    en: ['Imaginary unit i, i² = −1', 'Modulus |z| = √(x² + y²), argument and conjugate', 'Argand diagram and polar form', 'Cube roots of unity: 1 + ω + ω² = 0, ω³ = 1']
+  },
+  'p2-ch4': {
+    bn: ['ভাগশেষ ও উৎপাদক উপপাদ্য', 'দ্বিঘাত সমীকরণের মূল: x = (−b ± √(b² − 4ac)) / 2a', 'মূল ও সহগের সম্পর্ক: α + β = −b/a, αβ = c/a', 'নিশ্চায়ক b² − 4ac ও মূলের প্রকৃতি'],
+    en: ['Remainder and factor theorems', 'Roots of a quadratic: x = (−b ± √(b² − 4ac)) / 2a', 'Roots and coefficients: α + β = −b/a, αβ = c/a', 'Discriminant b² − 4ac and the nature of roots']
+  },
+  'p2-ch5': {
+    bn: ['দ্বিপদী বিস্তৃতি (a + b)ⁿ', 'সাধারণ পদ: Tᵣ₊₁ = ⁿCᵣ aⁿ⁻ʳ bʳ', 'মধ্যপদ ও নির্দিষ্ট পদের সহগ', 'অসীম ধারায় বিস্তৃতি (|x| < 1)'],
+    en: ['Binomial expansion of (a + b)ⁿ', 'General term: Tᵣ₊₁ = ⁿCᵣ aⁿ⁻ʳ bʳ', 'Middle term and the coefficient of a given term', 'Expansion as an infinite series (|x| < 1)']
+  },
+  'p2-ch6': {
+    bn: ['পরাবৃত্ত: y² = 4ax', 'উপবৃত্ত: x²/a² + y²/b² = 1', 'অধিবৃত্ত: x²/a² − y²/b² = 1', 'উৎকেন্দ্রিকতা, উপকেন্দ্র, নিয়ামক ও উপকেন্দ্রিক লম্ব'],
+    en: ['Parabola: y² = 4ax', 'Ellipse: x²/a² + y²/b² = 1', 'Hyperbola: x²/a² − y²/b² = 1', 'Eccentricity, focus, directrix and latus rectum']
+  },
+  'p2-ch7': {
+    bn: ['sin⁻¹x, cos⁻¹x ও tan⁻¹x এর মুখ্য মান', 'tan⁻¹x + tan⁻¹y = tan⁻¹((x + y) / (1 − xy))', 'ত্রিকোণমিতিক সমীকরণের সাধারণ সমাধান', 'নির্দিষ্ট ব্যবধিতে সমাধান'],
+    en: ['Principal values of sin⁻¹x, cos⁻¹x and tan⁻¹x', 'tan⁻¹x + tan⁻¹y = tan⁻¹((x + y) / (1 − xy))', 'General solutions of trigonometric equations', 'Solutions in a given interval']
+  },
+  'p2-ch8': {
+    bn: ['দুটি বলের লব্ধি: R² = P² + Q² + 2PQ cos α', 'বলের বিভাজন ও লামির উপপাদ্য', 'বলের ভ্রামক ও যুগল', 'সমান্তরাল বল ও সাম্যাবস্থা'],
+    en: ['Resultant of two forces: R² = P² + Q² + 2PQ cos α', 'Resolution of forces and Lami’s theorem', 'Moment of a force and couples', 'Parallel forces and equilibrium']
+  },
+  'p2-ch9': {
+    bn: ['গতির সমীকরণ: v = u + at, s = ut + ½at², v² = u² + 2as', 'অভিকর্ষের অধীনে খাড়া গতি', 'প্রক্ষেপক: পাল্লা R = u² sin 2α / g', 'সর্বোচ্চ উচ্চতা H = u² sin²α / 2g ও বিচরণকাল'],
+    en: ['Equations of motion: v = u + at, s = ut + ½at², v² = u² + 2as', 'Vertical motion under gravity', 'Projectiles: range R = u² sin 2α / g', 'Greatest height H = u² sin²α / 2g and time of flight']
+  },
+  'p2-ch10': {
+    bn: ['পরিসর, গড় ব্যবধান, ভেদাঙ্ক ও পরিমিত ব্যবধান', 'সম্ভাবনা: P(A) = অনুকূল ফলাফল / মোট ফলাফল', 'যোগ সূত্র: P(A ∪ B) = P(A) + P(B) − P(A ∩ B)', 'শর্তাধীন সম্ভাবনা ও স্বাধীন ঘটনা'],
+    en: ['Range, mean deviation, variance and standard deviation', 'Probability: P(A) = favourable outcomes / total outcomes', 'Addition rule: P(A ∪ B) = P(A) + P(B) − P(A ∩ B)', 'Conditional probability and independent events']
+  }
+};
+// Notes for a chapter id: Bangla for p1-/p2- chapters, English for the matching ev1-/ev2- chapters.
+const chapterNotes = (id) => {
+  const ev = /^ev([12])-ch(\d+)$/.exec(id || '');
+  if (ev) return (HSC_CHAPTER_NOTES[`p${ev[1]}-ch${ev[2]}`] || {}).en || null;
+  return (HSC_CHAPTER_NOTES[id] || {}).bn || null;
+};
+
 const SPECIAL_COURSES_WITH_BOOKS = [
   {
     id: 'course-calculus',
@@ -2566,8 +2657,11 @@ function QuizPanel({ quizKey }) {
         </button>
       ) : (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/50 bg-emerald-950/90 p-4">
-          <div className="text-sm font-extrabold text-emerald-300">
-            ফলাফল: {toBnDigits(score)} / {toBnDigits(questions.length)}
+          <div className="space-y-2">
+            <div className="text-sm font-extrabold text-emerald-300">
+              ফলাফল: {toBnDigits(score)} / {toBnDigits(questions.length)}
+            </div>
+            <ShareButtons text={`MCQ কুইজে আমি ${toBnDigits(score)}/${toBnDigits(questions.length)} পেয়েছি! তুমিও দাও:`} />
           </div>
           <button
             type="button"
@@ -2682,6 +2776,261 @@ function FaqSection() {
         ))}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- Share, demo video, daily question, progress
+// Share the current page (or a given path) to WhatsApp / Facebook, copy its link, or use the phone's share sheet.
+function ShareButtons({ text, path, light = false, className = '' }) {
+  const [copied, setCopied] = useState(false);
+  const url = () => SITE_ORIGIN + (path || window.location.pathname);
+  const open = (href) => window.open(href, '_blank', 'noopener,noreferrer');
+  const btn = `inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition ${
+    light ? 'bg-white/20 text-white hover:bg-white/30' : 'border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800'
+  }`;
+  const copy = () => {
+    const done = () => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    };
+    try {
+      navigator.clipboard.writeText(url()).then(done, () => window.prompt('লিংক কপি করুন:', url()));
+    } catch {
+      window.prompt('লিংক কপি করুন:', url());
+    }
+  };
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      <span className={`text-[11px] font-semibold ${light ? 'text-white/80' : 'text-slate-400'}`}>শেয়ার:</span>
+      <button type="button" className={btn} onClick={() => open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url()}`)}`)}>
+        <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+      </button>
+      <button type="button" className={btn} onClick={() => open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url())}`)}>
+        <Facebook className="h-3.5 w-3.5" /> Facebook
+      </button>
+      <button type="button" className={btn} onClick={copy}>
+        {copied ? '✓ কপি হয়েছে' : '🔗 লিংক কপি'}
+      </button>
+    </div>
+  );
+}
+
+const demoVideoId = (v) => {
+  const m = String(v || '').trim().match(/^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&#\/].*)?$/);
+  return m ? m[1] : '';
+};
+
+// Free demo class on the home page (link set on the admin page). The player loads only after a tap.
+function DemoVideoSection() {
+  const content = useContent();
+  const [playing, setPlaying] = useState(false);
+  const settings = (content && content.settings) || {};
+  const id = demoVideoId(settings.demoVideo);
+  if (!id) return null;
+  return (
+    <div id="demo-class" className="grid items-center gap-5 rounded-[30px] border border-teal-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 lg:grid-cols-[1.25fr_1fr]">
+      <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
+        {playing ? (
+          <iframe
+            className="absolute inset-0 h-full w-full"
+            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
+            title={settings.demoTitle || 'ফ্রি ডেমো ক্লাস'}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <button type="button" onClick={() => setPlaying(true)} aria-label="ডেমো ক্লাস চালু করুন" className="group absolute inset-0 h-full w-full">
+            <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
+            <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red-600 shadow-xl transition group-hover:scale-110">
+              <Play className="ml-1 h-7 w-7 fill-white text-white" />
+            </span>
+          </button>
+        )}
+      </div>
+      <div className="space-y-3">
+        <span className="inline-block rounded-full bg-teal-400/15 px-3 py-1 text-[11px] font-bold text-teal-300">ফ্রি ডেমো ক্লাস</span>
+        <h3 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">{settings.demoTitle || 'ভর্তি হওয়ার আগে একটি ক্লাস দেখে নিন'}</h3>
+        <p className="text-sm leading-relaxed text-slate-300">পড়ানোর ধরন পছন্দ হলে প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি দেখে শুরু করুন।</p>
+        <ShareButtons text="Emran Islam স্যারের ফ্রি ডেমো ক্লাস:" path="/" />
+      </div>
+    </div>
+  );
+}
+
+// "আজকের প্রশ্ন": one question a day from the admin's list, in turn. The answer and a day streak stay on this device.
+const dhakaDay = () => Math.floor((Date.now() + 6 * 3600 * 1000) / 86400000);
+const readDaily = () => {
+  try {
+    return JSON.parse(localStorage.getItem('dailyQuestion') || '{}') || {};
+  } catch {
+    return {};
+  }
+};
+function DailyQuestion() {
+  const content = useContent();
+  const list = (content && content.daily) || [];
+  const day = dhakaDay();
+  const [saved, setSaved] = useState(readDaily);
+  if (list.length === 0) return null;
+  const q = list[day % list.length];
+  const answeredToday = saved.day === day && saved.id === q.id;
+  const choice = answeredToday ? saved.choice : null;
+  const streak = saved.day === day || saved.day === day - 1 ? saved.streak || 0 : 0;
+  const pick = (i) => {
+    if (answeredToday) return;
+    const next = { day, id: q.id, choice: i, streak: saved.day === day - 1 ? (saved.streak || 0) + 1 : 1 };
+    setSaved(next);
+    try {
+      localStorage.setItem('dailyQuestion', JSON.stringify(next));
+    } catch {
+      // Storage unavailable: the answer still shows for this visit.
+    }
+  };
+  const right = choice === q.answer;
+  return (
+    <div id="daily-question" className="rounded-[30px] border border-violet-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-5 sm:p-7 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-xl font-extrabold text-white sm:text-2xl">🧠 আজকের প্রশ্ন</h3>
+        {streak > 0 && (
+          <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-300">🔥 টানা {toBnDigits(streak)} দিন</span>
+        )}
+      </div>
+      <p className="text-sm font-semibold leading-relaxed text-white sm:text-base">{q.q}</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {q.options.map((o, i) => {
+          const state = !answeredToday ? 'idle' : i === q.answer ? 'right' : i === choice ? 'wrong' : 'rest';
+          return (
+            <button
+              key={i}
+              type="button"
+              disabled={answeredToday}
+              onClick={() => pick(i)}
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                state === 'idle'
+                  ? 'border-slate-700 bg-slate-950 text-slate-100 hover:border-violet-400 hover:bg-violet-500/10'
+                  : state === 'right'
+                  ? 'border-emerald-400 bg-emerald-500/15 text-emerald-100'
+                  : state === 'wrong'
+                  ? 'border-rose-400 bg-rose-500/15 text-rose-100'
+                  : 'border-slate-800 bg-slate-950/60 text-slate-500'
+              }`}
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black">{'কখগঘ'[i]}</span>
+              <span>{o}</span>
+              {state === 'right' && <span className="ml-auto">✓</span>}
+              {state === 'wrong' && <span className="ml-auto">✗</span>}
+            </button>
+          );
+        })}
+      </div>
+      {answeredToday ? (
+        <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className={`text-sm font-extrabold ${right ? 'text-emerald-300' : 'text-rose-300'}`}>
+            {right ? '🎉 সঠিক উত্তর!' : `উত্তর ভুল হয়েছে। সঠিক উত্তর: ${'কখগঘ'[q.answer]}) ${q.options[q.answer]}`}
+          </div>
+          {q.explain && <p className="text-sm leading-relaxed text-slate-300">{q.explain}</p>}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs text-slate-400">কাল নতুন প্রশ্ন আসবে।</span>
+            <ShareButtons text={`আজকের প্রশ্ন: ${q.q} তুমি পারবে?`} path="/" />
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">একটি উত্তর বেছে নিন। সাথে সাথে ব্যাখ্যা দেখাবে।</p>
+      )}
+    </div>
+  );
+}
+
+// "যেখানে থেমেছিলেন": the last chapter opened on this device.
+const readLastStudy = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem('lastStudy') || 'null');
+    return v && typeof v.path === 'string' && /^\/[a-z0-9\-/]*$/i.test(v.path) && v.title ? v : null;
+  } catch {
+    return null;
+  }
+};
+function ContinueBanner({ completed }) {
+  const [last] = useState(readLastStudy);
+  if (!last) return null;
+  const done = (last.keys || []).filter((k) => completed[k]).length;
+  const total = (last.keys || []).length;
+  return (
+    <a
+      href={last.path}
+      className="flex flex-col gap-3 rounded-[26px] border border-sky-400/30 bg-gradient-to-r from-sky-500/10 via-slate-900 to-slate-950 p-4 transition hover:border-sky-300/60 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+    >
+      <div className="min-w-0">
+        <div className="text-[11px] font-bold text-sky-300">যেখানে থেমেছিলেন</div>
+        <div className="truncate text-sm font-extrabold text-white sm:text-base">{last.title}</div>
+        {total > 0 && <ProgressBar done={done} total={total} className="mt-2 max-w-sm" />}
+      </div>
+      <span className="shrink-0 rounded-xl bg-sky-400 px-4 py-2 text-center text-xs font-extrabold text-slate-950">চালিয়ে যান →</span>
+    </a>
+  );
+}
+
+function ProgressBar({ done, total, className = '' }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  return (
+    <div className={className}>
+      <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+        <span>{toBnDigits(done)} / {toBnDigits(total)} লেকচার শেষ</span>
+        <span className="text-emerald-300">{toBnDigits(pct)}%</span>
+      </div>
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// What a chapter covers (key ideas and formulas).
+function ChapterNotes({ id, english = false }) {
+  const notes = chapterNotes(id);
+  if (!notes) return null;
+  return (
+    <div className="rounded-3xl border border-amber-400/25 bg-amber-400/[0.06] p-5 sm:p-6">
+      <h3 className="text-sm font-extrabold text-amber-200 sm:text-base">{english ? '📌 What you will learn in this chapter' : '📌 এই অধ্যায়ে যা শিখবেন'}</h3>
+      <ul className="mt-3 grid gap-2 text-sm leading-relaxed text-slate-200 sm:grid-cols-2">
+        {notes.map((n) => (
+          <li key={n} className="flex gap-2">
+            <span className="mt-0.5 text-amber-300">•</span>
+            <span>{n}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Remembers the chapter being read so the home page can offer to continue it.
+function RememberStudy({ title, keys }) {
+  const sig = keys.join('|');
+  useEffect(() => {
+    try {
+      localStorage.setItem('lastStudy', JSON.stringify({ title, path: window.location.pathname, keys, at: Date.now() }));
+    } catch {
+      // Storage unavailable: nothing to continue later.
+    }
+  }, [title, sig]);
+  return null;
+}
+
+// "শেষ" toggle shown on each open lecture.
+function DoneToggle({ done, onClick, english = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={english ? 'Mark this lecture as done' : 'লেকচার শেষ হিসেবে চিহ্নিত করুন'}
+      className={`flex shrink-0 items-center gap-1 rounded-xl border px-2.5 py-1 text-[11px] font-extrabold transition ${
+        done ? 'border-emerald-400 bg-emerald-500 text-slate-950' : 'border-slate-700 bg-slate-950 text-slate-400 hover:text-white'
+      }`}
+    >
+      <CheckCircle2 className="h-3.5 w-3.5" /> {done ? (english ? 'Done' : 'শেষ হয়েছে') : english ? 'Mark done' : 'শেষ করেছি'}
+    </button>
   );
 }
 
@@ -3217,8 +3566,10 @@ const routeInfo = (st) => {
       return make({
         title: `${ch.title} (${ch.eng}) — ${paper.title} ${ch.num}${suffix}`,
         heading: `${paper.title} — ${ch.num}: ${ch.title}`,
-        summary: `${paper.title}, ${ch.num} "${ch.title}" (${ch.eng}): ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি, পরের লেকচার মাত্র ৳৩০।`,
-        description: `${paper.title} ${ch.num}: ${ch.title} (${ch.eng}) — ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি।`,
+        summary: `${paper.title}, ${ch.num} "${ch.title}" (${ch.eng}): ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি, পরের লেকচার মাত্র ৳৩০।${chapterNotes(ch.id) ? ` এই অধ্যায়ে যা শিখবেন: ${chapterNotes(ch.id).join('; ')}।` : ''}`,
+        description: chapterNotes(ch.id)
+          ? `${paper.title} ${ch.num}: ${ch.title} — ${chapterNotes(ch.id).slice(0, 3).join('; ')}। প্রথম লেকচার ফ্রি।`
+          : `${paper.title} ${ch.num}: ${ch.title} (${ch.eng}) — ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি।`,
         crumbs: [home, parentLink, link({ page: parent, options: { bvPaperKey: paper.id } }, paper.title)]
       });
     }
@@ -3252,9 +3603,11 @@ const routeInfo = (st) => {
         heading: `${modName} — ${ch.num}: ${ch.title}`,
         summary: ch.topics
           ? `${modName}, ${ch.num}: ${ch.title}. Topics: ${ch.topics.join('; ')}. প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`
-          : `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`,
+          : `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।${chapterNotes(ch.id) ? ` What you will learn: ${chapterNotes(ch.id).join('; ')}.` : ''}`,
         description: ch.topics
           ? `${modName} — ${ch.title}: ${ch.topics.join(', ')}.`
+          : chapterNotes(ch.id)
+          ? `${ch.title} — ${modName}: ${chapterNotes(ch.id).slice(0, 3).join('; ')}. First lecture free.`
           : `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
         crumbs: [home, parentLink, ...univCrumb, modLink]
       });
@@ -3475,7 +3828,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], settings: {}, daily: [], ...data };
       applyOutline(contentCache.outline);
       applyBooks(contentCache.books);
       contentListeners.forEach((fn) => fn(contentCache));
@@ -4124,9 +4477,9 @@ function AdminPage() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChoiceChips
-          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই', '⭐ মতামত']}
-          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই', reviews: '⭐ মতামত' }[tab]}
-          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books', '⭐ মতামত': 'reviews' }[v])}
+          options={['🎥 লেকচার', '📚 অধ্যায়', '📝 MCQ কুইজ', '🏁 লাইভ এক্সাম', '📅 প্রাইভেট স্লট', '💳 পেমেন্ট', '📦 বই অর্ডার', '📖 বই', '⭐ মতামত', '🏠 হোম']}
+          value={{ lectures: '🎥 লেকচার', outline: '📚 অধ্যায়', quiz: '📝 MCQ কুইজ', exams: '🏁 লাইভ এক্সাম', slots: '📅 প্রাইভেট স্লট', payments: '💳 পেমেন্ট', orders: '📦 বই অর্ডার', books: '📖 বই', reviews: '⭐ মতামত', home: '🏠 হোম' }[tab]}
+          onChange={(v) => setTab({ '🎥 লেকচার': 'lectures', '📚 অধ্যায়': 'outline', '📝 MCQ কুইজ': 'quiz', '🏁 লাইভ এক্সাম': 'exams', '📅 প্রাইভেট স্লট': 'slots', '💳 পেমেন্ট': 'payments', '📦 বই অর্ডার': 'orders', '📖 বই': 'books', '⭐ মতামত': 'reviews', '🏠 হোম': 'home' }[v])}
         />
         <button
           type="button"
@@ -4197,6 +4550,8 @@ function AdminPage() {
       {tab === 'books' && <AdminBooksTab password={password} content={content} />}
 
       {tab === 'reviews' && <AdminReviewsTab password={password} content={content} />}
+
+      {tab === 'home' && <AdminHomeTab password={password} content={content} />}
     </>
   );
 }
@@ -4478,6 +4833,128 @@ function AdminOrdersTab({ password }) {
                 {ORDER_STATUS[s][0]} করুন
               </button>
             ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Home page: demo video + daily question
+function AdminHomeTab({ password, content }) {
+  const settings = (content && content.settings) || {};
+  const daily = (content && content.daily) || [];
+  const [video, setVideo] = useState(settings.demoVideo || '');
+  const [vTitle, setVTitle] = useState(settings.demoTitle || '');
+  const [vState, setVState] = useState('idle');
+  const blank = { id: '', q: '', options: ['', '', '', ''], answer: 0, explain: '' };
+  const [f, setF] = useState(blank);
+  const [qState, setQState] = useState('idle');
+  const videoOk = !video.trim() || !!demoVideoId(video);
+  const saveVideo = () => {
+    setVState('busy');
+    Promise.all([
+      adminPost(password, { action: 'saveSetting', key: 'demoVideo', value: video.trim() }),
+      adminPost(password, { action: 'saveSetting', key: 'demoTitle', value: vTitle.trim() })
+    ]).then((rs) => {
+      setVState(rs.every((r) => r.ok) ? 'done' : 'error');
+      loadContent();
+    });
+  };
+  const qOk = f.q.trim().length >= 3 && f.options.every((o) => o.trim());
+  const saveQ = () => {
+    setQState('busy');
+    adminPost(password, { action: 'saveDaily', ...f, id: f.id || `dq-${Date.now().toString(36)}` }).then((r) => {
+      setQState(r.ok ? 'done' : 'error');
+      if (r.ok) {
+        setF(blank);
+        loadContent();
+      }
+    });
+  };
+  const removeQ = (id) => window.confirm('প্রশ্নটি মুছবেন?') && adminPost(password, { action: 'deleteDaily', id }).then(() => loadContent());
+  const today = daily.length ? daily[dhakaDay() % daily.length] : null;
+  const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
+  const msg = (st) => (st === 'busy' ? 'সেভ হচ্ছে…' : st === 'done' ? '✓ সেভ হয়েছে' : st === 'error' ? 'সেভ হয়নি (Apps Script পুরনো কি না দেখুন)' : '');
+  return (
+    <div className="space-y-5">
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="text-sm font-bold text-white">▶ হোম পেজের ফ্রি ডেমো ভিডিও</div>
+        <p className="text-xs text-slate-400">YouTube ভিডিওর লিংক দিন। ফাঁকা রাখলে হোমে ভিডিওর অংশ দেখাবে না।</p>
+        <label className="block">
+          <span className={label}>YouTube লিংক</span>
+          <input className={adminInput} value={video} onChange={(e) => setVideo(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+          {!videoOk && <span className="mt-1 block text-[11px] text-rose-300">এটি YouTube ভিডিওর লিংক নয়।</span>}
+        </label>
+        <label className="block">
+          <span className={label}>শিরোনাম (ঐচ্ছিক)</span>
+          <input className={adminInput} value={vTitle} onChange={(e) => setVTitle(e.target.value)} placeholder="যেমন: অন্তরীকরণের প্রথম ক্লাস" />
+        </label>
+        <div className="flex items-center gap-2">
+          <button type="button" disabled={vState === 'busy' || !videoOk} onClick={saveVideo} className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50">
+            ভিডিও Save
+          </button>
+          <span className="text-[11px] text-slate-400">{msg(vState)}</span>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="text-sm font-bold text-white">🧠 আজকের প্রশ্ন — {f.id ? 'প্রশ্ন বদলান' : 'নতুন প্রশ্ন যোগ করুন'}</div>
+        <p className="text-xs text-slate-400">হোমে প্রতিদিন একটি করে প্রশ্ন পালাক্রমে দেখায়। {toBnDigits(daily.length)}টি প্রশ্ন থাকলে {toBnDigits(daily.length)} দিন পর আবার প্রথমটি আসে। ৩০টির মতো রাখলে ভালো।</p>
+        <label className="block">
+          <span className={label}>প্রশ্ন</span>
+          <textarea className={`${adminInput} min-h-[72px]`} value={f.q} onChange={(e) => setF((x) => ({ ...x, q: e.target.value }))} placeholder="প্রশ্ন লিখুন" />
+        </label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {f.options.map((o, i) => (
+            <label key={i} className="flex items-center gap-2">
+              <input type="radio" name="daily-answer" checked={f.answer === i} onChange={() => setF((x) => ({ ...x, answer: i }))} aria-label={`সঠিক উত্তর ${'কখগঘ'[i]}`} />
+              <input
+                className={adminInput}
+                value={o}
+                onChange={(e) => setF((x) => ({ ...x, options: x.options.map((v, j) => (j === i ? e.target.value : v)) }))}
+                placeholder={`অপশন ${'কখগঘ'[i]}`}
+              />
+            </label>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-500">সঠিক উত্তরের পাশের গোল বোতামটি বেছে দিন।</p>
+        <label className="block">
+          <span className={label}>ব্যাখ্যা (ঐচ্ছিক)</span>
+          <textarea className={`${adminInput} min-h-[60px]`} value={f.explain} onChange={(e) => setF((x) => ({ ...x, explain: e.target.value }))} placeholder="উত্তরের ছোট ব্যাখ্যা" />
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={qState === 'busy' || !qOk} onClick={saveQ} className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50">
+            প্রশ্ন Save
+          </button>
+          {f.id && (
+            <button type="button" onClick={() => setF(blank)} className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white">
+              বাতিল
+            </button>
+          )}
+          <span className="text-[11px] text-slate-400">{msg(qState)}</span>
+        </div>
+      </div>
+
+      {daily.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-400">এখনো কোনো প্রশ্ন নেই। প্রশ্ন না থাকলে হোমে "আজকের প্রশ্ন" অংশ দেখাবে না।</div>}
+      {daily.map((d, n) => (
+        <div key={d.id} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="text-sm font-semibold text-white">{toBnDigits(n + 1)}. {d.q}</div>
+            {today && today.id === d.id && <span className="rounded bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold text-violet-200">আজ দেখাচ্ছে</span>}
+          </div>
+          <div className="text-xs text-slate-400">
+            {d.options.map((o, i) => (
+              <span key={i} className={`mr-3 ${i === d.answer ? 'font-bold text-emerald-300' : ''}`}>{'কখগঘ'[i]}) {o}</span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setF({ id: d.id, q: d.q, options: [...d.options], answer: d.answer, explain: d.explain })} className="rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-slate-700">
+              বদলান
+            </button>
+            <button type="button" onClick={() => removeQ(d.id)} className="rounded-lg bg-rose-500/20 px-3 py-1.5 text-[11px] font-bold text-rose-300 hover:bg-rose-500/30">
+              মুছুন
+            </button>
           </div>
         </div>
       ))}
@@ -6211,6 +6688,8 @@ export default function App() {
               </div>
             </div>
 
+            <ContinueBanner completed={completedCourseLectures} />
+
             <div className="pt-1 text-center text-sm font-extrabold text-slate-200 sm:text-base">কোন বিভাগে পড়তে চান?</div>
 
             {/* PROGRAM CARDS (each opens its own page) */}
@@ -6261,6 +6740,9 @@ export default function App() {
 
         {}
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-14 space-y-12">
+          <DemoVideoSection />
+          <DailyQuestion />
+
           {/* BOOK SHELF */}
           <div id="home-books" className="rounded-[30px] bg-gradient-to-b from-slate-900/90 to-slate-950 border border-amber-500/30 p-5 sm:p-7 space-y-5 shadow-xl">
             <div className="flex items-center justify-between gap-3">
@@ -6450,8 +6932,11 @@ export default function App() {
                     ❓ প্রশ্ন করুন
                   </button>
                 </div>
+                <ShareButtons light className="pt-2" text={`${currentBvPaper.title} ${currentBvChapter.num}: ${currentBvChapter.title} — ফ্রি লেকচার:`} />
               </div>
             </div>
+            <RememberStudy title={`${currentBvPaper.title} • ${currentBvChapter.num}: ${currentBvChapter.title}`} keys={currentBvLectures.map((l) => l.lecKey)} />
+            <ChapterNotes id={currentBvChapter.id} />
 
           {/* STEP 3: LECTURE LIST (লেকচার ১, লেকচার ২... প্রতিটি লেকচারে ৩ ধরনের লিংক) */}
           <div className="relative bg-[#071527]/95 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
@@ -6473,6 +6958,8 @@ export default function App() {
                 </span>
               </div>
             </div>
+
+            <ProgressBar done={currentBvLectures.filter((l) => completedCourseLectures[l.lecKey]).length} total={currentBvLectures.length} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {currentBvLectures.map((lec) => (
@@ -6516,11 +7003,14 @@ export default function App() {
                         {lec.topic}
                       </div>
                     </div>
-                    {lec.duration && (
-                      <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                      </span>
-                    )}
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      {lec.duration && (
+                        <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                        </span>
+                      )}
+                      {lec.isUnlocked && <DoneToggle done={!!completedCourseLectures[lec.lecKey]} onClick={() => toggleCourseLectureCompletion(lec.lecKey)} />}
+                    </div>
                   </div>
 
                   {/* 3 Links per Lecture: ক্লাস নোট (PDF), ভিডিও লেকচার, Self Test */}
@@ -7277,6 +7767,9 @@ export default function App() {
                 {/* Lecture list (chapter pages only) */}
                 {isTrackChapterView && (
                   <>
+                <RememberStudy title={`${currentModule.name} • ${currentChapter.num}: ${currentChapter.title}`} keys={lectures.map((l) => l.lecKey)} />
+                <ShareButtons text={`${currentModule.name} — ${currentChapter.title}: free first lecture`} />
+                <ChapterNotes id={currentChapter.id} english />
                 <div className="bg-[#071527]/95 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div>
@@ -7291,6 +7784,8 @@ export default function App() {
                       1st Lecture Free • Next Lectures ৳{currentTrack.unlockFee}
                     </span>
                   </div>
+
+                  <ProgressBar done={lectures.filter((l) => completedCourseLectures[l.lecKey]).length} total={lectures.length} />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {lectures.map((lec) => (
@@ -7334,11 +7829,14 @@ export default function App() {
                               {lec.topic}
                             </div>
                           </div>
-                          {lec.duration && (
-                            <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
-                            </span>
-                          )}
+                          <div className="flex shrink-0 flex-col items-end gap-1.5">
+                            {lec.duration && (
+                              <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-teal-400" /> {lec.duration}
+                              </span>
+                            )}
+                            {lec.isUnlocked && <DoneToggle english done={!!completedCourseLectures[lec.lecKey]} onClick={() => toggleCourseLectureCompletion(lec.lecKey)} />}
+                          </div>
                         </div>
 
                         {lec.isUnlocked ? (
@@ -8044,20 +8542,98 @@ export default function App() {
         </div>
       )}
 
-      <footer className="bg-[#030812] text-slate-400 border-t border-slate-800/80 pt-6 pb-24 text-xs">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <strong className="text-white">Emran Islam</strong> — Lecturer in Mathematics (Hamdard Public College, Dhaka) • M.Sc. & B.Sc. Hons (Jahangirnagar University)
-          </div>
-          <div className="flex flex-col items-center gap-2 sm:items-end">
-            <ContactIcons />
-            <div>
-              Dhaka, Bangladesh • {CV_CREDENTIALS.email} •{' '}
-              <button onClick={() => openSubPage('Admin')} className="text-slate-500 hover:text-white">
-                Admin
-              </button>
+      <footer className="bg-[#030812] text-slate-400 border-t border-slate-800/80 pt-10 pb-24 text-sm">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <img src="/assets/emran-avatar.jpg" alt="" className="h-11 w-11 rounded-2xl border-2 border-teal-400/70 object-cover object-top" />
+              <div>
+                <div className="text-base font-extrabold text-white">Emran Islam</div>
+                <div className="text-xs">Lecturer in Mathematics, Hamdard Public College, Dhaka</div>
+              </div>
             </div>
+            <p className="text-xs leading-relaxed">HSC, O/A Level, ভর্তি পরীক্ষা, Job Math ও B.Sc. Honours গণিতের ক্লাস, নোট ও কুইজ। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি।</p>
+            <ContactIcons size="lg" />
           </div>
+          {[
+            {
+              title: 'কোর্স',
+              links: [
+                ['HSC Bangla Version', 'HSC বাংলা ভার্সন'],
+                ['HSC English Version', 'HSC English Version'],
+                ['O-Level & A-Level', 'O / A Level'],
+                ['Admission Test (BUET/DU)', 'ভর্তি পরীক্ষার প্রস্তুতি'],
+                ['Job Math', 'JOB MATH'],
+                ['B.Sc. Honours Math', 'B.Sc. Honours']
+              ]
+            },
+            {
+              title: 'আরও',
+              links: [
+                ['Private Batch', 'প্রাইভেট ব্যাচ ও ১-টু-১'],
+                ['Class Routine', 'লাইভ ক্লাসের রুটিন'],
+                ['Research & Papers', 'Research'],
+                ['About Me', 'About Me']
+              ]
+            }
+          ].map((col) => (
+            <nav key={col.title} aria-label={col.title} className="space-y-2.5">
+              <div className="text-xs font-extrabold uppercase tracking-wider text-white">{col.title}</div>
+              <ul className="space-y-1.5">
+                {col.links.map(([id, label]) => (
+                  <li key={id}>
+                    <a
+                      href={navStateToPath({ page: id })}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openSubPage(id);
+                      }}
+                      className="text-sm text-slate-400 transition hover:text-teal-300"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+                {col.title === 'আরও' && (
+                  <li>
+                    <button type="button" onClick={() => setBookModalOpen(true)} className="text-sm text-slate-400 transition hover:text-teal-300">
+                      বইসমূহ
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          ))}
+          <div className="space-y-2.5">
+            <div className="text-xs font-extrabold uppercase tracking-wider text-white">যোগাযোগ</div>
+            {SITE_LINKS.whatsapp && (
+              <a
+                href={`https://wa.me/${SITE_LINKS.whatsapp}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#25D366] px-4 py-2.5 text-sm font-extrabold text-white shadow-lg transition hover:brightness-110"
+              >
+                <MessageCircle className="h-4 w-4" /> WhatsApp এ লিখুন
+              </a>
+            )}
+            <ul className="space-y-1.5 text-sm">
+              {SITE_LINKS.whatsapp && (
+                <li>
+                  📞 <a href={`tel:+${SITE_LINKS.whatsapp}`} className="hover:text-white">+{SITE_LINKS.whatsapp.replace(/^(\d{3})(\d{4})(\d+)$/, '$1 $2-$3')}</a>
+                </li>
+              )}
+              <li>
+                ✉️ <a href={`mailto:${SITE_LINKS.email}`} className="break-all hover:text-white">{SITE_LINKS.email}</a>
+              </li>
+              <li>📍 Dhaka, Bangladesh</li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-[1440px] mx-auto mt-8 flex flex-col items-center justify-between gap-2 border-t border-slate-800/80 px-4 pt-5 text-xs sm:flex-row sm:px-6 lg:px-8">
+          <div>© {new Date().getFullYear()} Emran Islam • M.Sc. & B.Sc. Hons (Jahangirnagar University)</div>
+          <button onClick={() => openSubPage('Admin')} className="text-slate-600 hover:text-white">
+            Admin
+          </button>
         </div>
       </footer>
     </div>

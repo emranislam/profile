@@ -12,6 +12,8 @@
  *   orders   – book orders (paid by bKash, delivered by hand; status new / delivered / cancelled)
  *   books    – the book shelf as edited on the admin page (key, title, series, author, badge, price, meta, icon, cover, status, image)
  *   reviews  – student reviews chosen on the admin page (from Facebook): id, name, info, text, link, added
+ *   settings – key, value (home page demo video)
+ *   daily    – "আজকের প্রশ্ন": id, question, a, b, c, d, answer (1-4), explain; the site shows one per day in turn
  *   exams, examq, attempts – paid live MCQ exams (questions are never in the public GET)
  *
  * GET  → public content as JSON (only the free first lecture of each chapter).
@@ -38,6 +40,8 @@ const SHEETS = {
   outline: ['group', 'id', 'num', 'title', 'eng'],
   books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status', 'image'],
   reviews: ['id', 'name', 'info', 'text', 'link', 'added'],
+  settings: ['key', 'value'],
+  daily: ['id', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
   orders: ['orderedAt', 'book', 'title', 'name', 'address', 'phone', 'trxId', 'amount', 'status'],
   exams: ['id', 'title', 'subject', 'minutes', 'price', 'status', 'updated'],
   examq: ['exam', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
@@ -209,8 +213,30 @@ function fbLink_(v) {
   return /^https:\/\/((www|m|web|business)\.)?(facebook\.com|fb\.com|fb\.me)\/[^\s"'<>]*$/i.test(s) ? s.slice(0, 400) : '';
 }
 
+// Home page settings the admin page may change (public). Only the keys listed here exist.
+const SETTING_KEYS = { demoVideo: 200, demoTitle: 120 };
+function youtubeId_(v) {
+  const m = String(v || '').trim().match(/^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&#\/].*)?$/);
+  return m ? m[1] : '';
+}
+function settings_() {
+  const out = {};
+  rows_('settings').forEach((r) => {
+    if (SETTING_KEYS[String(r[0])] && r[1]) out[String(r[0])] = String(r[1]);
+  });
+  if (out.demoVideo && !youtubeId_(out.demoVideo)) delete out.demoVideo;
+  return out;
+}
+
+// "আজকের প্রশ্ন": free practice questions (public, with answers); the site shows one per day in turn.
+function daily_() {
+  return rows_('daily')
+    .filter((r) => r[0] && r[1] && Number(r[6]) >= 1 && Number(r[6]) <= 4)
+    .map((r) => ({ id: String(r[0]), q: String(r[1]), options: [r[2], r[3], r[4], r[5]].map(String), answer: Number(r[6]) - 1, explain: String(r[7] || '') }));
+}
+
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_(), reviews: reviews_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_(), reviews: reviews_(), settings: settings_(), daily: daily_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -851,6 +877,42 @@ function adminAction_(body) {
     const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === key);
     if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
     else sh.appendRow(row);
+    return { ok: true };
+  }
+
+  if (body.action === 'saveSetting') {
+    const key = String(body.key || '');
+    if (!SETTING_KEYS[key]) return { ok: false, error: 'bad-input' };
+    const value = safe_(String(body.value || '').replace(/[\r\n]+/g, ' ').trim().slice(0, SETTING_KEYS[key]));
+    if (key === 'demoVideo' && value && !youtubeId_(value)) return { ok: false, error: 'bad-link' };
+    const sh = sheet_('settings');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === key);
+    if (i > 0) {
+      if (value) sh.getRange(i + 1, 2).setValue(value);
+      else sh.deleteRow(i + 1);
+    } else if (value) sh.appendRow([key, value]);
+    return { ok: true };
+  }
+
+  if (body.action === 'saveDaily') {
+    const id = String(body.id || '');
+    const clean = (v, n) => safe_(String(v || '').replace(/[\r\n]+/g, ' ').trim().slice(0, n));
+    const q = clean(body.q, 500);
+    const opts = (Array.isArray(body.options) ? body.options : []).slice(0, 4).map((o) => clean(o, 200));
+    const answer = Math.floor(Number(body.answer));
+    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id) || q.length < 3 || opts.length !== 4 || opts.some((o) => !o) || !(answer >= 0 && answer <= 3)) return { ok: false, error: 'bad-input' };
+    const row = [id, q, opts[0], opts[1], opts[2], opts[3], answer + 1, clean(body.explain, 800)];
+    const sh = sheet_('daily');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === id);
+    if (i > 0) sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+    else sh.appendRow(row);
+    return { ok: true };
+  }
+
+  if (body.action === 'deleteDaily') {
+    const sh = sheet_('daily');
+    const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === String(body.id));
+    if (i > 0) sh.deleteRow(i + 1);
     return { ok: true };
   }
 
