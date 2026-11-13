@@ -5,7 +5,7 @@
  * properties (docs/ADMIN.md, docs/PAYMENTS.md) and deploy as a web app.
  *
  * Tabs, created automatically:
- *   lectures – key, youtube, pdf, live, updated
+ *   lectures – key, youtube, pdf, live, updated, moreVideos, morePdfs (extra items as JSON)
  *   quiz     – chapter, question, a, b, c, d, answer (1-4), explain
  *   slots    – day, time, for, mode, status
  *   payments – trxId, amount, sender, received, status, usedBy, usedFor, usedAt, raw
@@ -31,7 +31,7 @@
  */
 
 const SHEETS = {
-  lectures: ['key', 'youtube', 'pdf', 'live', 'updated'],
+  lectures: ['key', 'youtube', 'pdf', 'live', 'updated', 'moreVideos', 'morePdfs'],
   quiz: ['chapter', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
   slots: ['day', 'time', 'for', 'mode', 'status'],
   counts: ['chapter', 'lectures'],
@@ -110,10 +110,28 @@ function lectures_(onlyPublic) {
   const out = {};
   rows_('lectures').forEach((r) => {
     if (r[0] && (!onlyPublic || isPublicLecture_(r[0]))) {
-      out[r[0]] = { youtube: String(r[1] || ''), pdf: String(r[2] || ''), live: String(r[3] || '') };
+      out[r[0]] = {
+        youtube: String(r[1] || ''), pdf: String(r[2] || ''), live: String(r[3] || ''),
+        videos: extras_(r[5]), pdfs: extras_(r[6])
+      };
     }
   });
   return out;
+}
+
+// Extra videos / PDFs of a lecture: a JSON list of { t: label, u: link }, at most 20 each.
+function extras_(raw) {
+  try {
+    const list = JSON.parse(String(raw || '[]'));
+    return (Array.isArray(list) ? list : []).slice(0, 20)
+      .map((x) => ({ t: String((x && x.t) || '').slice(0, 120), u: String((x && x.u) || '').trim().slice(0, 500) }))
+      .filter((x) => /^https:\/\//.test(x.u));
+  } catch (e) {
+    return [];
+  }
+}
+function extrasJson_(list) {
+  return JSON.stringify(extras_(JSON.stringify(Array.isArray(list) ? list : [])).map((x) => ({ t: safe_(x.t), u: x.u })));
 }
 
 // How many lecture slots each chapter shows (set on the admin page); chapters not listed use the site default.
@@ -702,8 +720,10 @@ function adminAction_(body) {
   if (body.action === 'saveLecture') {
     const sh = sheet_('lectures');
     const values = sh.getDataRange().getValues();
-    const row = [safe_(body.key), safe_(body.youtube), safe_(body.pdf), safe_(body.live), new Date()];
-    const empty = !row[1] && !row[2] && !row[3];
+    if (sh.getLastColumn() < SHEETS.lectures.length) sh.getRange(1, 1, 1, SHEETS.lectures.length).setValues([SHEETS.lectures]);
+    const mv = extrasJson_(body.videos), mp = extrasJson_(body.pdfs);
+    const row = [safe_(body.key), safe_(body.youtube), safe_(body.pdf), safe_(body.live), new Date(), mv === '[]' ? '' : mv, mp === '[]' ? '' : mp];
+    const empty = !row[1] && !row[2] && !row[3] && !row[5] && !row[6];
     const i = values.findIndex((r, ix) => ix > 0 && r[0] === body.key);
     if (i > 0) {
       if (empty) sh.deleteRow(i + 1);
