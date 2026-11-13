@@ -97,3 +97,15 @@ To show a review on the site, open the ⭐ মতামত tab and paste the stu
 Each book in the 📖 বই tab has a "কভারের ছবি" box. "📷 ছবি আপলোড করুন" picks a picture from your phone or computer; the page shrinks it (longest side 900px) and saves it to a Google Drive folder named "10takaschool book covers", shared as "anyone with the link can view", then saves the book. You can instead paste a picture link: a Google Drive share link (the file must be shared as "anyone with the link") or any https picture link. "ছবি সরান" goes back to the colour and emoji cover. Upright (3:4) pictures look best.
 
 The first time you deploy this version, Google asks you to allow the script to use Google Drive: allow it, or uploads will fail (pasting a link still works).
+
+## Home page (🏠 হোম tab)
+
+**Free demo video.** Paste a YouTube link (watch, youtu.be, shorts or live) and an optional title, then "ভিডিও Save". The home page shows it under the program cards; the player loads only when a visitor taps it. Leave the link empty to hide the section.
+
+**আজকের প্রশ্ন (daily question).** Add questions with four options, pick the right one with the round button, and add a short explanation. The home page shows one question a day in turn (Bangladesh time): with 30 questions, the first one comes back after 30 days. Visitors see the answer and the explanation right after choosing; their answer and a "টানা N দিন" streak are kept on their own device. With no questions the section is hidden. Questions and answers are public (this is free practice, not an exam).
+
+## Progress, sharing and chapter notes
+
+- Each open lecture has a "শেষ করেছি" button; the chapter shows "N / total লেকচার শেষ". The home page shows "যেখানে থেমেছিলেন" with a button back to the last chapter. All of this is stored on the student's device only.
+- Chapter pages, quiz results, the demo video and the daily question have WhatsApp / Facebook / copy-link buttons.
+- HSC chapters show "এই অধ্যায়ে যা শিখবেন" (key ideas and formulas) from `HSC_CHAPTER_NOTES` in `src/App.jsx`; the same lines go into each page's search description. Edit them there.
