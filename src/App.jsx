@@ -3967,10 +3967,53 @@ function AdminSaveButton({ state, onClick, label = 'Save' }) {
   );
 }
 
+// Extra videos / PDFs for one lecture: rows of (label, link) that can be added and removed.
+function ExtraLinks({ kind, placeholder, list, onChange, check }) {
+  const upd = (i, patch) => onChange(list.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  return (
+    <div className="space-y-2">
+      {list.map((x, i) => (
+        <div key={i} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[10rem_1fr_auto]">
+          <input
+            className={`${adminInput} col-span-2 sm:col-span-1`}
+            placeholder={`${kind} ${toBnDigits(i + 2)} এর নাম (ঐচ্ছিক)`}
+            value={x.t}
+            maxLength={120}
+            onChange={(e) => upd(i, { t: e.target.value })}
+          />
+          <div>
+            <input className={adminInput} placeholder={placeholder} value={x.u} onChange={(e) => upd(i, { u: e.target.value })} />
+            {check && !check(x.u) && <div className="mt-1 text-[11px] text-rose-300">এটা YouTube ভিডিওর লিংক মনে হচ্ছে না</div>}
+          </div>
+          <button
+            type="button"
+            aria-label={`${kind} সরান`}
+            onClick={() => onChange(list.filter((_, j) => j !== i))}
+            className="rounded-xl bg-slate-800 px-3 text-xs font-bold text-rose-300 hover:bg-slate-700"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      {list.length < 20 && (
+        <button
+          type="button"
+          onClick={() => onChange([...list, { t: '', u: '' }])}
+          className="rounded-xl border border-dashed border-slate-700 px-3 py-1.5 text-xs font-bold text-teal-300 hover:border-teal-400"
+        >
+          + আরেকটি {kind} যোগ করুন
+        </button>
+      )}
+    </div>
+  );
+}
+
 function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) {
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
   const [heading, setHeading] = useState(title || '');
   const [mins, setMins] = useState(minutes ? String(minutes) : '');
+  const [videos, setVideos] = useState(saved.videos || []);
+  const [pdfs, setPdfs] = useState(saved.pdfs || []);
   const [state, setState] = useState('idle');
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -3980,7 +4023,7 @@ function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) 
   const save = () => {
     setState('saving');
     Promise.all([
-      adminPost(password, { action: 'saveLecture', key: lecture.key, ...form }),
+      adminPost(password, { action: 'saveLecture', key: lecture.key, ...form, videos: videos.filter((x) => x.u.trim()), pdfs: pdfs.filter((x) => x.u.trim()) }),
       adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading }),
       adminPost(password, { action: 'saveDuration', key: lecture.key, minutes: mins })
     ]).then(([r, t, d]) => {
@@ -4036,6 +4079,25 @@ function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) 
         <input className={adminInput} placeholder="PDF লিংক (Google Drive)" value={form.pdf} onChange={set('pdf')} />
         <input className={adminInput} placeholder="লাইভ ক্লাস লিংক (ঐচ্ছিক)" value={form.live} onChange={set('live')} />
       </div>
+      <ExtraLinks
+        kind="ভিডিও"
+        placeholder="YouTube লিংক"
+        list={videos}
+        onChange={(l) => {
+          setVideos(l);
+          setState('idle');
+        }}
+        check={(u) => !u.trim() || !!youtubeId(u)}
+      />
+      <ExtraLinks
+        kind="PDF"
+        placeholder="PDF লিংক (Google Drive)"
+        list={pdfs}
+        onChange={(l) => {
+          setPdfs(l);
+          setState('idle');
+        }}
+      />
       <div className="flex items-center justify-between gap-3">
         <span className="font-mono text-[10px] text-slate-500">{lecture.key}</span>
         <AdminSaveButton state={state} onClick={save} />
@@ -8235,7 +8297,8 @@ export default function App() {
       {activeLectureResourceModal && (() => {
         const m = activeLectureResourceModal;
         const res = lectureResource(siteContent, m.lec.lecKey || m.lec.progressKey);
-        const ytId = youtubeId(res.youtube);
+        const videoList = [{ t: '', id: youtubeId(res.youtube) }, ...(res.videos || []).map((x) => ({ t: x.t, id: youtubeId(x.u) }))].filter((x) => x.id);
+        const pdfList = [{ t: '', u: res.pdf }, ...(res.pdfs || [])].filter((x) => x.u);
         const liveUrl = res.live || SITE_LINKS.liveClass;
         const close = () => setActiveLectureResourceModal(null);
         return (
@@ -8257,32 +8320,44 @@ export default function App() {
               </div>
 
               {m.type === 'pdf' &&
-                (res.pdf ? (
-                  <div className="space-y-3">
-                    <iframe title="Lecture note" src={pdfEmbedUrl(res.pdf)} className="h-[60vh] w-full rounded-2xl border border-slate-800 bg-white" />
-                    <a
-                      href={res.pdf}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-teal-400"
-                    >
-                      <Download className="w-4 h-4" /> নতুন ট্যাবে খুলুন / ডাউনলোড
-                    </a>
+                (pdfList.length ? (
+                  <div className="space-y-6">
+                    {pdfList.map((p, i) => (
+                      <div key={i} className="space-y-3">
+                        {(pdfList.length > 1 || p.t) && <div className="text-sm font-bold text-teal-300">{p.t || `PDF ${toBnDigits(i + 1)}`}</div>}
+                        <iframe title={p.t || 'Lecture note'} src={pdfEmbedUrl(p.u)} className="h-[60vh] w-full rounded-2xl border border-slate-800 bg-white" />
+                        <a
+                          href={p.u}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-teal-400"
+                        >
+                          <Download className="w-4 h-4" /> নতুন ট্যাবে খুলুন / ডাউনলোড
+                        </a>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <ComingSoon what="ক্লাস নোট (PDF)" />
                 ))}
 
               {m.type === 'video' &&
-                (ytId ? (
-                  <div className="aspect-video overflow-hidden rounded-2xl border border-slate-800 bg-black">
-                    <iframe
-                      title="Video lecture"
-                      src={`https://www.youtube-nocookie.com/embed/${ytId}?rel=0`}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                (videoList.length ? (
+                  <div className="space-y-6">
+                    {videoList.map((v, i) => (
+                      <div key={i} className="space-y-2">
+                        {(videoList.length > 1 || v.t) && <div className="text-sm font-bold text-teal-300">{v.t || `ভিডিও ${toBnDigits(i + 1)}`}</div>}
+                        <div className="aspect-video overflow-hidden rounded-2xl border border-slate-800 bg-black">
+                          <iframe
+                            title={v.t || 'Video lecture'}
+                            src={`https://www.youtube-nocookie.com/embed/${v.id}?rel=0`}
+                            className="h-full w-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <ComingSoon what="ভিডিও লেকচার" />
