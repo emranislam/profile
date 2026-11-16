@@ -729,6 +729,49 @@ function listPayments_() {
   return out.reverse().slice(0, 300);
 }
 
+// Money and unlock counts for the admin's 📊 হিসাব box (all payments, not just the latest 300).
+function paymentReport_() {
+  const dhaka = (v) => (v ? new Date(new Date(v).getTime() + 6 * 3600 * 1000).toISOString().slice(0, 10) : '');
+  const out = {
+    status: { unused: { count: 0, amount: 0 }, used: { count: 0, amount: 0 }, review: { count: 0, amount: 0 }, void: { count: 0, amount: 0 } },
+    scopes: {}, items: {}, days: {}, months: {}
+  };
+  sheet_('payments').getDataRange().getValues().forEach((r, i) => {
+    if (i === 0 || (!r[P.TRX] && !r[P.RAW])) return;
+    const st = out.status[String(r[P.STATUS])] ? String(r[P.STATUS]) : 'review';
+    const amount = Number(r[P.AMOUNT]) || 0;
+    out.status[st].count += 1;
+    out.status[st].amount += amount;
+    if (st !== 'used') return;
+    const usedFor = String(r[P.USED_FOR] || '');
+    const scope = usedFor.split('|')[0] || 'other';
+    out.scopes[scope] = out.scopes[scope] || { count: 0, amount: 0 };
+    out.scopes[scope].count += 1;
+    out.scopes[scope].amount += amount;
+    out.items[usedFor] = out.items[usedFor] || { count: 0, amount: 0 };
+    out.items[usedFor].count += 1;
+    out.items[usedFor].amount += amount;
+    const day = dhaka(r[P.USED_AT] || r[P.RECEIVED]);
+    if (day) {
+      out.days[day] = (out.days[day] || 0) + amount;
+      out.months[day.slice(0, 7)] = (out.months[day.slice(0, 7)] || 0) + amount;
+    }
+  });
+  const items = Object.keys(out.items)
+    .map((k) => ({ key: k, count: out.items[k].count, amount: out.items[k].amount }))
+    .sort((a, b) => b.amount - a.amount || b.count - a.count)
+    .slice(0, 100);
+  // Lectures that are locked but nobody has bought yet: a hint to check their price or content.
+  const unsold = Object.keys(locks_()).filter((k) => !out.items['lecture|' + k]).slice(0, 60);
+  const days = [];
+  for (let n = 13; n >= 0; n--) {
+    const d = dhaka(new Date(Date.now() - n * 86400000));
+    days.push({ day: d, amount: out.days[d] || 0 });
+  }
+  const months = Object.keys(out.months).sort().slice(-12).map((m) => ({ month: m, amount: out.months[m] }));
+  return { status: out.status, scopes: out.scopes, items: items, unsold: unsold, days: days, months: months };
+}
+
 function adminAction_(body) {
   if (body.action === 'check') return { ok: true };
   if (body.action === 'getAll') return { ok: true, lectures: lectures_(false) };
@@ -1027,6 +1070,8 @@ function adminAction_(body) {
     PropertiesService.getScriptProperties().setProperty('PRICE_RULES', JSON.stringify(rules));
     return { ok: true, lectures: rules.lecture.length, courses: Object.keys(rules.course).length };
   }
+
+  if (body.action === 'paymentReport') return { ok: true, report: paymentReport_() };
 
   if (body.action === 'listPayments') return { ok: true, payments: listPayments_(), pricesSynced: !!prop_('PRICE_RULES') };
 

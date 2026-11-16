@@ -52,6 +52,7 @@ URL টা `src/App.jsx` এর `SITE_LINKS.contentApi` তে বসিয়�
     শুধু সাইট থেকেই দেখা যাবে, YouTube সার্চে আসবে না।
   - PDF: Google Drive এ আপলোড করে **Share → Anyone with the link** দিয়ে লিংক কপি করুন।
   - ঘর খালি করে Save করলে লিংক মুছে যায়।
+- **💳 পেমেন্ট → 📊 হিসাব:** ওপরে মোট আয় (আনলক হওয়া পেমেন্ট), অব্যবহৃত পেমেন্ট, যাচাই দরকার ও বাতিলের সংখ্যা। এরপর লেকচার/কোর্স/বই/এক্সাম ধরে আয়, গত ১৪ দিনের আয়ের চার্ট, মাস ধরে আয়, আর কোন লেকচার কতবার কেনা হয়েছে। নিচে **লক করা আছে, কিন্তু এখনো কেউ কেনেনি** লেকচারগুলোর তালিকা, দাম বা কনটেন্ট আরেকবার দেখার জন্য। সময় বাংলাদেশ সময়ে ধরা হয়। এর জন্য Apps Script আবার paste করে **New version** Deploy করতে হবে।
 - **📦 বই অর্ডার:** পেমেন্ট যাচাই হওয়া বইয়ের অর্ডার, ডেলিভারির ঠিকানাসহ। বিস্তারিত: [PAYMENTS.md](PAYMENTS.md)।
 - **🏁 লাইভ এক্সাম:** ফি-সহ পেইড MCQ পরীক্ষা বানানো ও প্রকাশ করা। বিস্তারিত: [EXAMS.md](EXAMS.md)।
 - **📝 MCQ কুইজ:** অধ্যায় বেছে প্রশ্ন, চারটা অপশন আর সঠিক উত্তর দিয়ে **কুইজ Save করুন**।
@@ -115,3 +116,6 @@ The first time you deploy this version, Google asks you to allow the script to u
 - Each open lecture has a "শেষ করেছি" button; the chapter shows "N / total লেকচার শেষ". The home page shows "যেখানে থেমেছিলেন" with a button back to the last chapter. All of this is stored on the student's device only.
 - Chapter pages, quiz results, the demo video and the daily question have WhatsApp / Facebook / copy-link buttons.
 - HSC chapters show "এই অধ্যায়ে যা শিখবেন" (key ideas and formulas) from `HSC_CHAPTER_NOTES` in `src/App.jsx`; the same lines go into each page's search description. Edit them there.
+
+## সাইট দ্রুত লোড হওয়ার জন্য (ডেভেলপারদের জন্য)
+`npm run build` এখন `assets/app.js` এর সাথে `assets/chunks/` ফোল্ডারও বানায় (এটাও commit করতে হবে)। Admin প্যানেল আলাদা ফাইলে (`src/Admin.jsx`), শিক্ষার্থীদের ব্রাউজারে লোড হয় না, শুধু `/admin/` খুললে নামে। ফন্ট (Google Fonts) পেজ দেখানো আটকায় না, পরে লোড হয়ে বসে।
