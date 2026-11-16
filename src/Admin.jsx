@@ -1103,6 +1103,7 @@ function AdminBookCard({ item, password, onChanged }) {
     icon: row.icon || item.icon || '📖',
     cover: row.cover || item.cover || 0,
     image: row.image || '',
+    link: row.link || '',
     hidden: row.status === 'hidden'
   });
   const [upload, setUpload] = useState(''); // '' | busy | error message
@@ -1128,6 +1129,7 @@ function AdminBookCard({ item, password, onChanged }) {
       icon: f.icon.trim(),
       cover: f.cover,
       image: image.trim(),
+      link: f.link.trim(),
       status: hidden ? 'hidden' : ''
     });
   // Shrinks the picture in the browser (longest side 900px, JPEG), uploads it to the owner's Drive and saves it.
@@ -1163,6 +1165,7 @@ function AdminBookCard({ item, password, onChanged }) {
     };
     img.src = src;
   };
+  const linkOk = !f.link.trim() || /^https:\/\/[^\s"'<>()]+$/i.test(f.link.trim());
   const coverOk = !f.image.trim() || /^https:\/\/[^\s"'<>()]+$/i.test(f.image.trim());
   const label = 'mb-1 block text-[11px] font-semibold text-slate-400';
   return (
@@ -1229,6 +1232,13 @@ function AdminBookCard({ item, password, onChanged }) {
         </label>
         {!item.course && (
           <label className="sm:col-span-2">
+            <span className={label}>অন্য সাইটে কেনার লিংক (Amazon ইত্যাদি, ঐচ্ছিক) — দিলে "Amazon এ কিনুন" বাটন আসে</span>
+            <input className={adminInput} value={f.link} onChange={set('link')} placeholder="https://www.amazon.com/dp/..." />
+            {!linkOk && <span className="block text-[11px] text-rose-300">লিংক https:// দিয়ে শুরু হতে হবে।</span>}
+          </label>
+        )}
+        {!item.course && (
+          <label className="sm:col-span-2">
             <span className={label}>এক লাইনের বিবরণ</span>
             <input className={adminInput} value={f.meta} onChange={set('meta')} />
           </label>
@@ -1259,7 +1269,7 @@ function AdminBookCard({ item, password, onChanged }) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={state === 'busy' || !f.title.trim() || !coverOk}
+          disabled={state === 'busy' || !f.title.trim() || !coverOk || !linkOk}
           onClick={() => save()}
           className="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold text-slate-950 disabled:opacity-50"
         >

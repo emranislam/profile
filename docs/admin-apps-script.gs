@@ -39,7 +39,7 @@ const SHEETS = {
   durations: ['key', 'minutes'],
   locks: ['key', 'price', 'updated'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
-  books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status', 'image'],
+  books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status', 'image', 'link'],
   reviews: ['id', 'name', 'info', 'text', 'link', 'added'],
   settings: ['key', 'value'],
   daily: ['id', 'question', 'a', 'b', 'c', 'd', 'answer', 'explain'],
@@ -202,8 +202,15 @@ function books_() {
       icon: String(r[7] || ''),
       cover: Math.floor(Number(r[8])) || 0,
       status: String(r[9] || ''),
-      image: coverUrl_(r[10])
+      image: coverUrl_(r[10]),
+      link: shopUrl_(r[11])
     }));
+}
+
+// Where a book is sold elsewhere (Amazon etc.): an https link only.
+function shopUrl_(v) {
+  const s = String(v || '').trim();
+  return /^https:\/\/[^\s"'<>()]+$/i.test(s) ? s.slice(0, 500) : '';
 }
 
 // A book cover picture: an https image link. A Google Drive share link becomes a direct picture link.
@@ -977,9 +984,11 @@ function adminAction_(body) {
       clean(body.icon, 8),
       Math.max(0, Math.min(7, Math.floor(Number(body.cover)) || 0)),
       body.status === 'hidden' ? 'hidden' : '',
-      coverUrl_(body.image)
+      coverUrl_(body.image),
+      shopUrl_(body.link)
     ];
     if (body.image && !row[10]) return { ok: false, error: 'bad-image' };
+    if (body.link && !row[11]) return { ok: false, error: 'bad-link' };
     const sh = sheet_('books');
     if (sh.getLastColumn() < SHEETS.books.length) sh.getRange(1, 1, 1, SHEETS.books.length).setValues([SHEETS.books]);
     const i = sh.getDataRange().getValues().findIndex((r, ix) => ix > 0 && String(r[0]) === key);
