@@ -2748,7 +2748,7 @@ function ClassRoutinePage({ onAsk }) {
 }
 
 const FAQ_ITEMS = [
-  ['প্রথম লেকচার কি ফ্রি?', 'হ্যাঁ। প্রতিটি অধ্যায়ের প্রথম লেকচার সবার জন্য খোলা। পরের লেকচারগুলো আনলক করতে হয়।'],
+  ['ফ্রি লেকচার কি আছে?', 'হ্যাঁ। যেসব লেকচার খোলা আছে সেগুলো সবার জন্য ফ্রি। যেগুলোর পাশে তালা চিহ্ন আছে সেগুলো আনলক করে দেখতে হয়।'],
   ['কীভাবে পেমেন্ট করব?', 'bKash, Nagad বা Rocket এ Send Money করে লেকচার বা কোর্সের পেজ থেকে Transaction ID সহ রিকোয়েস্ট পাঠান। যাচাইয়ের পর আনলক করে আপনাকে জানানো হবে।'],
   ['লাইভ ক্লাস কোথায় হয়?', 'Online ক্লাস হয় Zoom বা Google Meet এ। সময় ও লিংক ক্লাস রুটিন পেজে আর লেকচারের Live Class বাটনে পাবেন।'],
   ['প্রাইভেট ব্যাচ বা ১-টু-১ সেশন কীভাবে বুক করব?', 'প্রাইভেট ব্যাচ পেজ থেকে খালি সিট বা স্লট বেছে রিকোয়েস্ট পাঠান। কনফার্ম হলে সেই স্লট সবার জন্য লক দেখাবে।'],
@@ -2851,7 +2851,7 @@ function DemoVideoSection() {
       <div className="space-y-3">
         <span className="inline-block rounded-full bg-teal-400/15 px-3 py-1 text-[11px] font-bold text-teal-300">ফ্রি ডেমো ক্লাস</span>
         <h3 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">{settings.demoTitle || 'ভর্তি হওয়ার আগে একটি ক্লাস দেখে নিন'}</h3>
-        <p className="text-sm leading-relaxed text-slate-300">পড়ানোর ধরন পছন্দ হলে প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি দেখে শুরু করুন।</p>
+        <p className="text-sm leading-relaxed text-slate-300">পড়ানোর ধরন পছন্দ হলে আগে ফ্রি লেকচার দেখে শুরু করুন।</p>
         <ShareButtons text="Emran Islam স্যারের ফ্রি ডেমো ক্লাস:" path="/" />
       </div>
     </div>
@@ -3566,10 +3566,10 @@ const routeInfo = (st) => {
       return make({
         title: `${ch.title} (${ch.eng}) — ${paper.title} ${ch.num}${suffix}`,
         heading: `${paper.title} — ${ch.num}: ${ch.title}`,
-        summary: `${paper.title}, ${ch.num} "${ch.title}" (${ch.eng}): ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি, পরের লেকচার মাত্র ৳৩০।${chapterNotes(ch.id) ? ` এই অধ্যায়ে যা শিখবেন: ${chapterNotes(ch.id).join('; ')}।` : ''}`,
+        summary: `${paper.title}, ${ch.num} "${ch.title}" (${ch.eng}): ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ।${chapterNotes(ch.id) ? ` এই অধ্যায়ে যা শিখবেন: ${chapterNotes(ch.id).join('; ')}।` : ''}`,
         description: chapterNotes(ch.id)
-          ? `${paper.title} ${ch.num}: ${ch.title} — ${chapterNotes(ch.id).slice(0, 3).join('; ')}। প্রথম লেকচার ফ্রি।`
-          : `${paper.title} ${ch.num}: ${ch.title} (${ch.eng}) — ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ। প্রথম লেকচার ফ্রি।`,
+          ? `${paper.title} ${ch.num}: ${ch.title} — ${chapterNotes(ch.id).slice(0, 3).join('; ')}।`
+          : `${paper.title} ${ch.num}: ${ch.title} (${ch.eng}) — ধাপে ধাপে লেকচার, সেলফ টেস্ট ও MCQ কুইজ।`,
         crumbs: [home, parentLink, link({ page: parent, options: { bvPaperKey: paper.id } }, paper.title)]
       });
     }
@@ -3602,13 +3602,13 @@ const routeInfo = (st) => {
         title: `${ch.title} (${ch.eng}) — ${modName}${suffix}`,
         heading: `${modName} — ${ch.num}: ${ch.title}`,
         summary: ch.topics
-          ? `${modName}, ${ch.num}: ${ch.title}. Topics: ${ch.topics.join('; ')}. প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।`
-          : `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${track.unlockFee}।${chapterNotes(ch.id) ? ` What you will learn: ${chapterNotes(ch.id).join('; ')}.` : ''}`,
+          ? `${modName}, ${ch.num}: ${ch.title}. Topics: ${ch.topics.join('; ')}.`
+          : `${ch.title}: ${ch.eng}. ${modName} (${track.id}) এর লেকচার, নোট ও সেলফ টেস্ট।${chapterNotes(ch.id) ? ` What you will learn: ${chapterNotes(ch.id).join('; ')}.` : ''}`,
         description: ch.topics
           ? `${modName} — ${ch.title}: ${ch.topics.join(', ')}.`
           : chapterNotes(ch.id)
           ? `${ch.title} — ${modName}: ${chapterNotes(ch.id).slice(0, 3).join('; ')}. First lecture free.`
-          : `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট। প্রথম লেকচার ফ্রি।`,
+          : `${ch.title} (${ch.eng}) — ${modName}: লেকচার, নোট ও সেলফ টেস্ট।`,
         crumbs: [home, parentLink, ...univCrumb, modLink]
       });
     }
@@ -3642,7 +3642,7 @@ const routeInfo = (st) => {
     return make({
       title: `HSC উচ্চতর গণিত (বাংলা ভার্সন) — ১ম ও ২য় পত্র, স্পেশাল কোর্স${suffix}`,
       heading: 'HSC উচ্চতর গণিত — বাংলা ভার্সন',
-      summary: 'উচ্চতর গণিত ১ম ও ২য় পত্রের সব অধ্যায় — লেকচার, সেলফ টেস্ট ও MCQ কুইজসহ। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি। লেখকের বই ও PDF কপি।',
+      summary: 'উচ্চতর গণিত ১ম ও ২য় পত্রের সব অধ্যায় — লেকচার, সেলফ টেস্ট ও MCQ কুইজসহ। লেখকের বই ও PDF কপি।',
       children: Object.values(HSC_BV_PAPERS).map((p) => link({ page, options: { bvPaperKey: p.id } }, `${p.title}ের অধ্যায় সমূহ`))
     });
   }
@@ -3655,7 +3655,7 @@ const routeInfo = (st) => {
       return make({
         title: `${u.full} — ভর্তি পরীক্ষার গণিত প্রস্তুতি${suffix}`,
         heading: u.full,
-        summary: `${u.full} ভর্তি পরীক্ষার গণিত প্রস্তুতি: অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট। প্রথম লেকচার ফ্রি, পরের লেকচার ৳${admT.unlockFee}।`,
+        summary: `${u.full} ভর্তি পরীক্ষার গণিত প্রস্তুতি: অধ্যায় ভিত্তিক ক্লাস ও মডেল টেস্ট।`,
         crumbs: [home, pageLink(page)],
         children: sections.map(({ m, i }) => link({ page: 'COURSE', course: { kind: 'track', trackId: page, moduleIdx: i, parent: page } }, `${u.name} — ${m.cardLabel}`))
       });
@@ -3828,7 +3828,7 @@ const loadContent = () => {
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .catch(() => ({ error: true }))
     .then((data) => {
-      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], settings: {}, daily: [], ...data };
+      contentCache = { lectures: {}, quiz: {}, slots: [], counts: {}, titles: {}, durations: {}, outline: {}, exams: [], books: [], reviews: [], settings: {}, daily: [], locks: {}, ...data };
       applyOutline(contentCache.outline);
       applyBooks(contentCache.books);
       contentListeners.forEach((fn) => fn(contentCache));
@@ -3852,6 +3852,12 @@ const lectureCountFor = (content, prefix, fallback) => {
   return n >= 1 && n <= 30 ? n : fallback;
 };
 // A lecture's heading from the admin page, else the built-in topic.
+// Every lecture is open until the admin locks it; a locked lecture may carry its own price.
+const lectureLocked = (content, key) => !!(content && content.locks && Object.prototype.hasOwnProperty.call(content.locks, key));
+const lectureFeeFor = (content, key, fallback) => {
+  const n = Number(content && content.locks && content.locks[key]);
+  return n > 0 ? n : fallback;
+};
 const lectureTitleFor = (content, key, fallback) => (content && content.titles && content.titles[key]) || fallback;
 // Length of a lecture, as typed on the admin page; nothing is shown until it is set.
 const lectureDurationFor = (content, key, english = false) => {
@@ -4008,7 +4014,69 @@ function ExtraLinks({ kind, placeholder, list, onChange, check }) {
   );
 }
 
-function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) {
+// The site's default price for a lecture when the admin sets none (from the price rules the page syncs).
+const defaultLecturePrice = (key) => {
+  let best = null;
+  priceRules().lecture.forEach((r) => {
+    if (key.indexOf(r.prefix) === 0 && (!best || r.prefix.length > best.prefix.length)) best = r;
+  });
+  return best ? best.price : 0;
+};
+
+// Locks or opens every lecture of the chosen chapter at once.
+function AdminLockBar({ lectures, locks, password, onDone }) {
+  const [price, setPrice] = useState('');
+  const [state, setState] = useState('idle');
+  const isCourse = lectures.length > 0 && lectures[0].key.indexOf('course-') === 0;
+  const run = (pick) => {
+    setState('saving');
+    adminPost(password, {
+      action: 'saveLocks',
+      items: lectures.map((l, i) => ({ key: l.key, locked: pick(i), price: isCourse ? 0 : price }))
+    }).then((r) => {
+      setState(r.ok ? 'saved' : 'error');
+      if (r.ok) onDone();
+    });
+  };
+  const lockedCount = lectures.filter((l) => locks && Object.prototype.hasOwnProperty.call(locks, l.key)).length;
+  return (
+    <div className="space-y-2 rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
+      <div className="text-sm font-bold text-white">
+        এই অধ্যায়ের সবগুলো একসাথে <span className="text-xs font-normal text-slate-400">({toBnDigits(lockedCount)}টি পেইড, {toBnDigits(lectures.length - lockedCount)}টি ফ্রি)</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {!isCourse && (
+          <input
+            className={`${adminInput} w-28`}
+            type="number"
+            min="1"
+            inputMode="numeric"
+            placeholder="দাম ৳ (ঐচ্ছিক)"
+            aria-label="সবার দাম"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        )}
+        <button type="button" disabled={state === 'saving'} onClick={() => run((i) => i > 0)} className="rounded-xl bg-amber-400 px-3 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-300 disabled:opacity-60">
+          🔒 ১ম বাদে সব লক
+        </button>
+        <button type="button" disabled={state === 'saving'} onClick={() => run(() => true)} className="rounded-xl bg-slate-800 px-3 py-2 text-xs font-extrabold text-amber-300 hover:bg-slate-700 disabled:opacity-60">
+          🔒 সব লক
+        </button>
+        <button type="button" disabled={state === 'saving'} onClick={() => run(() => false)} className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-extrabold text-slate-950 hover:bg-emerald-400 disabled:opacity-60">
+          🔓 সব খুলে দিন
+        </button>
+        {state === 'saved' && <span className="text-xs font-bold text-emerald-300">✓ হয়েছে</span>}
+        {state === 'error' && <span className="text-xs font-bold text-rose-300">হয়নি, আবার চেষ্টা করুন</span>}
+      </div>
+    </div>
+  );
+}
+
+function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved, lock }) {
+  const isCourseLecture = lecture.key.indexOf('course-') === 0;
+  const [locked, setLocked] = useState(lock !== undefined);
+  const [lockPrice, setLockPrice] = useState(lock > 0 ? String(lock) : '');
   const [form, setForm] = useState({ youtube: saved.youtube || '', pdf: saved.pdf || '', live: saved.live || '' });
   const [heading, setHeading] = useState(title || '');
   const [mins, setMins] = useState(minutes ? String(minutes) : '');
@@ -4025,9 +4093,10 @@ function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) 
     Promise.all([
       adminPost(password, { action: 'saveLecture', key: lecture.key, ...form, videos: videos.filter((x) => x.u.trim()), pdfs: pdfs.filter((x) => x.u.trim()) }),
       adminPost(password, { action: 'saveTitle', key: lecture.key, title: heading }),
-      adminPost(password, { action: 'saveDuration', key: lecture.key, minutes: mins })
-    ]).then(([r, t, d]) => {
-      r = { ok: r.ok && t.ok && d.ok };
+      adminPost(password, { action: 'saveDuration', key: lecture.key, minutes: mins }),
+      adminPost(password, { action: 'saveLocks', items: [{ key: lecture.key, locked, price: lockPrice }] })
+    ]).then(([r, t, d, k]) => {
+      r = { ok: r.ok && t.ok && d.ok && k.ok };
       setState(r.ok ? 'saved' : 'error');
       if (r.ok) {
         loadContent();
@@ -4043,7 +4112,43 @@ function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved }) 
           <span className={`rounded px-1.5 py-0.5 ${saved.youtube ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>ভিডিও</span>
           <span className={`rounded px-1.5 py-0.5 ${saved.pdf ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>PDF</span>
           <span className={`rounded px-1.5 py-0.5 ${saved.live ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>Live</span>
+          <span className={`rounded px-1.5 py-0.5 ${lock !== undefined ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'}`}>{lock !== undefined ? '🔒 পেইড' : '🔓 ফ্রি'}</span>
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-slate-950/60 px-3 py-2">
+        <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-white">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-amber-400"
+            checked={locked}
+            onChange={(e) => {
+              setLocked(e.target.checked);
+              setState('idle');
+            }}
+          />
+          🔒 পেইড (লক করুন)
+        </label>
+        {locked && !isCourseLecture && (
+          <label className="flex items-center gap-2 text-xs text-slate-300">
+            দাম ৳
+            <input
+              className={`${adminInput} w-24`}
+              type="number"
+              min="1"
+              inputMode="numeric"
+              placeholder={`ডিফল্ট ${defaultLecturePrice(lecture.key) || ''}`}
+              aria-label="লেকচারের দাম (টাকা)"
+              value={lockPrice}
+              onChange={(e) => {
+                setLockPrice(e.target.value);
+                setState('idle');
+              }}
+            />
+          </label>
+        )}
+        <span className="text-[11px] text-slate-500">
+          {!locked ? 'সবার জন্য খোলা' : isCourseLecture ? 'কোর্সে Enroll করলে খুলবে' : 'ফাঁকা রাখলে ডিফল্ট দাম'}
+        </span>
       </div>
       <div className="grid grid-cols-[1fr_7.5rem] gap-2">
         <input
@@ -4567,10 +4672,12 @@ function AdminPage() {
             YouTube এর পুরো লিংক পেস্ট করুন। PDF Google Drive এ রেখে "Anyone with the link" করে শেয়ার লিংক দিন। ঘর খালি করে Save করলে লিংক মুছে যাবে।
           </p>
           <AdminCountEditor chapter={chapter} content={content} password={password} />
+          <AdminLockBar lectures={chapter.lectures} locks={content.locks || {}} password={password} onDone={() => loadContent()} />
           {chapter.lectures.map((l) => (
             <AdminLectureRow
-              key={l.key}
+              key={`${l.key}:${content.locks && l.key in content.locks ? content.locks[l.key] : 'open'}`}
               lecture={l}
+              lock={content.locks && Object.prototype.hasOwnProperty.call(content.locks, l.key) ? content.locks[l.key] : undefined}
               saved={allLectures[l.key] || {}}
               title={(content.titles && content.titles[l.key]) || ''}
               minutes={(content.durations && content.durations[l.key]) || ''}
@@ -6196,7 +6303,7 @@ export default function App() {
       const topicDesc = blueprint[idx] || EXTRA_TOPIC;
       const lecNum = idx + 1;
       const lecKey = `p3-${activePart3Module.id}-${activePart3Chapter.id}-lec-${lecNum}`;
-      const isFree = lecNum === 1;
+      const isFree = !lectureLocked(siteContent, lecKey);
       const isUnlocked = isFree || !!unlockedLectures[lecKey];
       return {
         lecNum,
@@ -6206,7 +6313,7 @@ export default function App() {
         duration: lectureDurationFor(siteContent, lecKey, true),
         isFree,
         isUnlocked,
-        priceBdt: activePart3Track.unlockFee,
+        priceBdt: lectureFeeFor(siteContent, lecKey, activePart3Track.unlockFee),
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-${activePart3Chapter.id}-L${lecNum}/viewform`
       };
     });
@@ -6307,7 +6414,7 @@ export default function App() {
     return Array.from({ length: lectureCountFor(siteContent, currentBvChapter.id, BV_LECTURES) }, (_, idx) => {
       const lecNum = idx + 1;
       const lecKey = `${currentBvChapter.id}-lec-${lecNum}`;
-      const isFree = lecNum === 1;
+      const isFree = !lectureLocked(siteContent, lecKey);
       const isUnlocked = isFree || !!unlockedLectures[lecKey];
 
       return {
@@ -6318,7 +6425,7 @@ export default function App() {
         duration: lectureDurationFor(siteContent, lecKey),
         isFree,
         isUnlocked,
-        priceBdt: 30,
+        priceBdt: lectureFeeFor(siteContent, lecKey, 30),
         googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-bv-${currentBvChapter.id}-L${lecNum}/viewform`
       };
     });
@@ -6707,7 +6814,7 @@ export default function App() {
             <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto] lg:gap-10">
               <div className="space-y-4">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300 sm:text-xs">
-                  🎁 প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি
+                  🎁 ফ্রি লেকচার দেখে শুরু করুন
                 </span>
                 <h2 className="text-[26px] font-black leading-[1.25] tracking-tight sm:text-4xl xl:text-5xl xl:leading-[1.2]">
                   <span className="text-white">গণিত শিখুন বুঝে,</span>{' '}
@@ -6982,8 +7089,8 @@ export default function App() {
                 <p className="text-sm sm:text-base font-semibold text-white/85">{currentBvChapter.eng}</p>
                 <div className="flex flex-wrap gap-2 pt-2 text-xs font-bold">
                   <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">{toBnDigits(lectureCountFor(siteContent, currentBvChapter.id, BV_LECTURES))}টি লেকচার</span>
-                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">✓ ১ম লেকচার ফ্রি</span>
-                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">পরের লেকচার ৳৩০</span>
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">✓ ফ্রি লেকচার আছে</span>
+                  <span className="rounded-lg bg-white/20 px-2.5 py-1 backdrop-blur">লক করা লেকচার আনলক করুন</span>
                   <button
                     type="button"
                     onClick={() =>
@@ -7016,7 +7123,7 @@ export default function App() {
 
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1.5 rounded-xl bg-teal-500/20 border border-teal-400/40 text-teal-300 text-xs font-bold">
-                  ১ম লেকচার ফ্রি • পরবর্তী প্রতিটি লেকচার ৳৩০
+                  ফ্রি লেকচার দেখুন • লক করা লেকচার আনলক করুন
                 </span>
               </div>
             </div>
@@ -7049,7 +7156,7 @@ export default function App() {
                         </span>
                         {lec.isFree ? (
                           <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                            <Unlock className="w-3 h-3" /> ১ম লেকচার ফ্রি (Open)
+                            <Unlock className="w-3 h-3" /> ফ্রি (Open)
                           </span>
                         ) : lec.isUnlocked ? (
                           <span className="text-[11px] font-bold text-teal-300 flex items-center gap-1">
@@ -7309,7 +7416,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 {activeCourseLectures.map((lec) => {
                   const isCompleted = !!completedCourseLectures[lec.progressKey];
-                  const isCourseUnlocked = !!enrolledCourses[activeSpecialCourse.id] || lec.lecNum === 1;
+                  const isCourseUnlocked = !!enrolledCourses[activeSpecialCourse.id] || !lectureLocked(siteContent, lec.progressKey);
 
                   return (
                     <div
@@ -7329,9 +7436,9 @@ export default function App() {
                             <span className="text-[11px] text-amber-300 font-semibold">
                               {activeCourseChapter.paper} • {activeCourseChapter.num}
                             </span>
-                            {lec.lecNum === 1 && !enrolledCourses[activeSpecialCourse.id] && (
+                            {!lectureLocked(siteContent, lec.progressKey) && !enrolledCourses[activeSpecialCourse.id] && (
                               <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                                ফ্রি ডেমো লেকচার
+                                ফ্রি লেকচার
                               </span>
                             )}
                           </div>
@@ -7559,7 +7666,7 @@ export default function App() {
                         icon={m.icon}
                         title={m.name}
                         sub={m.sub}
-                        chips={[`${toBnDigits(m.chapters.length)}টি ইউনিট`, '১ম লেকচার ফ্রি']}
+                        chips={[`${toBnDigits(m.chapters.length)}টি ইউনিট`, 'ফ্রি লেকচার']}
                         onClick={() =>
                           openCourse({ kind: 'track', trackId: honTrack.id, parent: honTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: `${yr.short} • কোর্স কোড ${m.courseCode}`, icon: m.icon, grad: m.grad })
                         }
@@ -7622,7 +7729,7 @@ export default function App() {
                         icon={m.icon}
                         title={m.cardLabel}
                         sub={m.sub}
-                        chips={[`${toBnDigits(m.chapters.length)}${m.section === 'mt' ? 'টি টেস্ট' : 'টি অধ্যায়'}`, '১ম লেকচার ফ্রি']}
+                        chips={[`${toBnDigits(m.chapters.length)}${m.section === 'mt' ? 'টি টেস্ট' : 'টি অধ্যায়'}`, 'ফ্রি লেকচার']}
                         onClick={() =>
                           openCourse({ kind: 'track', trackId: admTrack.id, parent: admTrack.id, moduleIdx: mIdx, chapterIdx: 0, title: m.name, sub: m.sub, icon: m.icon, grad: m.grad })
                         }
@@ -7714,7 +7821,7 @@ export default function App() {
               const topicDesc = (currentChapter.topics || currentModule.lectureBlueprint)[idx] || EXTRA_TOPIC;
               const lecNum = idx + 1;
               const lecKey = `p3-${currentModule.id}-${currentChapter.id}-lec-${lecNum}`;
-              const isFree = lecNum === 1;
+              const isFree = !lectureLocked(siteContent, lecKey);
               const isUnlocked = isFree || !!unlockedLectures[lecKey];
               return {
                 lecNum,
@@ -7724,7 +7831,7 @@ export default function App() {
                 duration: lectureDurationFor(siteContent, lecKey, true),
                 isFree,
                 isUnlocked,
-                priceBdt: currentTrack.unlockFee,
+                priceBdt: lectureFeeFor(siteContent, lecKey, currentTrack.unlockFee),
                 googleFormUrl: `https://docs.google.com/forms/d/e/1FAIpQLSd-emran-${currentChapter.id}-L${lecNum}/viewform`
               };
               }
@@ -7740,7 +7847,7 @@ export default function App() {
                       Select Course / Paper under {currentTrack.id}:
                     </span>
                     <span className="text-xs text-amber-300 font-semibold">
-                      ✓ 1st Lecture Free (Open) • Subsequent Lectures Unlock: ৳{currentTrack.unlockFee}
+                      ✓ Free lectures are open • Locked lectures unlock for a fee
                     </span>
                   </div>
 
@@ -7843,7 +7950,7 @@ export default function App() {
                       </h4>
                     </div>
                     <span className="px-3 py-1 rounded-xl bg-teal-500/20 border border-teal-400/40 text-teal-300 text-xs font-bold">
-                      1st Lecture Free • Next Lectures ৳{currentTrack.unlockFee}
+                      Free lectures are open • Locked lectures unlock for a fee
                     </span>
                   </div>
 
@@ -8627,7 +8734,7 @@ export default function App() {
                 <div className="text-xs">Lecturer in Mathematics, Hamdard Public College, Dhaka</div>
               </div>
             </div>
-            <p className="text-xs leading-relaxed">HSC, O/A Level, ভর্তি পরীক্ষা, Job Math ও B.Sc. Honours গণিতের ক্লাস, নোট ও কুইজ। প্রতিটি অধ্যায়ের প্রথম লেকচার ফ্রি।</p>
+            <p className="text-xs leading-relaxed">HSC, O/A Level, ভর্তি পরীক্ষা, Job Math ও B.Sc. Honours গণিতের ক্লাস, নোট ও কুইজ।</p>
             <ContactIcons size="lg" />
           </div>
           {[

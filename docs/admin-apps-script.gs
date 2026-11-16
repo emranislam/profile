@@ -37,6 +37,7 @@ const SHEETS = {
   counts: ['chapter', 'lectures'],
   titles: ['key', 'title'],
   durations: ['key', 'minutes'],
+  locks: ['key', 'price', 'updated'],
   outline: ['group', 'id', 'num', 'title', 'eng'],
   books: ['key', 'title', 'series', 'author', 'badge', 'price', 'meta', 'icon', 'cover', 'status', 'image'],
   reviews: ['id', 'name', 'info', 'text', 'link', 'added'],
@@ -98,18 +99,29 @@ function asciiDigits_(s) {
 
 // ---------------------------------------------------------------- public content
 
-// Until payments are verified here, only the free first lecture of each chapter is public.
-// Paid lectures' links stay in the sheet and are returned only to the admin ('getAll') or to a
-// student whose payment was verified ('unlock' / 'access').
+// Every lecture is open until the admin locks it (🔒 on the lecture's row). A locked lecture's links
+// stay in the sheet and are returned only to the admin ('getAll') or to a student whose payment was
+// verified ('unlock' / 'access').
 function isPublicLecture_(key) {
   if (prop_('RELEASE_ALL_LECTURES') === 'yes') return true;
-  return /-lec-1$/.test(String(key));
+  return !Object.prototype.hasOwnProperty.call(locks_(), String(key));
+}
+
+// Locked lectures: { key: price }. A price of 0 means "use the site's default price".
+function locks_() {
+  const out = {};
+  rows_('locks').forEach((r) => {
+    if (r[0]) out[String(r[0])] = Math.max(0, Math.min(100000, Math.floor(Number(r[1])) || 0));
+  });
+  return out;
 }
 
 function lectures_(onlyPublic) {
   const out = {};
+  const locked = onlyPublic ? locks_() : {};
+  const release = prop_('RELEASE_ALL_LECTURES') === 'yes';
   rows_('lectures').forEach((r) => {
-    if (r[0] && (!onlyPublic || isPublicLecture_(r[0]))) {
+    if (r[0] && (!onlyPublic || release || !Object.prototype.hasOwnProperty.call(locked, String(r[0])))) {
       out[r[0]] = {
         youtube: String(r[1] || ''), pdf: String(r[2] || ''), live: String(r[3] || ''),
         videos: extras_(r[5]), pdfs: extras_(r[6])
@@ -254,7 +266,7 @@ function daily_() {
 }
 
 function doGet() {
-  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_(), reviews: reviews_(), settings: settings_(), daily: daily_() };
+  const out = { lectures: lectures_(true), quiz: {}, slots: [], counts: counts_(), titles: titles_(), durations: durations_(), outline: outline_(), exams: publicExams_(), books: books_(), reviews: reviews_(), settings: settings_(), daily: daily_(), locks: locks_() };
   rows_('quiz').forEach((r) => {
     if (!r[0] || !r[1]) return;
     (out.quiz[r[0]] = out.quiz[r[0]] || []).push({
@@ -511,7 +523,11 @@ function priceFor_(scope, key) {
   if (scope === 'book') return rules.book && Number(rules.book[key]) > 0 ? Number(rules.book[key]) : null;
   if (scope === 'course') return rules.course && Number(rules.course[key]) > 0 ? Number(rules.course[key]) : null;
   if (scope === 'lecture') {
-    if (!/-lec-\d+$/.test(key) || /-lec-1$/.test(key)) return null;
+    if (!/-lec-\d+$/.test(key)) return null;
+    // Only a lecture the admin has locked can be bought; its own price wins over the site's default.
+    const lk = locks_();
+    if (!Object.prototype.hasOwnProperty.call(lk, key)) return null;
+    if (lk[key] > 0) return lk[key];
     let best = null;
     (rules.lecture || []).forEach((r) => {
       if (key.indexOf(r.prefix) === 0 && (!best || r.prefix.length > best.prefix.length) && Number(r.price) > 0) best = r;
@@ -821,6 +837,35 @@ function adminAction_(body) {
       for (let k = v.length - 1; k >= 1; k--) if (String(v[k][pair[1]]) === examId) sh.deleteRow(k + 1);
     });
     return { ok: true };
+  }
+
+  if (body.action === 'saveLocks') {
+    // items: [{ key, locked, price }] — locked lectures need payment; the rest are open to everyone.
+    const items = Array.isArray(body.items) ? body.items.slice(0, 300) : [];
+    if (items.some((x) => !x || !/^[A-Za-z0-9_-]{1,120}-lec-\d{1,3}$/.test(String(x.key)))) return { ok: false, error: 'bad-input' };
+    const sh = sheet_('locks');
+    const values = sh.getDataRange().getValues();
+    const at = {};
+    values.forEach((r, ix) => {
+      if (ix > 0) at[String(r[0])] = ix + 1;
+    });
+    const drop = [];
+    items.forEach((x) => {
+      const key = String(x.key);
+      const price = Math.max(0, Math.min(100000, Math.floor(Number(x.price)) || 0));
+      if (x.locked) {
+        if (at[key]) sh.getRange(at[key], 2, 1, 2).setValues([[price, new Date()]]);
+        else {
+          sh.appendRow([key, price, new Date()]);
+          at[key] = sh.getLastRow();
+        }
+      } else if (at[key]) {
+        drop.push(at[key]);
+        delete at[key];
+      }
+    });
+    drop.sort((a, b) => b - a).forEach((n) => sh.deleteRow(n));
+    return { ok: true, locks: locks_() };
   }
 
   if (body.action === 'saveDuration') {
