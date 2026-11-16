@@ -75,8 +75,15 @@ function breadcrumbs(r) {
   return `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items })}</script>`;
 }
 
+// app.js loads shared files first (React and the site itself); start fetching them at the same time.
+const entry = fs.readFileSync(path.join(root, 'assets', 'app.js'), 'utf8');
+const preload = [...new Set([...entry.matchAll(/from\s*"\.\/(chunks\/[^"]+\.js)"/g)].map((m) => m[1]))]
+  .map((f) => `<link rel="modulepreload" href="/assets/${f}">`)
+  .join('\n    ');
+
 function render(r, extra = {}) {
   return template
+    .replace('{{PRELOAD}}', () => preload)
     .replace(/{{TITLE}}/g, () => esc(r.title))
     .replace(/{{DESCRIPTION}}/g, () => esc(r.description))
     .replace(/{{URL}}/g, () => SITE_ORIGIN + r.path)

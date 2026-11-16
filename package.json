@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build:css": "tailwindcss -i src/index.css -o assets/app.css --minify",
-    "build:js": "esbuild src/main.jsx --bundle --minify --format=esm --jsx=automatic --loader:.css=empty --define:process.env.NODE_ENV=\\\"production\\\" --outfile=assets/app.js",
+    "build:js": "rm -rf assets/chunks && esbuild src/main.jsx --bundle --splitting --minify --format=esm --jsx=automatic --loader:.css=empty --define:process.env.NODE_ENV=\\\"production\\\" --entry-names=app --chunk-names=chunks/[name]-[hash] --outdir=assets",
     "build": "npm run build:css && npm run build:js && npm run build:pages",
     "build:pages": "node scripts/prerender.mjs"
   },
