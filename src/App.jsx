@@ -100,12 +100,14 @@ const CV_CREDENTIALS = {
       title: 'Development of an Algorithm for Solving TSP',
       publisher: 'LAP LAMBERT Academic Publishing, Germany (15 May 2018)',
       isbn: 'ISBN 978-613-9-83715-1',
+      link: 'https://www.amazon.com/dp/6139837154',
       type: 'International Research Monograph'
     },
     {
       title: 'An Analytical Approach for Learning Programming Language C',
       publisher: 'LAP LAMBERT Academic Publishing, Germany (01 June 2018)',
-      isbn: 'ISBN 978-613-9-83715-3',
+      isbn: 'ISBN 978-613-9-84909-3',
+      link: 'https://a.co/d/0hHv49pc',
       type: 'International Computing Monograph'
     },
     {
@@ -1148,7 +1150,8 @@ const CV_SHOP_BOOKS = CV_CREDENTIALS.books.map((b, i) => ({
   icon: CV_BOOK_COVERS[i].icon,
   badge: b.type.includes('International') ? 'International' : 'Textbook',
   price: null,
-  meta: b.isbn
+  meta: b.isbn,
+  link: b.link || ''
 }));
 
 // ---- The book shelf can be edited on the admin page (sheet 'books'): built-in books can be
@@ -1194,7 +1197,8 @@ const rowToShopBook = (r, base = {}) => ({
   badge: r.badge || base.badge || '',
   price: r.price > 0 ? bookPriceText(r.price) : base.price || null,
   meta: r.meta || base.meta || '',
-  image: r.image || ''
+  image: r.image || '',
+  link: r.link || base.link || ''
 });
 // Published books shelf: the built-in ones (with admin changes) followed by books added on the admin page.
 const shopBooks = () => [
@@ -1299,7 +1303,7 @@ function BookShopCard({ book, onDetails, light = false }) {
         {book.price ? (
           <>
             <span className={`text-lg font-black ${light ? 'text-[#b45309]' : 'text-amber-300'}`}>{book.price}</span>
-            <BookStockNote light={light} className="mt-1" />
+            {!book.link && <BookStockNote light={light} className="mt-1" />}
           </>
         ) : (
           <span className={`text-[11px] font-semibold ${light ? 'text-[#2c7353]' : 'text-teal-300'}`}>{book.series}</span>
@@ -1317,7 +1321,16 @@ function BookShopCard({ book, onDetails, light = false }) {
             বিস্তারিত
           </button>
         )}
-        {book.price ? (
+        {book.link ? (
+          <a
+            href={book.link}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-2 text-center text-xs font-extrabold text-slate-950 transition hover:from-amber-300 hover:to-orange-400"
+          >
+            {/(^|\.)(amazon\.|a\.co$|amzn\.)/.test(new URL(book.link).hostname) ? 'Amazon এ কিনুন ↗' : 'কিনুন ↗'}
+          </a>
+        ) : book.price ? (
           <button
             type="button"
             onClick={() => openBookOrder(book)}
@@ -1846,6 +1859,11 @@ function AboutResearcherPage({ openSubPage }) {
               <div className="mt-2 font-semibold text-[#14213d]">{b.title}</div>
               <div className="mt-1 text-sm text-[#5b6882]">{b.publisher}</div>
               <div className="mt-1 font-mono text-xs text-[#7a859b]">{b.isbn}</div>
+              {b.link && (
+                <a href={b.link} target="_blank" rel="noopener noreferrer sponsored" className="mt-3 inline-block text-sm font-semibold text-[#2f5fb3] hover:underline">
+                  Amazon এ দেখুন ↗
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -5377,7 +5395,7 @@ export default function App() {
                   onDetails={() => setSelectedSpecialCourseModal(item)}
                 />
               ))}
-              {shopBooks().filter((book) => book.price).map((book) => (
+              {shopBooks().filter((book) => book.price || book.link).map((book) => (
                 <BookShopCard key={`home-${book.key}`} book={book} />
               ))}
             </div>

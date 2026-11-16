@@ -93,6 +93,10 @@ The six O/A cards (O Level 4024, A Level Pure 1, Pure 2 and 3, Mechanics, Probab
 
 The book shelf can be edited without changing code. For every built-in book you can change the name, author, badge and PDF price, hide it from the site, or press "ডিফল্টে ফিরুন" to undo your changes. "+ নতুন বই যোগ করুন" adds a new book (name, publisher line, author, badge, price, one-line description, cover emoji and colour); "বই মুছুন" removes a book you added. Books are stored in the `books` sheet. A book with a price shows the "PDF কপি নিন" button; the order form uses this price, and a hidden book cannot be bought. After pasting the new `admin-apps-script.gs`, deploy a New version.
 
+### Books sold on another site (Amazon etc.)
+
+Each non-course book in the 📖 বই tab has an "অন্য সাইটে কেনার লিংক" box. Paste an `https://` link (for example the book's Amazon page) and Save: the book's card then shows an **Amazon এ কিনুন ↗** button (opens in a new tab) instead of the bKash order button, and the "হার্ডকপি: স্টক আউট" note is hidden for it. Leave the PDF price empty for such a book. The two Lambert Academic Publishing books ("Development of an Algorithm for Solving TSP" and "An Analytical Approach for Learning Programming Language C") already carry their Amazon links in `src/App.jsx` (`CV_CREDENTIALS.books[].link`). This needs the new Apps Script version (the `books` sheet gets a `link` column automatically).
+
 ## Student reviews (⭐ মতামত tab)
 
 Students write reviews on Facebook: the home page has a "Facebook এ মতামত দিন" button. It opens `SITE_LINKS.facebookReviews` in `src/App.jsx`, or `SITE_LINKS.facebook` while that is empty. Set `facebookReviews` to your Facebook Page's Reviews link (for example `https://www.facebook.com/yourpage/reviews`). Reviews and recommendations only exist on a Facebook Page, not on a personal profile.
