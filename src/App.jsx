@@ -6790,6 +6790,11 @@ export default function App() {
                       <div className="text-sm font-extrabold text-white">{b.title}</div>
                       <div className="text-xs text-slate-400">{b.publisher}</div>
                       <div className="text-xs font-mono text-amber-300">{b.isbn}</div>
+                      {b.link && (
+                        <a href={b.link} target="_blank" rel="noopener noreferrer sponsored" className="inline-block pt-1 text-xs font-bold text-teal-300 hover:underline">
+                          Amazon এ কিনুন ↗
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
