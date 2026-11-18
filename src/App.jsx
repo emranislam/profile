@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
+import MathText from './MathText.jsx';
 import {
   BookOpen,
   Video,
@@ -2595,9 +2596,10 @@ const SAMPLE_QUIZ = [
 
 const toBnDigits = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
-function QuizPanel({ quizKey }) {
+// quizKeys: the lecture's own quiz first, then the chapter's quiz when the lecture has none.
+function QuizPanel({ quizKeys }) {
   const content = useContent();
-  const bank = quizFor(content, quizKey);
+  const bank = quizKeys.map((k) => quizFor(content, k)).find(Boolean);
   const questions = bank || SAMPLE_QUIZ;
   const isSample = !bank;
   const total = questions.length * 60;
@@ -2634,7 +2636,7 @@ function QuizPanel({ quizKey }) {
       </div>
       {questions.map((item, qi) => (
         <div key={qi} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-950 p-3.5">
-          <div className="text-sm font-bold text-white">{toBnDigits(qi + 1)}. {item.q}</div>
+          <div className="text-sm font-bold text-white">{toBnDigits(qi + 1)}. <MathText text={item.q} /></div>
           <div className="grid gap-2 sm:grid-cols-2">
             {item.options.map((opt, oi) => {
               const chosen = answers[qi] === oi;
@@ -2657,12 +2659,12 @@ function QuizPanel({ quizKey }) {
                       : 'border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-600'
                   }`}
                 >
-                  {opt}
+                  <MathText text={opt} />
                 </button>
               );
             })}
           </div>
-          {submitted && item.explain && <div className="text-[11px] leading-relaxed text-slate-400">💡 {item.explain}</div>}
+          {submitted && item.explain && <div className="text-[11px] leading-relaxed text-slate-400">💡 <MathText text={item.explain} /></div>}
         </div>
       ))}
       {!submitted ? (
@@ -2914,7 +2916,7 @@ function DailyQuestion() {
           <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-300">🔥 টানা {toBnDigits(streak)} দিন</span>
         )}
       </div>
-      <p className="text-sm font-semibold leading-relaxed text-white sm:text-base">{q.q}</p>
+      <p className="text-sm font-semibold leading-relaxed text-white sm:text-base"><MathText text={q.q} /></p>
       <div className="grid gap-2 sm:grid-cols-2">
         {q.options.map((o, i) => {
           const state = !answeredToday ? 'idle' : i === q.answer ? 'right' : i === choice ? 'wrong' : 'rest';
@@ -2935,7 +2937,7 @@ function DailyQuestion() {
               }`}
             >
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black">{'কখগঘ'[i]}</span>
-              <span>{o}</span>
+              <span><MathText text={o} /></span>
               {state === 'right' && <span className="ml-auto">✓</span>}
               {state === 'wrong' && <span className="ml-auto">✗</span>}
             </button>
@@ -2947,10 +2949,10 @@ function DailyQuestion() {
           <div className={`text-sm font-extrabold ${right ? 'text-emerald-300' : 'text-rose-300'}`}>
             {right ? '🎉 সঠিক উত্তর!' : `উত্তর ভুল হয়েছে। সঠিক উত্তর: ${'কখগঘ'[q.answer]}) ${q.options[q.answer]}`}
           </div>
-          {q.explain && <p className="text-sm leading-relaxed text-slate-300">{q.explain}</p>}
+          {q.explain && <p className="text-sm leading-relaxed text-slate-300"><MathText text={q.explain} /></p>}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-slate-400">কাল নতুন প্রশ্ন আসবে।</span>
-            <ShareButtons text={`আজকের প্রশ্ন: ${q.q} তুমি পারবে?`} path="/" />
+            <ShareButtons text={`আজকের প্রশ্ন: ${q.q.replace(/\$/g, '')} তুমি পারবে?`} path="/" />
           </div>
         </div>
       ) : (
@@ -4240,7 +4242,7 @@ function ExamResultView({ result, onClose }) {
         <h4 className="text-sm font-extrabold text-white">উত্তর ও ব্যাখ্যা</h4>
         {result.review.map((q, i) => (
           <div key={i} className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-            <div className="text-sm font-bold text-white">{toBnDigits(i + 1)}. {q.q}</div>
+            <div className="text-sm font-bold text-white">{toBnDigits(i + 1)}. <MathText text={q.q} /></div>
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {q.options.map((o, oi) => (
                 <div
@@ -4253,14 +4255,14 @@ function ExamResultView({ result, onClose }) {
                       : 'border-slate-800 text-slate-300'
                   }`}
                 >
-                  {['ক', 'খ', 'গ', 'ঘ'][oi]}) {o}
+                  {['ক', 'খ', 'গ', 'ঘ'][oi]}) <MathText text={o} />
                   {oi === q.answer && ' ✓'}
                   {oi === q.yours && oi !== q.answer && ' ✗ (আপনার উত্তর)'}
                 </div>
               ))}
             </div>
             {q.yours === -1 && <div className="text-[11px] text-amber-300">উত্তর দেননি</div>}
-            {q.explain && <div className="rounded-xl bg-slate-950 p-3 text-xs leading-relaxed text-slate-300">💡 {q.explain}</div>}
+            {q.explain && <div className="rounded-xl bg-slate-950 p-3 text-xs leading-relaxed text-slate-300">💡 <MathText text={q.explain} /></div>}
           </div>
         ))}
       </div>
@@ -4330,7 +4332,7 @@ function ExamRunner({ exam, run, creds, onDone }) {
         প্রশ্ন {toBnDigits(cur + 1)} / {toBnDigits(run.questions.length)} • উত্তর দেওয়া হয়েছে {toBnDigits(answered)}টি
       </div>
       <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <div className="text-base font-bold leading-relaxed text-white">{q.q}</div>
+        <div className="text-base font-bold leading-relaxed text-white"><MathText text={q.q} /></div>
         <div className="space-y-2">
           {q.options.map((o, oi) => (
             <button
@@ -4344,7 +4346,7 @@ function ExamRunner({ exam, run, creds, onDone }) {
               <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${answers[cur] === oi ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
                 {['ক', 'খ', 'গ', 'ঘ'][oi]}
               </span>
-              <span>{o}</span>
+              <span><MathText text={o} /></span>
             </button>
           ))}
         </div>
@@ -6971,7 +6973,7 @@ export default function App() {
                 </div>
               )}
 
-              {m.type === 'selftest' && <QuizPanel key={m.lec.lecKey || m.lec.progressKey} quizKey={m.chapter.id || m.chapter.chId} />}
+              {m.type === 'selftest' && <QuizPanel key={m.lec.lecKey || m.lec.progressKey} quizKeys={[m.lec.lecKey || m.lec.progressKey, m.chapter.id || m.chapter.chId]} />}
 
               <div className="flex items-center justify-between gap-3 border-t border-slate-800 pt-4">
                 <span className="text-xs text-slate-400">এই লেকচার নিয়ে কিছু বুঝতে সমস্যা?</span>

@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import MathText, { hasMath } from './MathText.jsx';
+import { parseQuestions, readDocxText } from './quizTools.js';
 import { ExternalLink, Facebook } from 'lucide-react';
 import { BOOK_GRADS, BV_LECTURES, BookCover, COURSE_BOOK_ORIGINAL, COURSE_LECTURES, CV_SHOP_BOOKS, ChoiceChips, EXTRA_TOPIC, FB_LINK_RE, HSC_BV_PAPERS, PART3_ACADEMIC_TRACKS, SITE_LINKS, SPECIAL_COURSES_WITH_BOOKS, contentCache, currentOutline, demoVideoId, dhakaDay, lectureCountFor, loadContent, outlineDefaults, priceNumber, priceRules, toBnDigits, useContent, youtubeId } from './App.jsx';
 
@@ -320,6 +322,144 @@ function AdminLectureRow({ lecture, saved, title, minutes, password, onSaved, lo
   );
 }
 
+// Reads questions from a Word (.docx) file or pasted text and shows them as the site will, before they are added.
+function AdminQuizImport({ onAdd, hasQuestions }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [result, setResult] = useState(null);
+  const [msg, setMsg] = useState('');
+  const pickFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setMsg('');
+    setResult(null);
+    if (/\.pdf$/i.test(file.name)) {
+      setMsg('PDF থেকে সমীকরণ নির্ভুলভাবে পড়া যায় না। প্রশ্নগুলো Word (.docx) এ নিয়ে আসুন, অথবা Claude কে দিয়ে LaTeX করিয়ে নিচের ঘরে পেস্ট করুন।');
+      return;
+    }
+    if (/\.doc$/i.test(file.name)) {
+      setMsg('এটা পুরনো .doc ফাইল। Word এ খুলে Save As করে .docx বানিয়ে দিন।');
+      return;
+    }
+    try {
+      const body = /\.docx$/i.test(file.name) ? await readDocxText(await file.arrayBuffer()) : await file.text();
+      setText(body);
+      setResult(parseQuestions(body));
+    } catch {
+      setMsg('ফাইলটি পড়া যায়নি। .docx (Word) বা .txt ফাইল দিন।');
+    }
+  };
+  const done = () => {
+    setOpen(false);
+    setText('');
+    setResult(null);
+  };
+  return (
+    <div className="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between text-left text-sm font-extrabold text-white">
+        <span>📄 Word ফাইল বা লেখা থেকে প্রশ্ন আনুন</span>
+        <span className="text-xs text-amber-300">{open ? 'বন্ধ করুন' : 'খুলুন'}</span>
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3">
+          <p className="text-[11px] leading-relaxed text-slate-400">
+            Word এ প্রশ্ন এই ছাঁচে লিখুন: প্রশ্ন নম্বর (১. বা 1.), অপশন ক) খ) গ) ঘ) (বা a) b) c) d)), তারপর <b>উত্তর: খ</b> আর ঐচ্ছিক <b>ব্যাখ্যা: ...</b>।
+            সমীকরণ Word এর নিজস্ব <b>Insert → Equation</b> দিয়ে লিখলে নিজে থেকে বদলে যাবে। MathType বা ছবি করা সমীকরণ পড়া যায় না।
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="cursor-pointer rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-300">
+              📎 .docx ফাইল বাছুন
+              <input type="file" accept=".docx,.doc,.txt,.pdf" className="hidden" onChange={pickFile} />
+            </label>
+            <span className="text-[11px] text-slate-500">অথবা নিচে পেস্ট করুন</span>
+          </div>
+          <textarea
+            className={`${adminInput} h-32 font-mono text-xs`}
+            placeholder={"১. $f(x)=x^2$ হলে $f'(x)$ কত?\nক) $x$  খ) $2x$  গ) $x^2$  ঘ) $2$\nউত্তর: খ\nব্যাখ্যা: $\\frac{d}{dx}x^2=2x$"}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setResult(null);
+            }}
+          />
+          {msg && <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-2.5 text-xs text-rose-200">{msg}</div>}
+          <button
+            type="button"
+            disabled={!text.trim()}
+            onClick={() => setResult(parseQuestions(text))}
+            className="rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-slate-700 disabled:opacity-50"
+          >
+            প্রশ্নগুলো পড়ুন
+          </button>
+          {result && (
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-white">
+                {toBnDigits(result.found)}টি প্রশ্ন পাওয়া গেছে: <span className="text-emerald-300">{toBnDigits(result.questions.length)}টি ঠিক আছে</span>
+                {result.skipped.length > 0 && <span className="text-rose-300">, {toBnDigits(result.skipped.length)}টি বাদ</span>}
+              </div>
+              {result.skipped.map((s, i) => (
+                <div key={i} className="rounded-lg bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-200">
+                  প্রশ্ন {s.n}: {s.why}
+                </div>
+              ))}
+              <div className="max-h-96 space-y-2 overflow-y-auto rounded-xl bg-slate-950/70 p-3">
+                {result.questions.map((q, i) => (
+                  <div key={i} className="space-y-1 border-b border-slate-800 pb-2 text-xs text-slate-200 last:border-0">
+                    <div className="font-bold">
+                      {toBnDigits(i + 1)}. <MathText text={q.q} />
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                      {q.options.map((o, oi) => (
+                        <div key={oi} className={q.answer === oi ? 'font-bold text-emerald-300' : ''}>
+                          {['ক', 'খ', 'গ', 'ঘ'][oi]}) <MathText text={o} />
+                        </div>
+                      ))}
+                    </div>
+                    {q.explain && (
+                      <div className="text-slate-400">
+                        💡 <MathText text={q.explain} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {result.questions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onAdd(result.questions, false);
+                      done();
+                    }}
+                    className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-emerald-400"
+                  >
+                    ✓ এই {toBnDigits(result.questions.length)}টি প্রশ্ন যোগ করুন
+                  </button>
+                  {hasQuestions && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!window.confirm('এই কুইজের আগের সব প্রশ্ন মুছে এগুলো বসাবেন?')) return;
+                        onAdd(result.questions, true);
+                        done();
+                      }}
+                      className="rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-extrabold text-amber-300 hover:bg-slate-700"
+                    >
+                      আগেরগুলো মুছে এগুলো বসান
+                    </button>
+                  )}
+                  <span className="self-center text-[11px] text-slate-500">যোগ করার পর নিচে দেখে নিয়ে "কুইজ Save করুন" চাপুন।</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const emptyQuestion = () => ({ q: '', options: ['', '', '', ''], answer: 0, explain: '' });
 
 function AdminQuizEditor({ quizKey, saved, password }) {
@@ -337,8 +477,17 @@ function AdminQuizEditor({ quizKey, saved, password }) {
       if (r.ok) loadContent();
     });
   };
+  const filled = (list) => list.filter((q) => q.q.trim() || q.options.some((o) => o.trim()));
+  const addImported = (list, replaceAll) => {
+    setQuestions((qs) => {
+      const next = [...(replaceAll ? [] : filled(qs)), ...list];
+      return next.length ? next : [emptyQuestion()];
+    });
+    setState('idle');
+  };
   return (
     <div className="space-y-4">
+      <AdminQuizImport onAdd={addImported} hasQuestions={filled(questions).length > 0} />
       {questions.map((q, i) => (
         <div key={i} className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="flex items-center justify-between">
@@ -351,7 +500,21 @@ function AdminQuizEditor({ quizKey, saved, password }) {
               মুছুন
             </button>
           </div>
-          <input className={adminInput} placeholder="প্রশ্ন" value={q.q} onChange={(e) => update(i, { q: e.target.value })} />
+          <input className={adminInput} placeholder="প্রশ্ন (সমীকরণ লিখতে $x^2$ এভাবে)" value={q.q} onChange={(e) => update(i, { q: e.target.value })} />
+          {(hasMath(q.q) || q.options.some(hasMath) || hasMath(q.explain)) && (
+            <div className="space-y-1 rounded-xl bg-slate-950/70 p-3 text-xs text-slate-200">
+              <div className="text-[10px] font-bold text-slate-500">সাইটে যেমন দেখাবে</div>
+              <div className="font-bold"><MathText text={q.q} /></div>
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {q.options.map((o, oi) => (
+                  <div key={oi} className={q.answer === oi ? 'text-emerald-300' : ''}>
+                    {['ক', 'খ', 'গ', 'ঘ'][oi]}) <MathText text={o} />
+                  </div>
+                ))}
+              </div>
+              {q.explain && <div className="text-slate-400">💡 <MathText text={q.explain} /></div>}
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {q.options.map((o, oi) => (
               <label key={oi} className="flex items-center gap-2">
@@ -611,6 +774,7 @@ function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginState, setLoginState] = useState('idle');
   const [tab, setTab] = useState('lectures');
+  const [quizLecture, setQuizLecture] = useState('');
   // The public feed only has free lectures; the admin loads every lecture's links after logging in.
   const [allLectures, setAllLectures] = useState(null);
   const [scriptOutdated, setScriptOutdated] = useState(false);
@@ -813,7 +977,25 @@ function AdminPage() {
       {tab === 'quiz' && (
         <div className="space-y-4">
           {pickers}
-          <AdminQuizEditor key={chapter.quizKey} quizKey={chapter.quizKey} saved={(content.quiz && content.quiz[chapter.quizKey]) || []} password={password} />
+          {(() => {
+            const target = chapter.lectures.some((l) => l.key === quizLecture) ? quizLecture : chapter.quizKey;
+            const count = (k) => ((content.quiz && content.quiz[k]) || []).length;
+            return (
+              <>
+                <select className={adminInput} value={target} onChange={(e) => setQuizLecture(e.target.value === chapter.quizKey ? '' : e.target.value)}>
+                  <option value={chapter.quizKey}>
+                    পুরো অধ্যায়ের কুইজ{count(chapter.quizKey) ? ` ✓ (${toBnDigits(count(chapter.quizKey))}টি)` : ''}, যে লেকচারে আলাদা কুইজ নেই সেখানে এটা দেখায়
+                  </option>
+                  {chapter.lectures.map((l) => (
+                    <option key={l.key} value={l.key}>
+                      {l.label}{count(l.key) ? ` ✓ (${toBnDigits(count(l.key))}টি)` : ' — কুইজ নেই'}
+                    </option>
+                  ))}
+                </select>
+                <AdminQuizEditor key={target} quizKey={target} saved={(content.quiz && content.quiz[target]) || []} password={password} />
+              </>
+            );
+          })()}
         </div>
       )}
 
