@@ -113,6 +113,8 @@ To show a review on the site, open the ⭐ মতামত tab and paste the stu
 
 Each book in the 📖 বই tab has a "কভারের ছবি" box. "📷 ছবি আপলোড করুন" picks a picture from your phone or computer; the page shrinks it (longest side 900px) and saves it to a Google Drive folder named "10takaschool book covers", shared as "anyone with the link can view", then saves the book. You can instead paste a picture link: a Google Drive share link (the file must be shared as "anyone with the link") or any https picture link. "ছবি সরান" goes back to the colour and emoji cover. Upright (3:4) pictures look best.
 
+**If the upload fails ("আপলোড হয়নি"):** the script usually has not been allowed to use Google Drive yet (pasting new code and deploying does not ask for this). Fix it once: open the script in Apps Script, choose the function **authorizeDrive** in the toolbar dropdown, press **Run**, then **Review permissions → your account → Advanced → Go to … (unsafe) → Allow**. After that, **Deploy → Manage deployments → ✏️ → New version → Deploy**, reload the admin page and upload again. Until then you can paste a picture link instead.
+
 The first time you deploy this version, Google asks you to allow the script to use Google Drive: allow it, or uploads will fail (pasting a link still works).
 
 ## Home page (🏠 হোম tab)

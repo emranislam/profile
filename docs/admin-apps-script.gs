@@ -229,11 +229,23 @@ function saveCover_(body) {
   const ext = types[String(body.mime || '')];
   const data = String(body.data || '');
   if (!/^[A-Za-z0-9_-]{1,40}$/.test(key) || !ext || !data || data.length > 4000000) return { ok: false, error: 'bad-input' };
-  const it = DriveApp.getFoldersByName('10takaschool book covers');
-  const folder = it.hasNext() ? it.next() : DriveApp.createFolder('10takaschool book covers');
-  const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(data), String(body.mime), key + '-' + Date.now() + '.' + ext));
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return { ok: true, url: 'https://lh3.googleusercontent.com/d/' + file.getId() + '=w800' };
+  try {
+    const it = DriveApp.getFoldersByName('10takaschool book covers');
+    const folder = it.hasNext() ? it.next() : DriveApp.createFolder('10takaschool book covers');
+    const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(data), String(body.mime), key + '-' + Date.now() + '.' + ext));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return { ok: true, url: 'https://lh3.googleusercontent.com/d/' + file.getId() + '=w800' };
+  } catch (err) {
+    // Most often: the script has not been allowed to use Google Drive yet (run authorizeDrive once).
+    return { ok: false, error: 'drive-permission', detail: String(err && err.message).slice(0, 160) };
+  }
+}
+
+// Run this once from the Apps Script editor (select authorizeDrive, press Run, then Review permissions
+// and Allow). That gives the script permission to keep book cover pictures in your Google Drive.
+function authorizeDrive() {
+  DriveApp.getRootFolder();
+  Logger.log('Google Drive access is allowed.');
 }
 
 // Student reviews the owner copied from Facebook on the admin page (public, newest first).
