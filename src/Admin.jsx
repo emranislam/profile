@@ -1335,7 +1335,12 @@ function AdminBookCard({ item, password, onChanged }) {
       URL.revokeObjectURL(src);
       const data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
       adminPost(password, { action: 'uploadCover', key: item.key, mime: 'image/jpeg', data }).then((r) => {
-        if (!r.ok) return setUpload('আপলোড হয়নি। Apps Script নতুন version এ deploy করা আছে কি না দেখুন।');
+        if (!r.ok) {
+          if (r.error === 'drive-permission') return setUpload('Apps Script কে Google Drive ব্যবহারের অনুমতি দেওয়া হয়নি। Apps Script editor এ authorizeDrive ফাংশন বেছে Run করে Allow দিন, তারপর আবার চেষ্টা করুন।');
+          if (r.error === 'bad-input') return setUpload('ছবিটি নেওয়া গেল না। আরেকটি ছবি (JPG, PNG বা WebP) দিয়ে দেখুন।');
+          if (r.error === 'unknown-action') return setUpload('Apps Script এর পুরনো version চলছে। নতুন কোড paste করে Deploy → Manage deployments → New version দিন।');
+          return setUpload('আপলোড হয়নি, সার্ভার থেকে উত্তর আসেনি। প্রায়ই কারণ Google Drive এর অনুমতি: Apps Script editor এ authorizeDrive Run করে Allow দিন, তারপর New version Deploy করুন।');
+        }
         setUpload('');
         setF((x) => ({ ...x, image: r.url }));
         if (f.title.trim()) save(f.hidden, r.url);
