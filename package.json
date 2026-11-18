@@ -5,10 +5,12 @@
   "scripts": {
     "build:css": "tailwindcss -i src/index.css -o assets/app.css --minify",
     "build:js": "rm -rf assets/chunks && esbuild src/main.jsx --bundle --splitting --minify --format=esm --jsx=automatic --loader:.css=empty --define:process.env.NODE_ENV=\\\"production\\\" --entry-names=app --chunk-names=chunks/[name]-[hash] --outdir=assets",
-    "build": "npm run build:css && npm run build:js && npm run build:pages",
-    "build:pages": "node scripts/prerender.mjs"
+    "build": "npm run build:css && npm run build:katex && npm run build:js && npm run build:pages",
+    "build:pages": "node scripts/prerender.mjs",
+    "build:katex": "node scripts/copy-katex.mjs"
   },
   "dependencies": {
+    "katex": "^0.16.11",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
